@@ -1585,98 +1585,532 @@
       <!-- Dashboard Content Area -->
       <div class="dashboard-content-area">
         
-        <!-- Hero Banner: Active Event & Countdown -->
+        <!-- Event Selection Switcher (4 Flagship Events in 4 Distinct Stages) -->
+        <div class="participant-event-selector">
+          <div class="event-selector-header">
+            <div>
+              <span class="badge-pill badge-green font-mono" style="margin-bottom: 4px;">National IEEE Portals</span>
+              <h3 style="font-size: 1.4rem; font-weight: 800;">Select Registered Event to Manage Stage</h3>
+            </div>
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-mono);">
+              4 Events Active Across 4 Phases
+            </span>
+          </div>
+
+          <div class="event-selector-grid">
+            <!-- Event 1: Registration Stage -->
+            <div class="event-tab-card chamfer-card" data-event-id="aeroswarm">
+              <div class="event-tab-top">
+                <span class="event-stage-pill badge-green">Stage 1: Registration</span>
+                <span class="status-dot online"></span>
+              </div>
+              <div class="event-tab-name">AeroSwarm 2026: Drone Challenge</div>
+              <div class="event-tab-track">Track: Aerial Swarm &amp; Mesh Comms</div>
+              <div class="event-tab-timer-box">
+                <span class="event-tab-timer-label">Reg Closes In:</span>
+                <span class="event-tab-timer-value" id="timer-tab-aeroswarm">03d 14h 22m 10s</span>
+              </div>
+            </div>
+
+            <!-- Event 2: PPT Submission Stage -->
+            <div class="event-tab-card chamfer-card" data-event-id="robodesign">
+              <div class="event-tab-top">
+                <span class="event-stage-pill badge-blue">Stage 2: PPT Submission</span>
+                <span class="status-dot online"></span>
+              </div>
+              <div class="event-tab-name">RoboDesign Sprint: Mars Manipulator</div>
+              <div class="event-tab-track">Track: 3D CAD, FEA &amp; Kinematics</div>
+              <div class="event-tab-timer-box">
+                <span class="event-tab-timer-label">PPT Deadline In:</span>
+                <span class="event-tab-timer-value" id="timer-tab-robodesign">01d 08h 35m 18s</span>
+              </div>
+            </div>
+
+            <!-- Event 3: Hackathon Stage (Active by Default) -->
+            <div class="event-tab-card chamfer-card active" data-event-id="robohack">
+              <div class="event-tab-top">
+                <span class="event-stage-pill badge-green">Stage 3: Live Hackathon</span>
+                <span class="status-dot online" style="animation: pulseDot 1.5s infinite;"></span>
+              </div>
+              <div class="event-tab-name">RoboHack 2026: Autonomous Robotics</div>
+              <div class="event-tab-track">Track: AMR, ROS2 &amp; LiDAR SLAM</div>
+              <div class="event-tab-timer-box">
+                <span class="event-tab-timer-label">Code Freeze In:</span>
+                <span class="event-tab-timer-value" id="timer-tab-robohack">12:45:30</span>
+              </div>
+            </div>
+
+            <!-- Event 4: Results Stage -->
+            <div class="event-tab-card chamfer-card" data-event-id="battlebots">
+              <div class="event-tab-top">
+                <span class="event-stage-pill badge-purple">Stage 4: Results &amp; Awards</span>
+                <span class="status-dot" style="background: var(--accent-purple);"></span>
+              </div>
+              <div class="event-tab-name">BattleBots Arena: Championship</div>
+              <div class="event-tab-track">Track: 15kg Heavyweight Combat</div>
+              <div class="event-tab-timer-box">
+                <span class="event-tab-timer-label">Final Status:</span>
+                <span class="event-tab-timer-value" style="color: var(--accent-purple);" id="timer-tab-battlebots">Concluded ✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Hero Banner for Selected Event -->
         <div class="event-hero-banner chamfer-card">
           <div class="event-banner-left">
-            <span class="badge-pill badge-green">LIVE NATIONAL HACKATHON</span>
-            <h2 style="font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 800;">RoboHack 2026: Autonomous Robotics & AI Challenge</h2>
-            <p style="color: var(--text-secondary); max-width: 600px;">
-              Team Alpha • Track: Autonomous Mobile Robots (AMR) • Venue: Tech Quad & Computing Labs
+            <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+              <span class="badge-pill badge-green" id="hero-event-badge">STAGE 3: LIVE NATIONAL HACKATHON</span>
+              <span class="badge-pill badge-blue font-mono" id="hero-prize-pool">₹1,50,000 Cash Prize Pool</span>
+            </div>
+            <h2 id="hero-event-title" style="font-size: clamp(1.6rem, 2.8vw, 2.3rem); font-weight: 800;">
+              RoboHack 2026: Autonomous Robotics &amp; AI Challenge
+            </h2>
+            <p id="hero-event-desc" style="color: var(--text-secondary); max-width: 650px; font-size: 0.92rem; line-height: 1.5;">
+              Team Alpha • Track: Autonomous Mobile Robots (AMR) • Venue: Tech Quad &amp; Computing Labs
             </p>
           </div>
 
           <div class="event-countdown-wrapper">
-            <span class="countdown-label">HACKATHON SUBMISSION TIMER</span>
+            <span class="countdown-label" id="hero-countdown-label">HACKATHON CODE FREEZE TIMER</span>
             <div class="countdown-digits" id="event-countdown-timer">12:45:30</div>
             <span class="badge-pill badge-blue font-mono" style="font-size: 0.72rem;">SERVER TIME: UTC+05:30</span>
           </div>
         </div>
 
-        <!-- Interactive Event Timeline (Stepped Progress Bar) -->
+        <!-- Interactive Stepped Milestone Timeline (Dynamic per Event Stage) -->
         <div class="timeline-card glass-panel chamfer-card">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="font-size: 1.2rem;">Interactive Event Timeline</h3>
-            <span class="badge-pill badge-green">Phase 3 in Progress</span>
+            <h3 style="font-size: 1.2rem;">Stage Milestone Tracker</h3>
+            <span class="badge-pill badge-green" id="timeline-stage-summary">Phase 3 in Progress</span>
           </div>
 
           <div class="timeline-tracker">
             <div class="timeline-line-track"></div>
-            <div class="timeline-line-progress"></div>
+            <div class="timeline-line-progress" id="timeline-progress-bar" style="width: 75%;"></div>
 
             <!-- Node 1: Registration -->
-            <div class="milestone-node completed">
+            <div class="milestone-node completed" id="node-step-1">
               <div class="node-icon-bubble">✓</div>
               <div class="node-label">Registration</div>
-              <div class="node-status-caption">Verified Oct 12</div>
+              <div class="node-status-caption" id="node-caption-1">Stage 1</div>
             </div>
 
-            <!-- Node 2: Speaker Sessions -->
-            <div class="milestone-node completed">
+            <!-- Node 2: PPT Submission -->
+            <div class="milestone-node completed" id="node-step-2">
               <div class="node-icon-bubble">✓</div>
-              <div class="node-label">Speaker Sessions</div>
-              <div class="node-status-caption">Completed Oct 24</div>
+              <div class="node-label">PPT Submission</div>
+              <div class="node-status-caption" id="node-caption-2">Stage 2</div>
             </div>
 
             <!-- Node 3: Hacking Phase -->
-            <div class="milestone-node active">
+            <div class="milestone-node active" id="node-step-3">
               <div class="node-icon-bubble">⚡</div>
-              <div class="node-label" style="color: #00B4D8;">Hacking Phase</div>
-              <div class="node-status-caption" style="color: #00B4D8;">Active Now</div>
+              <div class="node-label">Live Hackathon</div>
+              <div class="node-status-caption" id="node-caption-3">Stage 3</div>
             </div>
 
-            <!-- Node 4: Submission Deadline -->
-            <div class="milestone-node">
-              <div class="node-icon-bubble">⏳</div>
-              <div class="node-label" style="color: var(--text-muted);">Submission Deadline</div>
-              <div class="node-status-caption">Closing Soon</div>
+            <!-- Node 4: Results & Awards -->
+            <div class="milestone-node" id="node-step-4">
+              <div class="node-icon-bubble">🏆</div>
+              <div class="node-label">Results &amp; Awards</div>
+              <div class="node-status-caption" id="node-caption-4">Stage 4</div>
             </div>
           </div>
         </div>
 
-        <!-- Submission Gateway Card -->
-        <div class="submission-card glass-panel chamfer-card">
-          <div>
-            <h3 style="font-size: 1.25rem; margin-bottom: 0.3rem;">Project Submission Gateway</h3>
-            <p style="color: var(--text-secondary); font-size: 0.9rem;">
-              Submit your team's code repository link, demo video link, and final pitch deck presentation (PPT / PDF / ZIP).
-            </p>
-          </div>
-
-          <input type="file" id="submission-file-input" style="display: none;" accept=".zip,.pdf,.pptx,.tar.gz">
-
-          <div class="dropzone-container" id="submission-dropzone">
-            <div class="dropzone-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            </div>
-            <div style="font-weight: 600; font-size: 1.1rem;">
-              Drag and drop your project PPT, Demo Video, or Code ZIP here
-            </div>
-            <div style="font-size: 0.85rem; color: var(--text-muted);">
-              Supports PPTX, PDF, ZIP, MP4 up to 500MB • Or click to browse files
-            </div>
-          </div>
-
-          <!-- Upload Status & Live Progress Bar -->
-          <div class="upload-status-box">
-            <div class="upload-meta-row">
-              <div style="display: flex; align-items: center; gap: 0.6rem;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-primary);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                <span id="upload-file-name" style="font-weight: 600;">team_alpha_presentation.pptx</span>
+        <!-- ==================================================================
+             STAGE 1 PANEL: REGISTRATION OPTIONS (For AeroSwarm 2026)
+             ================================================================== -->
+        <div class="stage-panel" id="stage-panel-registration">
+          <div class="reg-grid-layout">
+            <!-- Team Registration Form -->
+            <div class="reg-form-card glass-panel chamfer-card">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <h3 style="font-size: 1.25rem; font-weight: 700;">Team Registration &amp; Track Selection</h3>
+                  <span style="font-size: 0.8rem; color: var(--text-muted);">Configure team roster and hardware allocations</span>
+                </div>
+                <span class="badge-pill badge-green">Open Round</span>
               </div>
-              <span id="upload-progress-percent" class="font-mono" style="color: var(--accent-primary); font-weight: 600;">75%</span>
+
+              <form id="form-team-registration" style="display: flex; flex-direction: column; gap: 1.2rem;">
+                <div class="reg-form-group">
+                  <label class="reg-form-label">Team Name</label>
+                  <input type="text" class="reg-form-input" id="reg-team-name" value="Team AeroValkyrie" required />
+                </div>
+
+                <div class="reg-form-group">
+                  <label class="reg-form-label">Team Leader (You)</label>
+                  <input type="text" class="reg-form-input" value="Satyajit R (satyajit@vitstudent.ac.in)" readonly style="opacity: 0.85;" />
+                </div>
+
+                <div class="reg-form-group">
+                  <label class="reg-form-label">Team Member Emails (Max 4)</label>
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <input type="email" class="reg-form-input" placeholder="Member 2: rohan.v@vitstudent.ac.in" value="rohan.v@vitstudent.ac.in" />
+                    <input type="email" class="reg-form-input" placeholder="Member 3: ananya.s@vitstudent.ac.in" value="ananya.s@vitstudent.ac.in" />
+                    <input type="email" class="reg-form-input" placeholder="Member 4: kavya.p@vitstudent.ac.in" />
+                  </div>
+                </div>
+
+                <div class="reg-form-group">
+                  <label class="reg-form-label">Select Technical Track</label>
+                  <div class="reg-track-pills">
+                    <button type="button" class="reg-track-btn active" data-track="mesh">Decentralized Swarm Mesh (ESP-NOW)</button>
+                    <button type="button" class="reg-track-btn" data-track="vision">Optical Flow &amp; UWB Ranging</button>
+                    <button type="button" class="reg-track-btn" data-track="px4">Autonomous Formation Flight</button>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.4rem;">
+                  <input type="checkbox" id="check-kit" checked style="accent-color: var(--accent-primary); width: 16px; height: 16px;" />
+                  <label for="check-kit">Request IEEE RAS Hardware Dev-Kit (4x ESP32-S3 + Decawave UWB)</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary chamfer-btn" style="padding: 0.7rem; font-size: 0.92rem; margin-top: 0.5rem;">
+                  Confirm Team Registration
+                </button>
+              </form>
             </div>
-            <div class="progress-track">
-              <div class="progress-fill" id="upload-progress-bar" style="width: 75%;"></div>
+
+            <!-- Team Invite & Rulebook Info -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+              <div class="glass-panel chamfer-card" style="padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem;">
+                <h4 style="font-size: 1.1rem; font-weight: 700;">Team Invite Code</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+                  Share this code with teammates on the Participant Portal so they can link directly into your team roster.
+                </p>
+                <div class="invite-code-box">
+                  <span style="font-weight: 700; color: var(--accent-primary);" id="reg-invite-code">AERO-9281-VIT</span>
+                  <button class="btn btn-secondary chamfer-btn" id="btn-copy-invite" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">
+                    Copy Code
+                  </button>
+                </div>
+              </div>
+
+              <div class="glass-panel chamfer-card" style="padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem;">
+                <h4 style="font-size: 1.1rem; font-weight: 700;">Registration Assets</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                  <button class="btn btn-secondary chamfer-btn" style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.9rem; font-size: 0.82rem;" onclick="alert('Downloading AeroSwarm Official Rulebook PDF (v1.2)...')">
+                    <span>📄 Download Rulebook PDF</span>
+                    <span class="badge-pill badge-green font-mono" style="font-size: 0.65rem;">v1.2</span>
+                  </button>
+                  <button class="btn btn-secondary chamfer-btn" style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.9rem; font-size: 0.82rem;" onclick="alert('Redirecting to Discord Swarm Discussion Room...')">
+                    <span>💬 Join Discord Swarm Track</span>
+                    <span class="badge-pill badge-blue font-mono" style="font-size: 0.65rem;">420+ Online</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================================================================
+             STAGE 2 PANEL: PPT SUBMISSION OPTIONS (For RoboDesign Sprint)
+             ================================================================== -->
+        <div class="stage-panel" id="stage-panel-ppt">
+          <div class="ppt-grid-layout">
+            <!-- Pitch Deck & Abstract Upload Card -->
+            <div class="glass-panel chamfer-card" style="padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <h3 style="font-size: 1.25rem; font-weight: 700;">Abstract &amp; Pitch Deck Submission</h3>
+                  <span style="font-size: 0.8rem; color: var(--text-muted);">Round 1 Evaluation: Design concept &amp; kinematics feasibility</span>
+                </div>
+                <span class="badge-pill badge-blue font-mono">Closing in 32h</span>
+              </div>
+
+              <div class="reg-form-group">
+                <label class="reg-form-label">Chosen Problem Statement</label>
+                <select class="reg-form-input" id="ppt-ps-select">
+                  <option value="ps1">PS-01: 5-DOF Rocker-Bogie Soil Sampling Manipulator Arm</option>
+                  <option value="ps2">PS-02: Compliant Soft-Gripper for Fragile Extraterrestrial Core Samples</option>
+                  <option value="ps3">PS-03: Ultra-Low Backlash Cycloidal Reducer for Martian Joint Actuation</option>
+                </select>
+              </div>
+
+              <div class="reg-form-group">
+                <label class="reg-form-label">Executive Abstract &amp; Mathematical Formulation (Max 300 words)</label>
+                <textarea class="reg-form-input" id="ppt-abstract-text" rows="4" style="resize: vertical; font-family: var(--font-body); font-size: 0.88rem; line-height: 1.5;" placeholder="Summarize your kinematic linkage design, joint DOF, motor torque calculations, and FEA stress safety factors...">The proposed 5-DOF manipulator utilizes custom cycloidal planetary reduction with inverse kinematics solved via Damped Least Squares (λ = 0.05) to eliminate wrist singularities during sample acquisition. Ansys structural FEA on CNC 6061-T6 aluminum links guarantees safety factor > 2.4 under 1.5g acceleration loads.</textarea>
+              </div>
+
+              <!-- PPT Drag & Drop Dropzone -->
+              <input type="file" id="ppt-file-input" style="display: none;" accept=".pptx,.pdf,.zip" />
+              <div class="dropzone-container" id="ppt-dropzone" style="padding: 2rem;">
+                <div class="dropzone-icon" style="width: 52px; height: 52px; font-size: 1.4rem;">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </div>
+                <div style="font-weight: 600; font-size: 0.98rem;">Drag &amp; drop your PPTX Pitch Deck or PDF Abstract here</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">PPTX or PDF up to 100MB • Click to browse file</div>
+              </div>
+
+              <!-- PPT Upload Progress -->
+              <div class="upload-status-box" id="ppt-upload-status">
+                <div class="upload-meta-row">
+                  <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-primary);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    <span id="ppt-file-name" style="font-weight: 600;">robodesign_arm_pitch_deck.pptx</span>
+                  </div>
+                  <span id="ppt-progress-percent" class="font-mono" style="color: var(--accent-primary); font-weight: 600;">100% (Ready ✓)</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" id="ppt-progress-bar" style="width: 100%;"></div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary chamfer-btn" id="btn-submit-ppt" style="padding: 0.75rem; font-size: 0.95rem;">
+                Submit Pitch Deck &amp; Lock Abstract
+              </button>
+            </div>
+
+            <!-- Rubric & Template Download Card -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+              <div class="rubric-card glass-panel chamfer-card">
+                <h4 style="font-size: 1.1rem; font-weight: 700;">Evaluation Rubric (Round 1)</h4>
+                
+                <div class="rubric-criteria-row">
+                  <div class="rubric-meta-row">
+                    <span>Kinematics &amp; FEA Simulation</span>
+                    <span class="font-mono" style="color: var(--accent-primary);">30%</span>
+                  </div>
+                  <div class="rubric-progress-track">
+                    <div class="rubric-progress-fill" style="width: 30%;"></div>
+                  </div>
+                </div>
+
+                <div class="rubric-criteria-row">
+                  <div class="rubric-meta-row">
+                    <span>Motor Sizing &amp; Driver BOM Feasibility</span>
+                    <span class="font-mono" style="color: var(--accent-blue);">30%</span>
+                  </div>
+                  <div class="rubric-progress-track">
+                    <div class="rubric-progress-fill" style="width: 30%; background: var(--accent-blue);"></div>
+                  </div>
+                </div>
+
+                <div class="rubric-criteria-row">
+                  <div class="rubric-meta-row">
+                    <span>Innovation &amp; Payload-to-Mass Ratio</span>
+                    <span class="font-mono" style="color: #9d4edd);">40%</span>
+                  </div>
+                  <div class="rubric-progress-track">
+                    <div class="rubric-progress-fill" style="width: 40%; background: #9d4edd;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="template-download-card chamfer-card">
+                <div style="font-size: 2rem;">📊</div>
+                <div style="flex-grow: 1;">
+                  <div style="font-weight: 700; font-size: 0.92rem;">Official Pitch Deck Template</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">IEEE_RAS_Pitch_Template.pptx • 4.8 MB</div>
+                </div>
+                <button class="btn btn-secondary chamfer-btn" style="padding: 0.45rem 0.8rem; font-size: 0.78rem;" onclick="alert('Downloading IEEE RAS Official Pitch Deck Template (.pptx)...')">
+                  Download
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================================================================
+             STAGE 3 PANEL: LIVE HACKATHON OPTIONS (For RoboHack 2026 - Default)
+             ================================================================== -->
+        <div class="stage-panel active" id="stage-panel-hackathon">
+          <div class="hackathon-grid-layout">
+            <!-- Project Submission Gateway -->
+            <div class="submission-card glass-panel chamfer-card">
+              <div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.3rem;">Project Submission Gateway</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                  Submit your team's code repository link, demo video link, and final pitch deck presentation (PPT / PDF / ZIP).
+                </p>
+              </div>
+
+              <!-- GitHub Repo URL Verification Box -->
+              <div class="reg-form-group">
+                <label class="reg-form-label">Team GitHub Repository Link</label>
+                <div class="repo-verify-row">
+                  <input type="url" class="reg-form-input" id="hackathon-repo-url" value="https://github.com/team-alpha/roborover-slam-nav2" style="flex-grow: 1;" />
+                  <button class="btn btn-secondary chamfer-btn" id="btn-verify-repo" style="padding: 0.55rem 0.9rem; font-size: 0.82rem; white-space: nowrap;">
+                    Verify Branch
+                  </button>
+                </div>
+                <span id="repo-verify-feedback" style="font-size: 0.75rem; color: var(--accent-primary); font-family: var(--font-mono);">
+                  ✓ Repository connected • Branch: main • Commit: a82f91b (45m ago)
+                </span>
+              </div>
+
+              <input type="file" id="submission-file-input" style="display: none;" accept=".zip,.pdf,.pptx,.tar.gz" />
+
+              <div class="dropzone-container" id="submission-dropzone">
+                <div class="dropzone-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </div>
+                <div style="font-weight: 600; font-size: 1.1rem;">
+                  Drag and drop your project PPT, Demo Video, or Code ZIP here
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">
+                  Supports PPTX, PDF, ZIP, MP4 up to 500MB • Or click to browse files
+                </div>
+              </div>
+
+              <!-- Upload Status & Live Progress Bar -->
+              <div class="upload-status-box">
+                <div class="upload-meta-row">
+                  <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-primary);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    <span id="upload-file-name" style="font-weight: 600;">team_alpha_presentation.pptx</span>
+                  </div>
+                  <span id="upload-progress-percent" class="font-mono" style="color: var(--accent-primary); font-weight: 600;">75%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" id="upload-progress-bar" style="width: 75%;"></div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary chamfer-btn" id="btn-submit-hackathon" style="padding: 0.75rem; font-size: 0.95rem;">
+                Lock &amp; Submit Final Hackathon Solution
+              </button>
+            </div>
+
+            <!-- Mentor Ticket & Announcements Column -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+              <!-- Live Mentor Support Ticket Box -->
+              <div class="mentor-ticket-box glass-panel chamfer-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <h4 style="font-size: 1.1rem; font-weight: 700;">Request Technical Mentor</h4>
+                  <span class="badge-pill badge-green" style="font-size: 0.65rem;">6 Mentors Active</span>
+                </div>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4;">
+                  Need assistance debugging CAN-FD packet latency, ROS2 Humble transform trees, or Jetson CUDA kernels? Dispatch a mentor ticket directly to your lab bench.
+                </p>
+                <div class="reg-form-group">
+                  <label class="reg-form-label">Domain Expertise Needed</label>
+                  <select class="reg-form-input" id="mentor-domain-select">
+                    <option value="slam">ROS2 Nav2 &amp; 3D LiDAR SLAM</option>
+                    <option value="hardware">STM32 Microcontrollers &amp; CAN-FD Bus</option>
+                    <option value="vision">YOLOv10 TensorRT &amp; Stereo Depth Perception</option>
+                    <option value="power">LiFePO4 BMS &amp; High-Current Motor Drivers</option>
+                  </select>
+                </div>
+                <button class="btn btn-secondary chamfer-btn" id="btn-request-mentor" style="padding: 0.6rem; font-size: 0.85rem;">
+                  ⚡ Request Mentor Help
+                </button>
+              </div>
+
+              <!-- Live Broadcast Feed Box -->
+              <div class="announcement-feed-box glass-panel chamfer-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <h4 style="font-size: 1.05rem; font-weight: 700;">Hackathon Announcements</h4>
+                  <span class="status-dot online"></span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <div class="announcement-item-row">
+                    <span style="color: var(--accent-primary); font-weight: 700; font-family: var(--font-mono); font-size: 0.75rem;">15:30</span>
+                    <span style="color: var(--text-primary);">Tech Quad Obstacle Course arena opens for autonomous calibration runs.</span>
+                  </div>
+                  <div class="announcement-item-row">
+                    <span style="color: var(--accent-primary); font-weight: 700; font-family: var(--font-mono); font-size: 0.75rem;">13:00</span>
+                    <span style="color: var(--text-primary);">Mid-evaluation scores published to team dashboards. Top 8 advance to finals.</span>
+                  </div>
+                  <div class="announcement-item-row">
+                    <span style="color: var(--accent-primary); font-weight: 700; font-family: var(--font-mono); font-size: 0.75rem;">09:00</span>
+                    <span style="color: var(--text-primary);">36-Hour Hackathon officially flagged off by Chapter Faculty Advisor.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================================================================
+             STAGE 4 PANEL: RESULTS & AWARDS (For BattleBots Arena)
+             ================================================================== -->
+        <div class="stage-panel" id="stage-panel-results">
+          <div class="results-container">
+            <!-- Podium Grid -->
+            <div>
+              <div style="text-align: center; margin-bottom: 1.8rem;">
+                <span class="badge-pill badge-purple font-mono" style="margin-bottom: 0.4rem;">Official National Standings</span>
+                <h3 style="font-size: 1.8rem; font-weight: 800;">BattleBots Arena 2025 Championship Podium</h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem;">Verified telemetry scores and judge consensus</p>
+              </div>
+
+              <div class="podium-showcase-grid">
+                <!-- 2nd Place: Quantum Crush (Your Team) -->
+                <div class="podium-column podium-silver chamfer-card">
+                  <div class="podium-rank-badge" style="background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 2px solid #94a3b8;">2</div>
+                  <span class="badge-pill badge-blue font-mono" style="font-size: 0.68rem;">Your Team</span>
+                  <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary);">Team Quantum Crush</div>
+                  <div style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-blue); font-weight: 700;">Score: 96.2 / 100</div>
+                  <div style="font-size: 0.82rem; color: var(--text-muted);">Silver Medal + ₹30,000 Cash</div>
+                  <button class="btn btn-primary chamfer-btn btn-view-cert" data-cert-name="BattleBots Arena 2025 - 1st Runner Up" data-recipient="R Satyajit" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; margin-top: 0.5rem;">
+                    Download Certificate PDF
+                  </button>
+                </div>
+
+                <!-- 1st Place: Apex Kinetic -->
+                <div class="podium-column podium-gold chamfer-card">
+                  <div style="font-size: 2rem; margin-bottom: -6px;">👑</div>
+                  <div class="podium-rank-badge" style="background: rgba(255, 183, 3, 0.25); color: #ffb703; border: 2px solid #ffb703; width: 60px; height: 60px; font-size: 1.8rem;">1</div>
+                  <span class="badge-pill badge-green font-mono" style="font-size: 0.68rem;">Grand Champions</span>
+                  <div style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary);">Team Apex Kinetic</div>
+                  <div style="font-family: var(--font-mono); font-size: 0.95rem; color: #ffb703; font-weight: 700;">Score: 98.6 / 100</div>
+                  <div style="font-size: 0.85rem; color: var(--text-muted);">National IEEE Trophy + ₹50,000 Cash</div>
+                  <span class="badge-pill badge-green" style="font-size: 0.72rem; margin-top: 0.5rem;">Spin Kinetic Flywheel 8.4kJ</span>
+                </div>
+
+                <!-- 3rd Place: CyberVolt -->
+                <div class="podium-column podium-bronze chamfer-card">
+                  <div class="podium-rank-badge" style="background: rgba(180, 83, 9, 0.2); color: #f59e0b; border: 2px solid #b45309;">3</div>
+                  <span class="badge-pill badge-purple font-mono" style="font-size: 0.68rem;">Finalist</span>
+                  <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary);">Team CyberVolt</div>
+                  <div style="font-family: var(--font-mono); font-size: 0.85rem; color: #f59e0b; font-weight: 700;">Score: 94.1 / 100</div>
+                  <div style="font-size: 0.82rem; color: var(--text-muted);">Bronze Medal + ₹15,000 Cash</div>
+                  <span class="badge-pill badge-blue" style="font-size: 0.72rem; margin-top: 0.5rem;">Pneumatic Lifter Wedge</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scorecard & Review Box -->
+            <div class="scorecard-details-card glass-panel chamfer-card">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="font-size: 1.2rem; font-weight: 700;">Team Quantum Crush — Official Telemetry Scorecard</h4>
+                <span class="badge-pill badge-green">Verified by 4 National Judges</span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem;">
+                <div style="background: var(--surface-card); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                  <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">Kinetic Impact Energy</div>
+                  <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-primary);">10.0 / 10</div>
+                </div>
+                <div style="background: var(--surface-card); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                  <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">Hardox Armor Durability</div>
+                  <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-blue);">9.8 / 10</div>
+                </div>
+                <div style="background: var(--surface-card); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                  <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">Drive Agility &amp; Radio Latency</div>
+                  <div style="font-size: 1.4rem; font-weight: 800; color: #9d4edd;">9.5 / 10</div>
+                </div>
+              </div>
+
+              <div style="background: var(--surface-card); padding: 1.2rem; border-radius: 8px; border-left: 3px solid var(--accent-primary); font-size: 0.88rem; line-height: 1.5;">
+                <strong>Judges' Consensus Review:</strong> "Exceptional dual brushless spinner stabilization. The gyro-precession cancellation algorithm allowed rapid omnidirectional repositioning inside the steel hazard arena. Outstanding engineering execution."
+              </div>
+
+              <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+                <button class="btn btn-primary chamfer-btn btn-view-cert" data-cert-name="BattleBots Arena 2025 - 1st Runner Up" data-recipient="R Satyajit">
+                  Download Certificate of Merit PDF
+                </button>
+                <button class="btn btn-secondary chamfer-btn" onclick="alert('Downloading Detailed Scorecard Breakdown (PDF)...')">
+                  Download Detailed Scorecard
+                </button>
+                <button class="btn btn-secondary chamfer-btn" onclick="alert('Opening BattleBots Arena Final Match Video Highlights...')">
+                  View Match Video Highlights
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1685,7 +2119,7 @@
         <div>
           <div style="margin-bottom: 1.5rem;">
             <span class="badge-pill badge-green font-mono" style="margin-bottom: 0.5rem;">Verified Accreditations</span>
-            <h3 style="font-size: 1.6rem; font-weight: 800;">Your Achievements & Certificates</h3>
+            <h3 style="font-size: 1.6rem; font-weight: 800;">Your Achievements &amp; Certificates</h3>
             <p style="color: var(--text-secondary); font-size: 0.95rem;">Official IEEE RAS VIT Chennai blockchain-hashed cryptographic certificates of participation and merit.</p>
           </div>
 

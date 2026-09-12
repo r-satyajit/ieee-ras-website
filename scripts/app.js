@@ -848,59 +848,319 @@
   }
 
   /* ==========================================================================
-     PARTICIPANT PORTAL (SCREEN 4) INTERACTION
+     PARTICIPANT PORTAL (SCREEN 4) INTERACTION & MULTI-STAGE ENGINE
      ========================================================================== */
   function initParticipantPortal() {
-    // Countdown Timer Logic
-    const countdownDigits = document.getElementById('event-countdown-timer');
-
-    function updateCountdown() {
-      if (state.countdownSeconds <= 0) return;
-      state.countdownSeconds--;
-
-      const hours = Math.floor(state.countdownSeconds / 3600);
-      const minutes = Math.floor((state.countdownSeconds % 3600) / 60);
-      const seconds = state.countdownSeconds % 60;
-
-      const formatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      if (countdownDigits) {
-        countdownDigits.textContent = formatted;
+    // 4 Flagship Events in 4 Distinct Stages
+    const eventsData = {
+      'aeroswarm': {
+        id: 'aeroswarm',
+        title: 'AeroSwarm 2026: Autonomous Drone Swarm Challenge',
+        category: 'Aerial Robotics & Swarm Mesh',
+        teamDesc: 'Team AeroValkyrie • Track: Decentralized Swarm Mesh (ESP-NOW) • Venue: Outdoor Drone Cage',
+        stage: 'registration',
+        stageName: 'Stage 1: Team Registration Open',
+        stageBadge: 'STAGE 1: REGISTRATION OPEN',
+        badgeClass: 'badge-green',
+        timerLabel: 'REGISTRATION CLOSES IN',
+        countdownSeconds: 3 * 86400 + 14 * 3600 + 22 * 60 + 10,
+        progressPercent: 20,
+        nodeActiveIndex: 1,
+        prizePool: '₹1,00,000 Cash Prize Pool'
+      },
+      'robodesign': {
+        id: 'robodesign',
+        title: 'RoboDesign Sprint: Mars Rover Manipulator & Bionics',
+        category: '3D CAD, Kinematics & FEA Simulation',
+        teamDesc: 'Team Apex Robotics • Track: 5-DOF Soil Coring Manipulator • Mode: Virtual Evaluation',
+        stage: 'ppt',
+        stageName: 'Stage 2: PPT Submission Active',
+        stageBadge: 'STAGE 2: PPT SUBMISSION ACTIVE',
+        badgeClass: 'badge-blue',
+        timerLabel: 'ABSTRACT & PPT DEADLINE IN',
+        countdownSeconds: 1 * 86400 + 8 * 3600 + 35 * 60 + 18,
+        progressPercent: 48,
+        nodeActiveIndex: 2,
+        prizePool: '₹75,000 + Manufacturing Grants'
+      },
+      'robohack': {
+        id: 'robohack',
+        title: 'RoboHack 2026: Autonomous Robotics & AI Challenge',
+        category: 'AMR, ROS2 & LiDAR SLAM',
+        teamDesc: 'Team Alpha • Track: Autonomous Mobile Robots (AMR) • Venue: Tech Quad & Computing Labs',
+        stage: 'hackathon',
+        stageName: 'Stage 3: Live 36-Hour Hackathon',
+        stageBadge: 'STAGE 3: LIVE NATIONAL HACKATHON',
+        badgeClass: 'badge-green',
+        timerLabel: 'HACKATHON CODE FREEZE TIMER',
+        countdownSeconds: 12 * 3600 + 45 * 60 + 30,
+        progressPercent: 75,
+        nodeActiveIndex: 3,
+        prizePool: '₹1,50,000 Cash Prize Pool'
+      },
+      'battlebots': {
+        id: 'battlebots',
+        title: 'BattleBots Arena: National Combat Robotics Championship',
+        category: '15kg & 30kg Heavyweight Combat Bots',
+        teamDesc: 'Team Quantum Crush • Track: 15kg Spin Flywheel • Result: National 1st Runner Up (Score: 96.2/100)',
+        stage: 'results',
+        stageName: 'Stage 4: Results & Accreditations',
+        stageBadge: 'STAGE 4: RESULTS PUBLISHED',
+        badgeClass: 'badge-purple',
+        timerLabel: 'STATUS: CONCLUDED & ARCHIVED',
+        countdownSeconds: 0,
+        progressPercent: 100,
+        nodeActiveIndex: 4,
+        prizePool: '₹2,00,000 Prize Pool Awarded'
       }
+    };
+
+    let activeEventId = 'robohack';
+
+    // Elements
+    const eventCards = document.querySelectorAll('.event-tab-card[data-event-id]');
+    const heroTitle = document.getElementById('hero-event-title');
+    const heroDesc = document.getElementById('hero-event-desc');
+    const heroBadge = document.getElementById('hero-event-badge');
+    const heroPrize = document.getElementById('hero-prize-pool');
+    const heroTimerLabel = document.getElementById('hero-countdown-label');
+    const heroTimerDigits = document.getElementById('event-countdown-timer');
+    const timelineSummary = document.getElementById('timeline-stage-summary');
+    const timelineProgressBar = document.getElementById('timeline-progress-bar');
+
+    // Stage Panels
+    const panels = {
+      registration: document.getElementById('stage-panel-registration'),
+      ppt: document.getElementById('stage-panel-ppt'),
+      hackathon: document.getElementById('stage-panel-hackathon'),
+      results: document.getElementById('stage-panel-results')
+    };
+
+    // Helper: format duration
+    function formatTime(totalSec, showDays = false) {
+      if (totalSec <= 0) return '00:00:00';
+      const days = Math.floor(totalSec / 86400);
+      const hours = Math.floor((totalSec % 86400) / 3600);
+      const mins = Math.floor((totalSec % 3600) / 60);
+      const secs = totalSec % 60;
+
+      if (showDays || days > 0) {
+        return `${String(days).padStart(2, '0')}d ${String(hours).padStart(2, '0')}h ${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}s`;
+      }
+      return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }
 
-    setInterval(updateCountdown, 1000);
+    // Switch active event & stage
+    function switchEvent(eventId) {
+      const ev = eventsData[eventId];
+      if (!ev) return;
+      activeEventId = eventId;
 
-    // Submission Drag & Drop & Upload Simulation
+      // Update event selector cards
+      eventCards.forEach(c => c.classList.toggle('active', c.dataset.eventId === eventId));
+
+      // Update hero banner
+      if (heroTitle) heroTitle.textContent = ev.title;
+      if (heroDesc) heroDesc.textContent = ev.teamDesc;
+      if (heroBadge) {
+        heroBadge.textContent = ev.stageBadge;
+        heroBadge.className = `badge-pill ${ev.badgeClass}`;
+      }
+      if (heroPrize) heroPrize.textContent = ev.prizePool;
+      if (heroTimerLabel) heroTimerLabel.textContent = ev.timerLabel;
+
+      if (heroTimerDigits) {
+        heroTimerDigits.textContent = ev.countdownSeconds > 0 
+          ? formatTime(ev.countdownSeconds, ev.countdownSeconds > 86400) 
+          : '00:00:00 (Concluded)';
+      }
+
+      // Update timeline tracker
+      if (timelineSummary) timelineSummary.textContent = `${ev.stageName}`;
+      if (timelineProgressBar) timelineProgressBar.style.width = `${ev.progressPercent}%`;
+
+      // Update timeline nodes
+      for (let i = 1; i <= 4; i++) {
+        const node = document.getElementById(`node-step-${i}`);
+        if (!node) continue;
+        node.className = 'milestone-node';
+
+        if (i < ev.nodeActiveIndex) {
+          node.classList.add('completed');
+        } else if (i === ev.nodeActiveIndex) {
+          if (ev.nodeActiveIndex === 4 && ev.countdownSeconds === 0) {
+            node.classList.add('completed');
+          } else {
+            node.classList.add('active');
+          }
+        }
+      }
+
+      // Switch stage option panels
+      Object.entries(panels).forEach(([stageKey, panelElem]) => {
+        if (panelElem) {
+          panelElem.classList.toggle('active', stageKey === ev.stage);
+        }
+      });
+    }
+
+    // Attach click listeners to event tab cards
+    eventCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const eventId = card.dataset.eventId;
+        switchEvent(eventId);
+      });
+    });
+
+    // Multi-Event Countdown Timer Interval (runs simultaneously for all events)
+    setInterval(() => {
+      Object.keys(eventsData).forEach(key => {
+        const item = eventsData[key];
+        if (item.countdownSeconds > 0) {
+          item.countdownSeconds--;
+        }
+
+        // Update tab card timer display
+        const tabTimerElem = document.getElementById(`timer-tab-${key}`);
+        if (tabTimerElem) {
+          if (item.countdownSeconds > 0) {
+            tabTimerElem.textContent = formatTime(item.countdownSeconds, item.countdownSeconds > 86400);
+          } else {
+            tabTimerElem.textContent = 'Concluded ✓';
+          }
+        }
+
+        // Update hero timer if currently active
+        if (key === activeEventId && heroTimerDigits) {
+          heroTimerDigits.textContent = item.countdownSeconds > 0 
+            ? formatTime(item.countdownSeconds, item.countdownSeconds > 86400) 
+            : '00:00:00 (Concluded)';
+        }
+      });
+    }, 1000);
+
+    /* --- Stage 1 Options: Registration Interactions --- */
+    const formReg = document.getElementById('form-team-registration');
+    const copyInviteBtn = document.getElementById('btn-copy-invite');
+    const trackBtns = document.querySelectorAll('.reg-track-btn');
+
+    trackBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        trackBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    if (copyInviteBtn) {
+      copyInviteBtn.addEventListener('click', () => {
+        const code = document.getElementById('reg-invite-code')?.textContent || 'AERO-9281-VIT';
+        navigator.clipboard.writeText(code).then(() => {
+          copyInviteBtn.textContent = '✓ Copied!';
+          setTimeout(() => { copyInviteBtn.textContent = 'Copy Code'; }, 2000);
+        });
+      });
+    }
+
+    if (formReg) {
+      formReg.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const teamName = document.getElementById('reg-team-name')?.value || 'Team AeroValkyrie';
+        alert(`✓ Registration Confirmed for "${teamName}"!\nOfficial IEEE RAS Verification & Hardware Dev-Kit dispatch confirmation sent to your team.`);
+      });
+    }
+
+    /* --- Stage 2 Options: PPT & Abstract Interactions --- */
+    const pptDropzone = document.getElementById('ppt-dropzone');
+    const pptFileInput = document.getElementById('ppt-file-input');
+    const pptProgressBar = document.getElementById('ppt-progress-bar');
+    const pptProgressPercent = document.getElementById('ppt-progress-percent');
+    const pptFileName = document.getElementById('ppt-file-name');
+    const submitPptBtn = document.getElementById('btn-submit-ppt');
+
+    if (pptDropzone && pptFileInput) {
+      pptDropzone.addEventListener('click', () => pptFileInput.click());
+      pptDropzone.addEventListener('dragover', (e) => { e.preventDefault(); pptDropzone.classList.add('drag-over'); });
+      pptDropzone.addEventListener('dragleave', () => { pptDropzone.classList.remove('drag-over'); });
+      pptDropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        pptDropzone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length > 0) simulatePptUpload(e.dataTransfer.files[0].name);
+      });
+      pptFileInput.addEventListener('change', () => {
+        if (pptFileInput.files.length > 0) simulatePptUpload(pptFileInput.files[0].name);
+      });
+    }
+
+    function simulatePptUpload(name) {
+      if (pptFileName) pptFileName.textContent = name;
+      let p = 0;
+      if (pptProgressBar) pptProgressBar.style.width = '0%';
+      const timer = setInterval(() => {
+        p += 15;
+        if (p >= 100) {
+          p = 100;
+          clearInterval(timer);
+          if (pptProgressPercent) pptProgressPercent.textContent = '100% (Uploaded & Validated ✓)';
+        } else {
+          if (pptProgressPercent) pptProgressPercent.textContent = `${p}%`;
+        }
+        if (pptProgressBar) pptProgressBar.style.width = `${p}%`;
+      }, 100);
+    }
+
+    if (submitPptBtn) {
+      submitPptBtn.addEventListener('click', () => {
+        alert('✓ Pitch Deck & Kinematic Abstract successfully locked!\nSubmission ID: IEEE-RAS-RD26-8819\nYour submission is now queued for Round 1 FEA & Simulation evaluation.');
+      });
+    }
+
+    /* --- Stage 3 Options: Live Hackathon Interactions --- */
     const dropzone = document.getElementById('submission-dropzone');
     const fileInput = document.getElementById('submission-file-input');
     const uploadProgressBar = document.getElementById('upload-progress-bar');
     const uploadProgressPercent = document.getElementById('upload-progress-percent');
     const uploadFileName = document.getElementById('upload-file-name');
+    const verifyRepoBtn = document.getElementById('btn-verify-repo');
+    const submitHackathonBtn = document.getElementById('btn-submit-hackathon');
+    const requestMentorBtn = document.getElementById('btn-request-mentor');
+
+    if (verifyRepoBtn) {
+      verifyRepoBtn.addEventListener('click', () => {
+        const feedback = document.getElementById('repo-verify-feedback');
+        if (feedback) {
+          feedback.innerHTML = '<span style="color: var(--accent-primary);">⚡ Verifying GitHub webhook & main branch commit hashes...</span>';
+          setTimeout(() => {
+            feedback.innerHTML = '✓ Repository connected • Branch: main • Commit: a82f91b (Verified by CI runner ✓)';
+          }, 600);
+        }
+      });
+    }
+
+    if (requestMentorBtn) {
+      requestMentorBtn.addEventListener('click', () => {
+        const domainSelect = document.getElementById('mentor-domain-select');
+        const domain = domainSelect ? domainSelect.options[domainSelect.selectedIndex].text : 'Technical Mentor';
+        alert(`⚡ Mentor Request Dispatched!\nTopic: ${domain}\nLead Mentor Ananya Sharma has been notified and assigned to your lab workstation.`);
+      });
+    }
+
+    if (submitHackathonBtn) {
+      submitHackathonBtn.addEventListener('click', () => {
+        alert('🚀 Final Hackathon Solution Submitted!\nTeam Alpha repository link and demo video verified.\nYour team is scheduled for Jury Evaluation at 17:00 in Lab 3.');
+      });
+    }
 
     if (dropzone && fileInput) {
       dropzone.addEventListener('click', () => fileInput.click());
-
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('drag-over');
-      });
-
-      dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('drag-over');
-      });
-
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+      dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('drag-over'); });
       dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropzone.classList.remove('drag-over');
-        if (e.dataTransfer.files.length > 0) {
-          startUploadSimulation(e.dataTransfer.files[0].name);
-        }
+        if (e.dataTransfer.files.length > 0) startUploadSimulation(e.dataTransfer.files[0].name);
       });
-
       fileInput.addEventListener('change', () => {
-        if (fileInput.files.length > 0) {
-          startUploadSimulation(fileInput.files[0].name);
-        }
+        if (fileInput.files.length > 0) startUploadSimulation(fileInput.files[0].name);
       });
     }
 
@@ -925,14 +1185,14 @@
       }, 150);
     }
 
-    // Certificate Preview Modal
+    /* --- Stage 4 & General: Certificate Modal Preview --- */
     const viewCertButtons = document.querySelectorAll('.btn-view-cert');
     const closeCertBtn = document.getElementById('cert-modal-close');
 
     viewCertButtons.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        const certName = btn.dataset.certName || 'RoboWars 2025 Finalist';
+        const certName = btn.dataset.certName || 'BattleBots 2025 Finalist';
         const certRecipient = btn.dataset.recipient || 'R Satyajit';
         const certTitleElem = document.getElementById('cert-modal-title');
         const certRecipientElem = document.getElementById('cert-modal-recipient');
@@ -949,6 +1209,9 @@
         if (e.target === certModal) certModal.classList.remove('active');
       });
     }
+
+    // Set initial view to RoboHack
+    switchEvent('robohack');
   }
 
   // Utility to prevent XSS in chat
