@@ -393,23 +393,41 @@
       }
     }
 
-    // Role-based visibility: ONLY Club Leads see the Member Directory & Roles navigation and channel creation
+    // Role-based visibility:
+    // Every member can view the Member Directory & Society Roster!
     if (membersNav) {
-      membersNav.style.display = isLead ? 'flex' : 'none';
+      membersNav.style.display = 'flex';
+      const navBadge = membersNav.querySelector('.badge-pill');
+      if (navBadge) {
+        navBadge.textContent = isLead ? 'LEAD' : 'ROSTER';
+        navBadge.className = isLead ? 'badge-pill badge-green font-mono' : 'badge-pill badge-blue font-mono';
+      }
     }
     if (btnQuickManage) {
-      btnQuickManage.style.display = isLead ? 'inline-flex' : 'none';
+      btnQuickManage.style.display = 'inline-flex';
+      btnQuickManage.title = isLead ? 'Open Member Directory & Role Provisioning' : 'View Member Directory & Society Roster';
+      btnQuickManage.innerHTML = isLead
+        ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Manage Members`
+        : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Member Directory`;
     }
     if (btnOpenCreateChannel) {
       btnOpenCreateChannel.style.display = isLead ? 'inline-flex' : 'none';
     }
 
-    // If regular member is somehow on members view, redirect to chat immediately
-    const viewMembers = document.getElementById('member-view-members');
-    if (!isLead && viewMembers && viewMembers.classList.contains('active-view')) {
-      if (window.switchWorkspaceView) {
-        window.switchWorkspaceView('chat');
-      }
+    // Member view card states: Lead can provision new members; regular members have full view of the roster
+    const cardProvision = document.getElementById('card-provision-member');
+    if (cardProvision) {
+      cardProvision.style.display = isLead ? 'block' : 'none';
+    }
+
+    const dirBadge = document.getElementById('member-dir-badge');
+    if (dirBadge) {
+      dirBadge.textContent = isLead ? 'LEAD PRIVILEGE // CHAPTER ACCESS CONTROL' : 'CHAPTER DIRECTORY // ALL MEMBERS';
+    }
+
+    const dirTitle = document.getElementById('member-dir-title');
+    if (dirTitle) {
+      dirTitle.textContent = isLead ? 'Member Directory & Role Provisioning' : 'Society Member Directory';
     }
   }
 
@@ -2213,6 +2231,8 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       if (rosterCount) rosterCount.textContent = coreMembers.length;
       if (!rosterBody) return;
 
+      const isViewerLead = state.currentUser.role === 'club_lead';
+
       const roleOptions = [
         'Lead Architect',
         'Subsystem Lead (AI & Vision)',
@@ -2232,26 +2252,63 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         `).join('');
 
         const statusClass = (m.status || 'Active') === 'Online' || (m.status || 'Active') === 'Active' ? 'badge-green' : 'badge-blue';
+        const cleanGithub = (m.github || '').replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '').trim();
+        const cleanLinkedin = (m.linkedin || '').trim();
+        const fullLinkedin = cleanLinkedin.startsWith('http') ? cleanLinkedin : `https://linkedin.com/in/${cleanLinkedin.replace(/^@/, '')}`;
+
+        const avatarHtml = m.avatarUrl 
+          ? `<img src="${m.avatarUrl}" alt="${escapeHtml(m.name)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
+          : `<span>${initials}</span>`;
+
+        const roleCellContent = isViewerLead
+          ? `<select class="roster-role-select" data-member-id="${m.id}" title="Change assigned role (Lead action)">${optionsHtml}</select>`
+          : `<span class="badge-pill badge-purple font-mono" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;">${escapeHtml(m.role)}</span>`;
+
+        let actionCellContent = '';
+        if (isViewerLead) {
+          actionCellContent = `
+            <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary chamfer-btn btn-view-member-profile" data-view-member-id="${m.id}" style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-color: var(--accent-primary); color: var(--accent-primary);" title="View full profile of ${escapeHtml(m.name)}">
+                👁️ View Info
+              </button>
+              ${isSelfOrLead ? `
+                <span class="font-mono" style="font-size: 0.72rem; color: var(--text-muted);">Protected Lead</span>
+              ` : `
+                <button type="button" class="roster-revoke-btn" data-revoke-id="${m.id}">
+                  Revoke
+                </button>
+              `}
+            </div>
+          `;
+        } else {
+          actionCellContent = `
+            <button type="button" class="btn btn-secondary chamfer-btn btn-view-member-profile" data-view-member-id="${m.id}" style="padding: 0.25rem 0.85rem; font-size: 0.75rem; border-color: var(--accent-primary); color: var(--accent-primary); display: inline-flex; align-items: center; gap: 4px;" title="View ${escapeHtml(m.name)} info">
+              👁️ View Info
+            </button>
+          `;
+        }
 
         return `
           <tr data-member-id="${m.id}">
             <td>
               <div class="roster-member-cell">
-                <div class="roster-avatar font-mono">${initials}</div>
+                <div class="roster-avatar font-mono" style="cursor: pointer; width: 38px; height: 38px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--accent-primary); background: #0077b6; color: #fff; flex-shrink: 0;" data-view-member-id="${m.id}" title="Click to view info of ${escapeHtml(m.name)}">
+                  ${avatarHtml}
+                </div>
                 <div class="roster-info">
-                  <div class="roster-name">${escapeHtml(m.name)} ${isSelfOrLead ? '<span class="badge-pill badge-purple" style="font-size: 0.62rem; padding: 0.1rem 0.35rem; margin-left: 4px;">YOU / LEAD</span>' : ''}</div>
-                  <div class="roster-email font-mono">${escapeHtml(m.email)} • ID: ${m.id}</div>
+                  <div class="roster-name" style="cursor: pointer;" data-view-member-id="${m.id}" title="Click to view info of ${escapeHtml(m.name)}">
+                    ${escapeHtml(m.name)} ${isSelfOrLead ? '<span class="badge-pill badge-purple" style="font-size: 0.62rem; padding: 0.1rem 0.35rem; margin-left: 4px;">YOU / LEAD</span>' : ''}
+                  </div>
+                  <div class="roster-email font-mono" style="cursor: pointer;" data-view-member-id="${m.id}" title="Click to view info of ${escapeHtml(m.name)}">${escapeHtml(m.email)} • ID: ${m.id}</div>
                   <div class="roster-socials-row" style="display: flex; gap: 0.35rem; margin-top: 0.25rem; flex-wrap: wrap;">
-                    ${m.github ? `<a href="https://github.com/${escapeHtml(m.github.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, ''))}" target="_blank" class="badge-pill font-mono" style="font-size: 0.62rem; color: #00B4D8; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>@${escapeHtml(m.github.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, ''))}</a>` : ''}
-                    ${m.linkedin ? `<a href="${escapeHtml(m.linkedin.startsWith('http') ? m.linkedin : 'https://linkedin.com/in/' + m.linkedin.replace(/^@/, ''))}" target="_blank" class="badge-pill font-mono" style="font-size: 0.62rem; color: #0077B5; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>LinkedIn</a>` : ''}
+                    ${cleanGithub ? `<a href="https://github.com/${escapeHtml(cleanGithub)}" target="_blank" class="badge-pill font-mono" style="font-size: 0.62rem; color: #00B4D8; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;" title="GitHub: @${escapeHtml(cleanGithub)}"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>@${escapeHtml(cleanGithub)}</a>` : ''}
+                    ${cleanLinkedin ? `<a href="${escapeHtml(fullLinkedin)}" target="_blank" class="badge-pill font-mono" style="font-size: 0.62rem; color: #0077B5; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;" title="LinkedIn: ${escapeHtml(cleanLinkedin)}"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>LinkedIn</a>` : ''}
                   </div>
                 </div>
               </div>
             </td>
             <td>
-              <select class="roster-role-select" data-member-id="${m.id}" title="Change assigned role (Lead action)">
-                ${optionsHtml}
-              </select>
+              ${roleCellContent}
             </td>
             <td>
               <span class="roster-track font-mono">${escapeHtml(m.track || 'Autonomous Systems')}</span>
@@ -2260,17 +2317,20 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
               <span class="badge-pill ${statusClass}" style="font-size: 0.7rem;">${escapeHtml(m.status || 'Active')}</span>
             </td>
             <td>
-              ${isSelfOrLead ? `
-                <span class="font-mono" style="font-size: 0.75rem; color: var(--text-muted);">Protected Lead</span>
-              ` : `
-                <button type="button" class="roster-revoke-btn" data-revoke-id="${m.id}">
-                  Revoke Access
-                </button>
-              `}
+              ${actionCellContent}
             </td>
           </tr>
         `;
       }).join('');
+
+      // Wire view profile click listeners on table elements
+      rosterBody.querySelectorAll('[data-view-member-id]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          if (e.target.closest('a') || e.target.closest('select') || e.target.closest('.roster-revoke-btn')) return;
+          const memId = el.dataset.viewMemberId;
+          if (memId) openMemberPublicProfile(memId);
+        });
+      });
 
       // Dynamic Role Reassignment Listeners
       rosterBody.querySelectorAll('.roster-role-select').forEach(sel => {
@@ -2418,6 +2478,192 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         showGlobalToast(`GitHub Commit: "${msg}" (${meta})`, '🐙');
       });
     });
+
+    /* ------------------------------------------------------------------------
+       MEMBER PUBLIC PROFILE MODAL & INFO INSPECTION
+       ------------------------------------------------------------------------ */
+    function openMemberPublicProfile(memberId) {
+      const member = coreMembers.find(m => m.id === memberId || m.email.toLowerCase() === (memberId || '').toLowerCase());
+      if (!member) return;
+
+      const modal = document.getElementById('modal-member-public-profile');
+      const avatarEl = document.getElementById('member-pub-avatar');
+      const nameEl = document.getElementById('member-pub-name');
+      const roleEl = document.getElementById('member-pub-role');
+      const statusEl = document.getElementById('member-pub-status');
+      const trackEl = document.getElementById('member-pub-track');
+      const emailEl = document.getElementById('member-pub-email');
+      const githubLink = document.getElementById('member-pub-github-link');
+      const githubBadge = document.getElementById('member-pub-github-badge');
+      const linkedinLink = document.getElementById('member-pub-linkedin-link');
+      const linkedinBadge = document.getElementById('member-pub-linkedin-badge');
+      const commitsList = document.getElementById('member-pub-commits-list');
+
+      // Name & Status
+      if (nameEl) nameEl.textContent = member.name;
+      if (statusEl) {
+        statusEl.textContent = member.status || 'Active';
+        statusEl.className = `badge-pill ${(member.status || 'Active') === 'Offline' ? 'badge-muted' : 'badge-green'} font-mono`;
+      }
+
+      // Role & Track
+      if (roleEl) roleEl.textContent = member.role;
+      if (trackEl) trackEl.textContent = member.track || 'Robotics & Automation Track';
+
+      // Avatar
+      if (avatarEl) {
+        if (member.avatarUrl) {
+          avatarEl.innerHTML = `<img src="${member.avatarUrl}" alt="${escapeHtml(member.name)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        } else {
+          const initials = member.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'MB';
+          avatarEl.innerHTML = '';
+          avatarEl.textContent = initials;
+        }
+      }
+
+      // Mail ID
+      if (emailEl) {
+        emailEl.textContent = member.email;
+        emailEl.href = `mailto:${member.email}`;
+      }
+
+      // GitHub
+      const cleanGithub = (member.github || '').replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '').trim();
+      if (githubLink) {
+        if (cleanGithub) {
+          githubLink.textContent = `@${cleanGithub} ↗`;
+          githubLink.href = `https://github.com/${cleanGithub}`;
+          githubLink.style.pointerEvents = 'auto';
+          githubLink.style.opacity = '1';
+          if (githubBadge) {
+            githubBadge.textContent = 'CONNECTED';
+            githubBadge.className = 'badge-pill badge-green font-mono';
+          }
+        } else {
+          githubLink.textContent = 'Not Connected';
+          githubLink.href = '#';
+          githubLink.style.pointerEvents = 'none';
+          githubLink.style.opacity = '0.6';
+          if (githubBadge) {
+            githubBadge.textContent = 'NOT CONNECTED';
+            githubBadge.className = 'badge-pill font-mono';
+          }
+        }
+      }
+
+      // LinkedIn
+      const rawLinkedin = (member.linkedin || '').trim();
+      if (linkedinLink) {
+        if (rawLinkedin) {
+          const fullLinkedin = rawLinkedin.startsWith('http') ? rawLinkedin : `https://linkedin.com/in/${rawLinkedin.replace(/^@/, '')}`;
+          linkedinLink.textContent = `View Profile ↗`;
+          linkedinLink.href = fullLinkedin;
+          linkedinLink.style.pointerEvents = 'auto';
+          linkedinLink.style.opacity = '1';
+          if (linkedinBadge) {
+            linkedinBadge.textContent = 'CONNECTED';
+            linkedinBadge.className = 'badge-pill badge-blue font-mono';
+          }
+        } else {
+          linkedinLink.textContent = 'Not Connected';
+          linkedinLink.href = '#';
+          linkedinLink.style.pointerEvents = 'none';
+          linkedinLink.style.opacity = '0.6';
+          if (linkedinBadge) {
+            linkedinBadge.textContent = 'NOT CONNECTED';
+            linkedinBadge.className = 'badge-pill font-mono';
+          }
+        }
+      }
+
+      // Commits by this member
+      if (commitsList) {
+        const memberCommits = recentCommits.filter(c => 
+          (c.author && c.author.toLowerCase() === member.name.toLowerCase()) ||
+          (cleanGithub && c.github && c.github.toLowerCase() === cleanGithub.toLowerCase())
+        );
+        if (memberCommits.length > 0) {
+          commitsList.innerHTML = memberCommits.slice(0, 3).map(c => `
+            <li class="github-commit-item" style="padding: 0.4rem 0.6rem; margin-bottom: 0.35rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 6px;">
+              <div class="commit-icon">●</div>
+              <div class="commit-body">
+                <div class="commit-msg" style="font-size: 0.78rem;">${escapeHtml(c.msg)}</div>
+                <div class="commit-meta" style="font-size: 0.7rem;">
+                  <span>${escapeHtml(c.time || 'Recent')}</span> • 
+                  <span class="font-mono">#${escapeHtml(c.hash)}</span> • 
+                  <span style="color: var(--accent-primary);">@${escapeHtml(c.github || cleanGithub)}</span>
+                </div>
+              </div>
+            </li>
+          `).join('');
+        } else {
+          commitsList.innerHTML = `<li style="font-size: 0.76rem; color: var(--text-muted); padding: 0.4rem 0;">No recent commits pushed to main branch yet.</li>`;
+        }
+      }
+
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeMemberPublicProfile() {
+      const modal = document.getElementById('modal-member-public-profile');
+      if (modal) modal.classList.remove('active');
+    }
+
+    const btnClosePubProfile = document.getElementById('btn-close-member-public-profile');
+    const btnClosePubProfileFooter = document.getElementById('btn-close-pub-profile-footer');
+    const modalPubProfile = document.getElementById('modal-member-public-profile');
+
+    if (btnClosePubProfile) btnClosePubProfile.addEventListener('click', closeMemberPublicProfile);
+    if (btnClosePubProfileFooter) btnClosePubProfileFooter.addEventListener('click', closeMemberPublicProfile);
+    if (modalPubProfile) {
+      modalPubProfile.addEventListener('click', (e) => {
+        if (e.target === modalPubProfile) closeMemberPublicProfile();
+      });
+    }
+
+    const btnCopyEmail = document.getElementById('btn-copy-member-email');
+    if (btnCopyEmail) {
+      btnCopyEmail.addEventListener('click', () => {
+        const emailEl = document.getElementById('member-pub-email');
+        if (emailEl && emailEl.textContent) {
+          navigator.clipboard.writeText(emailEl.textContent).then(() => {
+            showGlobalToast(`Copied ${emailEl.textContent} to clipboard!`, '📋');
+          });
+        }
+      });
+    }
+
+    // Connect Chat Authors and Avatars to Public Profile Inspector
+    document.querySelectorAll('.msg-author, .msg-avatar').forEach(el => {
+      el.style.cursor = 'pointer';
+      el.title = 'Click to inspect member profile and socials';
+      el.addEventListener('click', () => {
+        const row = el.closest('.chat-msg-row');
+        const authorEl = row ? row.querySelector('.msg-author') : null;
+        const authorText = authorEl ? authorEl.textContent.trim() : '';
+        if (authorText) {
+          const found = coreMembers.find(m => m.name.toLowerCase() === authorText.toLowerCase());
+          if (found) openMemberPublicProfile(found.id);
+        }
+      });
+    });
+
+    // Connect Participant Avatar Stack in Chat Header
+    const avatarStack = document.querySelector('.participant-avatar-stack');
+    if (avatarStack) {
+      avatarStack.style.cursor = 'pointer';
+      avatarStack.title = 'Click to open Member Directory & view all member profiles';
+      avatarStack.addEventListener('click', () => {
+        switchWorkspaceView('members');
+      });
+    }
+
+    window.openMemberPublicProfile = openMemberPublicProfile;
+    window.closeMemberPublicProfile = closeMemberPublicProfile;
+    if (window.ieeeRas) {
+      window.ieeeRas.openMemberPublicProfile = openMemberPublicProfile;
+      window.ieeeRas.closeMemberPublicProfile = closeMemberPublicProfile;
+    }
 
     // Initialize Video Conferencing Suite
     initVideoMeetingSuite();
@@ -4356,7 +4602,8 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     saveParticipantAccounts,
     pushCodeCommit,
     renderRecentCommits,
-    getRecentCommits: () => recentCommits
+    getRecentCommits: () => recentCommits,
+    openMemberPublicProfile: (id) => window.openMemberPublicProfile && window.openMemberPublicProfile(id)
   };
 
 })();
