@@ -44,7 +44,8 @@
       email: 'satyajit.r2024@vitstudent.ac.in',
       role: 'club_lead', // 'club_lead' | 'regular_member'
       roleTitle: 'Lead Architect',
-      track: 'Autonomous Systems & ROS2 Navigation'
+      track: 'Autonomous Systems & ROS2 Navigation',
+      avatarUrl: null
     }
   };
 
@@ -126,6 +127,17 @@
     try {
       localStorage.setItem('ieee_ras_core_members', JSON.stringify(coreMembers));
     } catch (e) {}
+  }
+
+  // Sync initial state.currentUser with persistent member record if present
+  if (state.currentUser && state.currentUser.email) {
+    const matchedInitial = coreMembers.find(m => m.email.toLowerCase() === state.currentUser.email.toLowerCase());
+    if (matchedInitial) {
+      if (matchedInitial.name) state.currentUser.name = matchedInitial.name;
+      if (matchedInitial.track) state.currentUser.track = matchedInitial.track;
+      if (matchedInitial.role) state.currentUser.roleTitle = matchedInitial.role;
+      if (matchedInitial.avatarUrl) state.currentUser.avatarUrl = matchedInitial.avatarUrl;
+    }
   }
 
   // Pre-provisioned Event Participant Registry
@@ -234,8 +246,13 @@
       memberSidebarName.textContent = state.currentUser.name;
     }
     if (memberSidebarAvatar && state.currentUser.name) {
-      const initials = state.currentUser.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'SR';
-      memberSidebarAvatar.textContent = initials;
+      if (state.currentUser.avatarUrl) {
+        memberSidebarAvatar.innerHTML = `<img src="${state.currentUser.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+      } else {
+        const initials = state.currentUser.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'SR';
+        memberSidebarAvatar.innerHTML = '';
+        memberSidebarAvatar.textContent = initials;
+      }
     }
 
     // Role-based visibility: ONLY Club Leads see the Member Directory & Roles navigation and channel creation
@@ -329,8 +346,13 @@
       const pAvatar = document.getElementById('participant-user-avatar');
       if (pName) pName.textContent = state.currentUser.name;
       if (pAvatar) {
-        const initials = state.currentUser.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'PA';
-        pAvatar.textContent = initials;
+        if (state.currentUser.avatarUrl) {
+          pAvatar.innerHTML = `<img src="${state.currentUser.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        } else {
+          const initials = state.currentUser.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'PA';
+          pAvatar.innerHTML = '';
+          pAvatar.textContent = initials;
+        }
       }
     }
   }
@@ -459,7 +481,8 @@
           email: foundMember.email,
           role: isLead ? 'club_lead' : 'regular_member',
           roleTitle: foundMember.role,
-          track: foundMember.track || 'Robotics'
+          track: foundMember.track || 'Robotics',
+          avatarUrl: foundMember.avatarUrl || null
         };
 
         updateRoleUI();
@@ -527,7 +550,8 @@
           email: foundAccount.email,
           role: 'participant',
           roleTitle: foundAccount.roleTitle || 'Event Participant',
-          track: foundAccount.track || 'RoboHack 2026'
+          track: foundAccount.track || 'RoboHack 2026',
+          avatarUrl: foundAccount.avatarUrl || null
         };
 
         closeAuthModal();
@@ -559,7 +583,8 @@
           email: googleUser.email,
           role: 'participant',
           roleTitle: googleUser.roleTitle || 'Event Participant (Google SSO)',
-          track: googleUser.track || 'RoboHack 2026'
+          track: googleUser.track || 'RoboHack 2026',
+          avatarUrl: googleUser.avatarUrl || null
         };
         closeAuthModal();
         switchScreen('participant');
@@ -650,7 +675,8 @@
           email: email,
           role: 'participant',
           roleTitle: 'Registered Participant',
-          track: track
+          track: track,
+          avatarUrl: null
         };
 
         if (regAlertBox) {
@@ -3486,6 +3512,575 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     switchEvent('robohack');
   }
 
+  /* ==========================================================================
+     PROFILE SETTINGS, CREDENTIALS & SENSITIVE ACTION MANAGEMENT SUITE
+     ========================================================================== */
+  function initProfileSettingsSuite() {
+    const modalSettings = document.getElementById('modal-profile-settings');
+    const btnCloseSettings = document.getElementById('btn-close-profile-settings');
+    const btnOpenMemberSettings = document.getElementById('btn-open-member-profile-settings');
+    const btnOpenPartSettings = document.getElementById('btn-open-participant-profile-settings');
+
+    const tabBtns = document.querySelectorAll('.settings-tab-btn');
+    const panes = {
+      profile: document.getElementById('pane-settings-profile'),
+      security: document.getElementById('pane-settings-security'),
+      danger: document.getElementById('pane-settings-danger')
+    };
+
+    // Reusable Sensitive Action Warning Modal
+    const modalWarning = document.getElementById('modal-sensitive-action-warning');
+    const btnCancelWarning = document.getElementById('btn-cancel-warning-action');
+    const btnConfirmWarning = document.getElementById('btn-confirm-warning-action');
+    const warningTitle = document.getElementById('warning-modal-title');
+    const warningDesc = document.getElementById('warning-modal-desc');
+    const warningTarget = document.getElementById('warning-modal-target');
+
+    let pendingSensitiveAction = null;
+
+    function openSensitiveActionWarning({ title, desc, target, onConfirm }) {
+      if (warningTitle) warningTitle.textContent = title;
+      if (warningDesc) warningDesc.textContent = desc;
+      if (warningTarget) warningTarget.textContent = target;
+      pendingSensitiveAction = onConfirm;
+      if (modalWarning) modalWarning.classList.add('active');
+    }
+
+    function closeSensitiveActionWarning() {
+      if (modalWarning) modalWarning.classList.remove('active');
+      pendingSensitiveAction = null;
+    }
+
+    if (btnCancelWarning) {
+      btnCancelWarning.addEventListener('click', closeSensitiveActionWarning);
+    }
+    if (modalWarning) {
+      modalWarning.addEventListener('click', (e) => {
+        if (e.target === modalWarning) closeSensitiveActionWarning();
+      });
+    }
+    if (btnConfirmWarning) {
+      btnConfirmWarning.addEventListener('click', () => {
+        const actionToRun = pendingSensitiveAction;
+        closeSensitiveActionWarning();
+        if (typeof actionToRun === 'function') {
+          actionToRun();
+        }
+      });
+    }
+
+    // Successor Appointment Modal
+    const modalSuccessor = document.getElementById('modal-appoint-successor');
+    const formSuccessor = document.getElementById('form-appoint-successor');
+    const selectSuccessor = document.getElementById('select-successor-lead');
+    const btnCancelSuccessor = document.getElementById('btn-cancel-successor');
+
+    function closeSuccessorModal() {
+      if (modalSuccessor) modalSuccessor.classList.remove('active');
+    }
+    if (btnCancelSuccessor) {
+      btnCancelSuccessor.addEventListener('click', closeSuccessorModal);
+    }
+    if (modalSuccessor) {
+      modalSuccessor.addEventListener('click', (e) => {
+        if (e.target === modalSuccessor) closeSuccessorModal();
+      });
+    }
+
+    // Tab switching
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetPane = btn.getAttribute('data-settings-pane');
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        Object.keys(panes).forEach(paneKey => {
+          if (panes[paneKey]) {
+            if (paneKey === targetPane) {
+              panes[paneKey].style.display = 'block';
+              panes[paneKey].classList.add('active');
+            } else {
+              panes[paneKey].style.display = 'none';
+              panes[paneKey].classList.remove('active');
+            }
+          }
+        });
+      });
+    });
+
+    // Helper: update avatar preview in settings modal
+    function updateSettingsAvatarPreview() {
+      const preview = document.getElementById('settings-avatar-preview');
+      if (!preview) return;
+      if (state.currentUser && state.currentUser.avatarUrl) {
+        preview.innerHTML = `<img src="${state.currentUser.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+      } else {
+        const name = (state.currentUser && state.currentUser.name) || 'User';
+        const initials = name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'U';
+        preview.innerHTML = '';
+        preview.textContent = initials;
+      }
+    }
+
+    // Helper: update UI across the app for avatar and name
+    function syncUserVisuals() {
+      updateRoleUI();
+      const pName = document.getElementById('participant-user-name');
+      const pAvatar = document.getElementById('participant-user-avatar');
+      if (pName && state.currentUser) pName.textContent = state.currentUser.name;
+      if (pAvatar && state.currentUser) {
+        if (state.currentUser.avatarUrl) {
+          pAvatar.innerHTML = `<img src="${state.currentUser.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        } else {
+          const initials = state.currentUser.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'PA';
+          pAvatar.innerHTML = '';
+          pAvatar.textContent = initials;
+        }
+      }
+      updateSettingsAvatarPreview();
+    }
+
+    // Open Profile Settings Modal
+    function openProfileSettings() {
+      if (!state.currentUser) return;
+      const u = state.currentUser;
+      const isMember = u.role === 'club_lead' || u.role === 'regular_member';
+
+      // Prepopulate form fields
+      const inputName = document.getElementById('profile-fullname-input');
+      const inputEmail = document.getElementById('profile-email-display');
+      const inputRole = document.getElementById('profile-role-display');
+      const inputTrack = document.getElementById('profile-track-input');
+      const badgeRole = document.getElementById('profile-role-badge');
+
+      if (inputName) inputName.value = u.name || '';
+      if (inputEmail) inputEmail.value = u.email || '';
+      if (inputTrack) inputTrack.value = u.track || '';
+
+      if (inputRole) {
+        if (isMember) {
+          inputRole.value = u.roleTitle || (u.role === 'club_lead' ? 'Lead Architect' : 'Core R&D Engineer');
+          if (badgeRole) badgeRole.textContent = '🔒 LEAD ASSIGNED (READ-ONLY)';
+        } else {
+          inputRole.value = u.roleTitle || 'Registered Event Participant';
+          if (badgeRole) badgeRole.textContent = '🔒 SYSTEM ROLE';
+        }
+      }
+
+      // Danger zone cards: member vs participant
+      const dangerMember = document.getElementById('danger-card-member');
+      const dangerParticipant = document.getElementById('danger-card-participant');
+      if (dangerMember) dangerMember.style.display = isMember ? 'flex' : 'none';
+      if (dangerParticipant) dangerParticipant.style.display = !isMember ? 'flex' : 'none';
+
+      // Clear alerts and passwords
+      const detailsAlert = document.getElementById('profile-details-alert');
+      const passAlert = document.getElementById('profile-pass-alert');
+      if (detailsAlert) detailsAlert.style.display = 'none';
+      if (passAlert) passAlert.style.display = 'none';
+
+      const oldPass = document.getElementById('profile-old-pass');
+      const newPass = document.getElementById('profile-new-pass');
+      const confPass = document.getElementById('profile-confirm-pass');
+      if (oldPass) oldPass.value = '';
+      if (newPass) newPass.value = '';
+      if (confPass) confPass.value = '';
+
+      updateSettingsAvatarPreview();
+
+      // Reset to first tab
+      const tabProfile = document.getElementById('tab-settings-profile');
+      if (tabProfile) tabProfile.click();
+
+      if (modalSettings) modalSettings.classList.add('active');
+    }
+
+    function closeProfileSettings() {
+      if (modalSettings) modalSettings.classList.remove('active');
+    }
+
+    if (btnOpenMemberSettings) {
+      btnOpenMemberSettings.addEventListener('click', openProfileSettings);
+    }
+    if (btnOpenPartSettings) {
+      btnOpenPartSettings.addEventListener('click', openProfileSettings);
+    }
+    if (btnCloseSettings) {
+      btnCloseSettings.addEventListener('click', closeProfileSettings);
+    }
+    if (modalSettings) {
+      modalSettings.addEventListener('click', (e) => {
+        if (e.target === modalSettings) closeProfileSettings();
+      });
+    }
+
+    // Avatar Upload Handler
+    const avatarInput = document.getElementById('profile-avatar-input');
+    const btnTriggerUpload = document.getElementById('btn-trigger-upload-avatar');
+    const btnDeleteAvatar = document.getElementById('btn-delete-avatar');
+
+    if (btnTriggerUpload && avatarInput) {
+      btnTriggerUpload.addEventListener('click', () => avatarInput.click());
+    }
+
+    if (avatarInput) {
+      avatarInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          showGlobalToast('Please select a valid image file (PNG, JPG, WebP).', '⚠️');
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          showGlobalToast('Image size exceeds 5MB limit.', '⚠️');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (loadEvent) => {
+          const dataUrl = loadEvent.target.result;
+          if (!state.currentUser) return;
+          state.currentUser.avatarUrl = dataUrl;
+
+          // Save to registry
+          if (state.currentUser.role === 'participant') {
+            const part = participantAccounts.find(p => 
+              (p.email || '').toLowerCase() === state.currentUser.email.toLowerCase() ||
+              (p.regNo && p.regNo.toLowerCase() === state.currentUser.email.toLowerCase())
+            );
+            if (part) part.avatarUrl = dataUrl;
+            saveParticipantAccounts();
+          } else {
+            const mem = coreMembers.find(m => m.email.toLowerCase() === state.currentUser.email.toLowerCase());
+            if (mem) mem.avatarUrl = dataUrl;
+            saveCoreMembers();
+          }
+
+          syncUserVisuals();
+          showGlobalToast('Profile photo updated successfully!', '📷');
+        };
+        reader.readAsDataURL(file);
+        avatarInput.value = '';
+      });
+    }
+
+    // Avatar Deletion Handler (Sensitive action with warning)
+    if (btnDeleteAvatar) {
+      btnDeleteAvatar.addEventListener('click', () => {
+        if (!state.currentUser || !state.currentUser.avatarUrl) {
+          showGlobalToast('You currently do not have a custom photo uploaded.', 'ℹ️');
+          return;
+        }
+
+        openSensitiveActionWarning({
+          title: 'Remove Profile Picture',
+          desc: 'Are you sure you want to delete your custom profile picture? Your profile will revert to displaying your dynamic initials.',
+          target: `Avatar: Custom photo of ${state.currentUser.name}`,
+          onConfirm: () => {
+            state.currentUser.avatarUrl = null;
+            if (state.currentUser.role === 'participant') {
+              const part = participantAccounts.find(p => 
+                (p.email || '').toLowerCase() === state.currentUser.email.toLowerCase() ||
+                (p.regNo && p.regNo.toLowerCase() === state.currentUser.email.toLowerCase())
+              );
+              if (part) delete part.avatarUrl;
+              saveParticipantAccounts();
+            } else {
+              const mem = coreMembers.find(m => m.email.toLowerCase() === state.currentUser.email.toLowerCase());
+              if (mem) delete mem.avatarUrl;
+              saveCoreMembers();
+            }
+
+            syncUserVisuals();
+            showGlobalToast('Profile photo deleted. Reverted to initials.', '🗑️');
+          }
+        });
+      });
+    }
+
+    // Form: Save Profile Details (Name, Track) - Roles are NOT altered
+    const formSaveDetails = document.getElementById('form-save-profile-details');
+    const inputName = document.getElementById('profile-fullname-input');
+    const inputTrack = document.getElementById('profile-track-input');
+    const detailsAlert = document.getElementById('profile-details-alert');
+
+    if (formSaveDetails) {
+      formSaveDetails.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newName = (inputName ? inputName.value : '').trim();
+        const newTrack = (inputTrack ? inputTrack.value : '').trim();
+
+        if (!newName) {
+          if (detailsAlert) {
+            detailsAlert.style.display = 'flex';
+            detailsAlert.className = 'register-alert-box error';
+            detailsAlert.innerHTML = '⚠️ Full Name is required.';
+          }
+          return;
+        }
+
+        if (!state.currentUser) return;
+        state.currentUser.name = newName;
+        state.currentUser.track = newTrack;
+
+        if (state.currentUser.role === 'participant') {
+          const part = participantAccounts.find(p => 
+            (p.email || '').toLowerCase() === state.currentUser.email.toLowerCase() ||
+            (p.regNo && p.regNo.toLowerCase() === state.currentUser.email.toLowerCase())
+          );
+          if (part) {
+            part.name = newName;
+            part.track = newTrack;
+          }
+          saveParticipantAccounts();
+        } else {
+          const mem = coreMembers.find(m => m.email.toLowerCase() === state.currentUser.email.toLowerCase());
+          if (mem) {
+            mem.name = newName;
+            mem.track = newTrack;
+          }
+          saveCoreMembers();
+          if (window.renderMembersTable) window.renderMembersTable();
+        }
+
+        syncUserVisuals();
+
+        if (detailsAlert) {
+          detailsAlert.style.display = 'flex';
+          detailsAlert.className = 'register-alert-box success';
+          detailsAlert.innerHTML = '✓ Profile details saved successfully!';
+        }
+        showGlobalToast('Profile details updated!', '💾');
+      });
+    }
+
+    // Form: Change Password with Old Password Verification
+    const formChangePass = document.getElementById('form-change-password');
+    const oldPassInput = document.getElementById('profile-old-pass');
+    const newPassInput = document.getElementById('profile-new-pass');
+    const confPassInput = document.getElementById('profile-confirm-pass');
+    const passAlert = document.getElementById('profile-pass-alert');
+
+    if (formChangePass) {
+      formChangePass.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const oldPass = (oldPassInput ? oldPassInput.value : '').trim();
+        const newPass = (newPassInput ? newPassInput.value : '').trim();
+        const confPass = (confPassInput ? confPassInput.value : '').trim();
+
+        if (!oldPass || !newPass || !confPass) {
+          if (passAlert) {
+            passAlert.style.display = 'flex';
+            passAlert.className = 'register-alert-box error';
+            passAlert.innerHTML = '⚠️ Please fill out all password fields.';
+          }
+          return;
+        }
+
+        if (newPass.length < 6) {
+          if (passAlert) {
+            passAlert.style.display = 'flex';
+            passAlert.className = 'register-alert-box error';
+            passAlert.innerHTML = '⚠️ New password must contain at least 6 characters.';
+          }
+          return;
+        }
+
+        if (newPass !== confPass) {
+          if (passAlert) {
+            passAlert.style.display = 'flex';
+            passAlert.className = 'register-alert-box error';
+            passAlert.innerHTML = '⚠️ New passwords do not match. Please verify.';
+          }
+          return;
+        }
+
+        if (oldPass === newPass) {
+          if (passAlert) {
+            passAlert.style.display = 'flex';
+            passAlert.className = 'register-alert-box error';
+            passAlert.innerHTML = '⚠️ New password cannot be the same as your current password.';
+          }
+          return;
+        }
+
+        if (!state.currentUser) return;
+
+        // Verify Old Password
+        let isVerified = false;
+
+        if (state.currentUser.role === 'participant') {
+          const part = participantAccounts.find(p => 
+            (p.email || '').toLowerCase() === state.currentUser.email.toLowerCase() ||
+            (p.regNo && p.regNo.toLowerCase() === state.currentUser.email.toLowerCase())
+          );
+          if (part && (part.password === oldPass || (!part.password && oldPass === 'participant123'))) {
+            isVerified = true;
+            part.password = newPass;
+            saveParticipantAccounts();
+          }
+        } else {
+          const mem = coreMembers.find(m => m.email.toLowerCase() === state.currentUser.email.toLowerCase());
+          if (mem) {
+            const directMatch = mem.password === oldPass;
+            const leadFallback = mem.roleType === 'club_lead' && (oldPass === 'lead' || oldPass === 'lead123' || oldPass === 'admin');
+            const memberFallback = mem.roleType === 'regular_member' && (oldPass === 'member' || oldPass === 'member123');
+            if (directMatch || leadFallback || memberFallback) {
+              isVerified = true;
+              mem.password = newPass;
+              saveCoreMembers();
+            }
+          }
+        }
+
+        if (!isVerified) {
+          if (passAlert) {
+            passAlert.style.display = 'flex';
+            passAlert.className = 'register-alert-box error';
+            passAlert.innerHTML = '⚠️ Current password verification failed. Please enter your correct current password.';
+          }
+          return;
+        }
+
+        // Success
+        if (passAlert) {
+          passAlert.style.display = 'flex';
+          passAlert.className = 'register-alert-box success';
+          passAlert.innerHTML = '✓ Password updated securely! Your new credentials are now active.';
+        }
+        if (oldPassInput) oldPassInput.value = '';
+        if (newPassInput) newPassInput.value = '';
+        if (confPassInput) confPassInput.value = '';
+
+        showGlobalToast('Password updated securely!', '🔐');
+      });
+    }
+
+    // Member Resignation / Leave Club
+    const btnLeaveClub = document.getElementById('btn-leave-club');
+    if (btnLeaveClub) {
+      btnLeaveClub.addEventListener('click', () => {
+        if (!state.currentUser) return;
+
+        const isLead = state.currentUser.role === 'club_lead';
+        const otherMembers = coreMembers.filter(m => m.email.toLowerCase() !== state.currentUser.email.toLowerCase());
+
+        if (isLead && otherMembers.length > 0) {
+          // Lead must appoint a successor first!
+          if (selectSuccessor) {
+            selectSuccessor.innerHTML = otherMembers.map(m => 
+              `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)} — ${escapeHtml(m.role)} (${escapeHtml(m.email)})</option>`
+            ).join('');
+          }
+          if (modalSuccessor) modalSuccessor.classList.add('active');
+          return;
+        }
+
+        if (isLead && otherMembers.length === 0) {
+          // Sole member left
+          openSensitiveActionWarning({
+            title: 'Dissolve Chapter Membership',
+            desc: '⚠️ You are currently the sole registered member in this chapter. Resigning will dissolve all active member seats in this workspace.',
+            target: `Club Lead: ${state.currentUser.name} (${state.currentUser.email})`,
+            onConfirm: () => {
+              coreMembers = coreMembers.filter(m => m.email.toLowerCase() !== state.currentUser.email.toLowerCase());
+              saveCoreMembers();
+              closeProfileSettings();
+              state.currentUser = null;
+              switchScreen('landing');
+              showGlobalToast('You have resigned from IEEE RAS. Workspace access terminated.', '👋');
+            }
+          });
+          return;
+        }
+
+        // Regular Member leaving
+        openSensitiveActionWarning({
+          title: 'Leave IEEE RAS Chapter',
+          desc: 'Are you sure you want to resign from IEEE Robotics & Automation Society? Your member badge, workspace access, research hub files, and private team channels will be permanently revoked.',
+          target: `Member: ${state.currentUser.name} (${state.currentUser.email})`,
+          onConfirm: () => {
+            coreMembers = coreMembers.filter(m => m.email.toLowerCase() !== state.currentUser.email.toLowerCase());
+            saveCoreMembers();
+            closeProfileSettings();
+            state.currentUser = null;
+            switchScreen('landing');
+            showGlobalToast('You have resigned from IEEE RAS. Workspace credentials revoked.', '👋');
+          }
+        });
+      });
+    }
+
+    // Lead Appoint Successor Submission
+    if (formSuccessor) {
+      formSuccessor.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const selectedId = selectSuccessor ? selectSuccessor.value : '';
+        const successor = coreMembers.find(m => m.id === selectedId);
+
+        if (!successor) {
+          showGlobalToast('Please select a valid successor member.', '⚠️');
+          return;
+        }
+
+        closeSuccessorModal();
+
+        openSensitiveActionWarning({
+          title: 'Confirm Leadership Succession & Resignation',
+          desc: `You are about to appoint "${successor.name}" as the new Club Lead and permanently resign from IEEE RAS. They will receive full executive authority.`,
+          target: `New Lead: ${successor.name} | Resigning Lead: ${state.currentUser.name}`,
+          onConfirm: () => {
+            // Transfer lead rights
+            successor.roleType = 'club_lead';
+            successor.role = 'Lead Architect';
+
+            // Remove retiring lead
+            coreMembers = coreMembers.filter(m => m.email.toLowerCase() !== state.currentUser.email.toLowerCase());
+            saveCoreMembers();
+
+            closeProfileSettings();
+            state.currentUser = null;
+            switchScreen('landing');
+            showGlobalToast(`Leadership transferred to ${successor.name}. Resignation complete.`, '👑');
+          }
+        });
+      });
+    }
+
+    // Participant Account Deletion
+    const btnDeletePartAccount = document.getElementById('btn-delete-participant-account');
+    if (btnDeletePartAccount) {
+      btnDeletePartAccount.addEventListener('click', () => {
+        if (!state.currentUser) return;
+
+        openSensitiveActionWarning({
+          title: 'Delete Participant Account',
+          desc: 'Are you sure you want to delete your IEEE RAS participant account? All competition submissions, certificates, team registrations, and event telemetry will be permanently wiped.',
+          target: `Account: ${state.currentUser.name} (${state.currentUser.email})`,
+          onConfirm: () => {
+            participantAccounts = participantAccounts.filter(p => 
+              (p.email || '').toLowerCase() !== state.currentUser.email.toLowerCase() &&
+              (p.regNo || '').toLowerCase() !== state.currentUser.email.toLowerCase()
+            );
+            saveParticipantAccounts();
+            closeProfileSettings();
+            state.currentUser = null;
+            switchScreen('landing');
+            showGlobalToast('Participant account permanently deleted.', '🗑️');
+          }
+        });
+      });
+    }
+
+    // Expose helpers on window.ieeeRas for testing
+    if (window.ieeeRas) {
+      window.ieeeRas.openProfileSettings = openProfileSettings;
+      window.ieeeRas.closeProfileSettings = closeProfileSettings;
+      window.ieeeRas.openSensitiveActionWarning = openSensitiveActionWarning;
+    }
+  }
+
   // Utility to prevent XSS in chat
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -3502,6 +4097,7 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     initAuthGateway();
     initMemberPortal();
     initParticipantPortal();
+    initProfileSettingsSuite();
 
     // Check hash for direct route testing
     const hash = window.location.hash.replace('#', '');
@@ -3520,7 +4116,12 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     openAuthModal,
     closeAuthModal,
     toggleTheme,
-    state
+    state,
+    getCoreMembers: () => coreMembers,
+    getParticipants: () => participantAccounts,
+    saveCoreMembers,
+    saveParticipantAccounts
   };
 
 })();
+

@@ -722,7 +722,7 @@
       <!-- Left Sidebar (20%) -->
       <aside class="member-sidebar">
         <div class="sidebar-user-block">
-          <div class="user-profile-info">
+          <div class="user-profile-info" id="btn-open-member-profile-settings" style="cursor: pointer;" title="Edit Profile & Account Settings">
             <div class="user-avatar-small" id="member-sidebar-avatar">SR</div>
             <div>
               <div class="user-meta-name" id="member-sidebar-name">Satyajit R</div>
@@ -735,6 +735,9 @@
           <div class="user-sidebar-controls" style="display: flex; gap: 0.4rem; align-items: center;">
             <button class="theme-toggle-btn" title="Toggle Theme" style="width: 32px; height: 32px;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
+            </button>
+            <button class="btn btn-secondary chamfer-btn" id="btn-sidebar-settings-icon" title="Edit Profile & Settings" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             </button>
           </div>
         </div>
@@ -2115,6 +2118,264 @@
   </div>
 
   <!-- ========================================================================
+       MODAL: USER PROFILE & ACCOUNT SETTINGS (#modal-profile-settings)
+       ======================================================================== -->
+  <div class="auth-modal-overlay" id="modal-profile-settings">
+    <div class="auth-modal-window chamfer-card profile-settings-window" style="max-width: 640px; width: 94%; padding: 0; overflow: hidden; background: var(--surface-glass-heavy); border: 1px solid var(--surface-card-border); box-shadow: 0 25px 70px rgba(0,0,0,0.55);">
+      <!-- Header -->
+      <div class="auth-modal-header" style="padding: 1.25rem 1.6rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; background: var(--chat-header-bg);">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="brand-logo-hex" style="width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-blue)); display: flex; align-items: center; justify-content: center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <div>
+            <div class="badge-pill badge-green font-mono" style="font-size: 0.65rem; margin-bottom: 0.15rem; display: inline-block;">IDENTITY &amp; CREDENTIALS</div>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-display);">Account &amp; Profile Settings</h3>
+          </div>
+        </div>
+        <button class="auth-close-btn" id="btn-close-profile-settings" type="button" style="font-size: 1.2rem; color: var(--text-muted); background: none; border: none; cursor: pointer;">✕</button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="settings-tabs-strip">
+        <button type="button" class="settings-tab-btn active" id="tab-settings-profile" data-settings-pane="profile">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Profile &amp; Bio
+        </button>
+        <button type="button" class="settings-tab-btn" id="tab-settings-security" data-settings-pane="security">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          Security &amp; Password
+        </button>
+        <button type="button" class="settings-tab-btn danger-tab" id="tab-settings-danger" data-settings-pane="danger">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          Danger Zone
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="settings-pane-container" style="padding: 1.5rem 1.6rem; max-height: 520px; overflow-y: auto;">
+        <!-- PANE 1: Profile & Bio -->
+        <div class="settings-pane active" id="pane-settings-profile">
+          <!-- Avatar Customization Block -->
+          <div style="display: flex; align-items: center; gap: 1.25rem; padding: 1.1rem; background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: 8px; margin-bottom: 1.2rem;">
+            <div class="profile-avatar-frame" id="settings-avatar-preview" style="position: relative; width: 68px; height: 68px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent-primary); box-shadow: 0 0 14px var(--accent-glow); display: flex; align-items: center; justify-content: center; background: #0077b6; color: #fff; font-weight: 700; font-size: 1.4rem;">
+              SR
+            </div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem; color: var(--text-primary);">Profile Picture</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.6rem;">Upload custom photo (PNG, JPG, WebP) or delete anytime to revert to dynamic initials.</div>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <input type="file" id="profile-avatar-input" accept="image/*" style="display: none;" />
+                <button type="button" class="btn btn-secondary chamfer-btn" id="btn-trigger-upload-avatar" style="padding: 0.35rem 0.8rem; font-size: 0.78rem;">
+                  📷 Upload Photo
+                </button>
+                <button type="button" class="btn btn-secondary chamfer-btn" id="btn-delete-avatar" style="padding: 0.35rem 0.8rem; font-size: 0.78rem; color: #ff3366; border-color: rgba(255, 51, 102, 0.3);">
+                  🗑️ Remove Photo
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <form id="form-save-profile-details" style="display: flex; flex-direction: column; gap: 1rem;">
+            <!-- Full Name -->
+            <div class="form-field-group">
+              <label for="profile-fullname-input" class="register-field-label">Full Name *</label>
+              <div class="input-with-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <input type="text" id="profile-fullname-input" class="register-input" required />
+              </div>
+            </div>
+
+            <!-- Email & Identifier (Read-Only) -->
+            <div class="form-field-group">
+              <label for="profile-email-display" class="register-field-label">Email or Registration Identifier (Read-Only)</label>
+              <div class="input-with-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path></svg>
+                <input type="text" id="profile-email-display" class="register-input" readonly style="opacity: 0.7; cursor: not-allowed;" />
+              </div>
+            </div>
+
+            <!-- Assigned Role (Read-Only for Members) -->
+            <div class="form-field-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label class="register-field-label" style="margin: 0;">Assigned Role &amp; Permission Tier</label>
+                <span class="badge-pill badge-green font-mono" id="profile-role-badge" style="font-size: 0.65rem;">🔒 LEAD ASSIGNED (READ-ONLY)</span>
+              </div>
+              <div class="input-with-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <input type="text" id="profile-role-display" class="register-input" readonly style="opacity: 0.7; cursor: not-allowed;" />
+              </div>
+              <small style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">
+                Member roles are assigned by Club Leads via the Member Directory.
+              </small>
+            </div>
+
+            <!-- Track / Bio / Specialization -->
+            <div class="form-field-group">
+              <label for="profile-track-input" class="register-field-label">Specialization Track &amp; Bio</label>
+              <div class="input-with-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                <input type="text" id="profile-track-input" class="register-input" placeholder="e.g. Autonomous Systems, ROS2, SLAM Navigation" />
+              </div>
+            </div>
+
+            <div id="profile-details-alert" class="register-alert-box" style="display: none;"></div>
+
+            <!-- Submit Button -->
+            <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+              <button type="submit" class="btn btn-primary chamfer-btn" id="btn-save-profile-details" style="padding: 0.55rem 1.4rem; font-size: 0.85rem;">
+                💾 Save Profile Changes
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- PANE 2: Security & Password Change -->
+        <div class="settings-pane" id="pane-settings-security" style="display: none;">
+          <form id="form-change-password" style="display: flex; flex-direction: column; gap: 1.1rem;">
+            <div style="padding: 0.75rem 1rem; background: rgba(0, 180, 216, 0.06); border: 1px solid rgba(0, 180, 216, 0.2); border-radius: 6px; font-size: 0.78rem; color: var(--text-secondary);">
+              🔒 To update your password, enter your existing password for verification, followed by your new password.
+            </div>
+
+            <!-- Old Password -->
+            <div class="form-field-group">
+              <label for="profile-old-pass" class="register-field-label">Current / Old Password *</label>
+              <div class="input-with-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <input type="password" id="profile-old-pass" class="register-input" placeholder="Enter your current password" required />
+              </div>
+            </div>
+
+            <!-- New Password & Confirm Password -->
+            <div class="form-row-2col">
+              <div class="form-field-group">
+                <label for="profile-new-pass" class="register-field-label">New Password *</label>
+                <div class="input-with-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                  <input type="password" id="profile-new-pass" class="register-input" placeholder="Min 6 characters" minlength="6" required />
+                </div>
+              </div>
+              <div class="form-field-group">
+                <label for="profile-confirm-pass" class="register-field-label">Confirm New Password *</label>
+                <div class="input-with-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <input type="password" id="profile-confirm-pass" class="register-input" placeholder="Re-enter new password" minlength="6" required />
+                </div>
+              </div>
+            </div>
+
+            <div id="profile-pass-alert" class="register-alert-box" style="display: none;"></div>
+
+            <!-- Action -->
+            <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+              <button type="submit" class="btn btn-primary chamfer-btn" id="btn-submit-change-pass" style="padding: 0.55rem 1.4rem; font-size: 0.85rem;">
+                🔑 Verify &amp; Update Password
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- PANE 3: Danger Zone -->
+        <div class="settings-pane" id="pane-settings-danger" style="display: none;">
+          <!-- Member Resignation Option -->
+          <div class="settings-danger-card" id="danger-card-member" style="display: none;">
+            <div>
+              <div style="font-weight: 700; color: #ff3366; font-size: 0.95rem; margin-bottom: 0.25rem;">Leave IEEE RAS Chapter</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45;">
+                Resign from IEEE Robotics &amp; Automation Society. Your workspace credentials, code repository access, and private team channels will be permanently revoked. Club Leads must appoint a successor lead before leaving.
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary chamfer-btn" id="btn-leave-club" style="border-color: #ff3366; color: #ff3366; background: rgba(255, 51, 102, 0.08); font-size: 0.82rem; padding: 0.5rem 1rem; white-space: nowrap;">
+              🚪 Leave Club
+            </button>
+          </div>
+
+          <!-- Participant Account Deletion Option -->
+          <div class="settings-danger-card" id="danger-card-participant" style="display: none;">
+            <div>
+              <div style="font-weight: 700; color: #ff3366; font-size: 0.95rem; margin-bottom: 0.25rem;">Delete Participant Account</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45;">
+                Permanently delete your event participant registration, team milestones, project submissions, and certificates from IEEE RAS servers. This action is irreversible.
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary chamfer-btn" id="btn-delete-participant-account" style="border-color: #ff3366; color: #ff3366; background: rgba(255, 51, 102, 0.08); font-size: 0.82rem; padding: 0.5rem 1rem; white-space: nowrap;">
+              🗑️ Delete Account
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: SENSITIVE ACTION VERIFICATION WARNING (#modal-sensitive-action-warning)
+       ======================================================================== -->
+  <div class="auth-modal-overlay" id="modal-sensitive-action-warning" style="z-index: 10000;">
+    <div class="auth-modal-window chamfer-card" style="max-width: 500px; width: 90%; padding: 0; overflow: hidden; background: #181216; border: 1px solid rgba(255, 51, 102, 0.4); box-shadow: 0 30px 80px rgba(0,0,0,0.7);">
+      <div style="padding: 1.4rem 1.6rem; border-bottom: 1px solid rgba(255, 51, 102, 0.2); background: rgba(255, 51, 102, 0.08); display: flex; align-items: center; gap: 0.8rem;">
+        <span style="font-size: 1.5rem;">⚠️</span>
+        <div>
+          <span class="badge-pill badge-red font-mono" style="font-size: 0.62rem; margin-bottom: 0.2rem; display: inline-block;">SENSITIVE ACTIVITY WARNING</span>
+          <h3 id="warning-modal-title" style="margin: 0; font-size: 1.15rem; color: #ff3366; font-family: var(--font-display);">Confirm Action</h3>
+        </div>
+      </div>
+      <div style="padding: 1.4rem 1.6rem;">
+        <p id="warning-modal-desc" style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 1rem 0;">
+          Are you sure you wish to proceed? This action cannot be undone.
+        </p>
+        <div id="warning-modal-target" style="padding: 0.65rem 0.9rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 6px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-primary); margin-bottom: 1.2rem;">
+          Target details
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary chamfer-btn" id="btn-cancel-warning-action" style="padding: 0.5rem 1.1rem; font-size: 0.82rem;">
+            Cancel &amp; Keep
+          </button>
+          <button type="button" class="btn btn-secondary chamfer-btn" id="btn-confirm-warning-action" style="background: #dc2626; color: #fff; border-color: #ef4444; padding: 0.5rem 1.3rem; font-size: 0.82rem;">
+            Yes, Proceed
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: CLUB LEAD RESIGNATION & SUCCESSOR APPOINTMENT (#modal-appoint-successor)
+       ======================================================================== -->
+  <div class="auth-modal-overlay" id="modal-appoint-successor" style="z-index: 10001;">
+    <div class="auth-modal-window chamfer-card" style="max-width: 520px; width: 90%; padding: 0; overflow: hidden; background: var(--surface-glass-heavy); border: 1px solid var(--surface-card-border); box-shadow: 0 30px 80px rgba(0,0,0,0.7);">
+      <div style="padding: 1.4rem 1.6rem; border-bottom: 1px solid var(--border-subtle); background: var(--chat-header-bg); display: flex; align-items: center; gap: 0.8rem;">
+        <span style="font-size: 1.5rem;">👑</span>
+        <div>
+          <span class="badge-pill badge-purple font-mono" style="font-size: 0.62rem; margin-bottom: 0.2rem; display: inline-block;">LEADERSHIP SUCCESSION</span>
+          <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); font-family: var(--font-display);">Appoint Successor Club Lead</h3>
+        </div>
+      </div>
+      <form id="form-appoint-successor" style="padding: 1.4rem 1.6rem;">
+        <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 1rem 0;">
+          As Club Lead, you cannot leave IEEE RAS without appointing a successor. Select an active member to receive full executive leadership rights before your resignation is finalized.
+        </p>
+        <div class="form-field-group" style="margin-bottom: 1.2rem;">
+          <label for="select-successor-lead" class="register-field-label">Select Successor Club Lead *</label>
+          <select id="select-successor-lead" class="register-select" required>
+            <!-- Populated dynamically with eligible core members -->
+          </select>
+        </div>
+        <div style="padding: 0.65rem 0.9rem; background: rgba(123, 44, 191, 0.08); border: 1px solid rgba(123, 44, 191, 0.3); border-radius: 6px; font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 1.2rem;">
+          ℹ️ The appointed successor will receive Lead Architect authority, member directory management, channel creation, and universal meeting admin rights.
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary chamfer-btn" id="btn-cancel-successor" style="padding: 0.5rem 1.1rem; font-size: 0.82rem;">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary chamfer-btn" id="btn-confirm-successor-resign" style="background: #7b2cbf; border-color: #9d4edd; padding: 0.5rem 1.3rem; font-size: 0.82rem;">
+            👑 Appoint &amp; Resign
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
        SCREEN 4: PARTICIPANT PORTAL (UNSTOP-STYLE EVENT DASHBOARD)
        ======================================================================== -->
   <div id="screen-participant" class="app-screen">
@@ -2133,9 +2394,10 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 1.2rem;">
-          <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <div style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer;" id="btn-open-participant-profile-settings" title="Edit Profile & Account Settings">
             <div class="user-avatar-small" id="participant-user-avatar">PA</div>
             <span style="font-size: 0.9rem; font-weight: 600;" id="participant-user-name">Alex Chen</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-muted);"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
           </div>
           <button class="theme-toggle-btn" title="Toggle Theme" style="width: 36px; height: 36px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
