@@ -16,6 +16,29 @@
     countdownSeconds: 12 * 3600 + 45 * 60 + 30, // 12h 45m 30s
     uploadProgress: 75,
     uploadInterval: null,
+    liveMeetings: [
+      {
+        id: 'ras-meet-hardware-standup',
+        name: 'Hardware Standup • Core Robotics Sprint',
+        channel: 'hardware-troubleshooting',
+        quality: '1080p60',
+        hostEmail: 'satyajit.r2024@vitstudent.ac.in',
+        hostName: 'Satyajit R',
+        hostRole: 'Lead Architect',
+        isLive: true,
+        isLocked: false,
+        isChatLocked: false,
+        allowShare: true,
+        autoRecord: true,
+        attendees: [
+          { id: 'self', name: 'Satyajit R', email: 'satyajit.r2024@vitstudent.ac.in', role: 'Lead Architect', isHost: true, isLead: true, isSelf: true, isMuted: false },
+          { id: 'att-1', name: 'Ananya Sharma', email: 'ananya.s2024@vitstudent.ac.in', role: 'Hardware Lead', isHost: false, isLead: true, isSelf: false, isMuted: false },
+          { id: 'att-2', name: 'Rohan Verma', email: 'rohan.v2024@vitstudent.ac.in', role: 'Firmware Dev', isHost: false, isLead: false, isSelf: false, isMuted: true },
+          { id: 'att-3', name: 'Kavya Patel', email: 'kavya.p2024@vitstudent.ac.in', role: 'Computer Vision', isHost: false, isLead: false, isSelf: false, isMuted: true }
+        ]
+      }
+    ],
+    currentMeeting: null,
     currentUser: {
       name: 'Satyajit R',
       email: 'satyajit.r2024@vitstudent.ac.in',
@@ -2037,29 +2060,21 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       });
     });
 
-    // Voice Rooms Interaction
+    // Live Video Meetings Interaction (formerly Voice Rooms)
     const voiceListContainer = document.getElementById('member-voice-list');
     if (voiceListContainer) {
       voiceListContainer.addEventListener('click', (e) => {
-        const item = e.target.closest('.voice-room-item');
+        const item = e.target.closest('.voice-room-item, .live-meeting-item');
         if (!item) return;
         e.preventDefault();
-        const roomName = item.dataset.voiceRoom || 'Hardware Standup';
-        voiceListContainer.querySelectorAll('.voice-room-item').forEach(vr => {
-          vr.classList.remove('active');
-          vr.style.background = '';
-          vr.style.color = '';
-          const wave = vr.querySelector('.voice-wave');
-          if (wave) wave.remove();
-        });
-        item.classList.add('active');
-        item.style.background = 'rgba(0, 255, 102, 0.08)';
-        item.style.color = 'var(--accent-primary)';
-        const wave = document.createElement('div');
-        wave.className = 'voice-wave';
-        wave.innerHTML = `<span class="voice-wave-bar"></span><span class="voice-wave-bar"></span><span class="voice-wave-bar"></span>`;
-        item.appendChild(wave);
-        showGlobalToast(`Connected to Voice Room: ${roomName} [WebRTC Audio Active]`, '🔊');
+        const meetingId = item.dataset.meetingId;
+        const meeting = (state.liveMeetings || []).find(m => m.id === meetingId && m.isLive);
+        if (meeting) {
+          state.currentMeeting = meeting;
+          if (window.openVideoMeeting) window.openVideoMeeting(meeting);
+        } else {
+          if (window.openVideoMeeting) window.openVideoMeeting();
+        }
       });
     }
 
@@ -2344,7 +2359,7 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         );
         const invitedMembers = coreMembers.filter(m => selectedEmails.has(m.email.toLowerCase()));
 
-        state.currentMeeting = {
+        const newMeeting = {
           id: 'ras-meet-' + Math.random().toString(36).substring(2, 6) + '-' + Math.random().toString(36).substring(2, 6),
           name: meetName,
           channel: meetChan,
@@ -2352,6 +2367,7 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
           hostEmail: state.currentUser.email,
           hostName: state.currentUser.name,
           hostRole: state.currentUser.roleTitle || 'Chapter Member',
+          isLive: true,
           isLocked: false,
           isChatLocked: false,
           allowShare: allowShare,
@@ -2380,47 +2396,127 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
           ]
         };
 
+        if (!state.liveMeetings) state.liveMeetings = [];
+        state.liveMeetings.unshift(newMeeting);
+        state.currentMeeting = newMeeting;
+
         closeMeetingSetupModal();
-        openMeeting();
+        openMeeting(newMeeting);
+        renderLiveMeetingsList();
       });
     }
 
-    // Open / Launch Active Meeting
-    function openMeeting() {
-      if (!meetingModal) return;
+    // Render Live Meetings dynamically in sidebar (Live Video Meetings)
+    function renderLiveMeetingsList() {
+      const voiceListContainer = document.getElementById('member-voice-list');
+      if (!voiceListContainer) return;
 
-      // If no meeting configured yet, generate default
-      if (!state.currentMeeting) {
-        state.currentMeeting = {
-          id: 'ras-meet-x928-qzp',
-          name: 'Hardware Standup • Core Robotics Sprint',
-          channel: state.activeChannel || 'ai-ml-projects',
-          quality: '1080p60',
-          hostEmail: state.currentUser.email,
-          hostName: state.currentUser.name,
-          hostRole: state.currentUser.roleTitle || 'Lead Architect',
-          isLocked: false,
-          isChatLocked: false,
-          allowShare: true,
-          autoRecord: true,
-          attendees: [
-            {
-              id: 'self',
-              name: state.currentUser.name + ' (You)',
-              email: state.currentUser.email,
-              role: state.currentUser.roleTitle || 'Organizer',
-              isHost: true,
-              isLead: state.currentUser.role === 'club_lead',
-              isSelf: true,
-              isMuted: false
-            },
-            { id: 'att-1', name: 'Ananya Sharma', email: 'ananya.s2024@vitstudent.ac.in', role: 'Hardware Lead', isHost: false, isLead: true, isSelf: false, isMuted: false },
-            { id: 'att-2', name: 'Rohan Verma', email: 'rohan.v2024@vitstudent.ac.in', role: 'Firmware Dev', isHost: false, isLead: false, isSelf: false, isMuted: true },
-            { id: 'att-3', name: 'Kavya Patel', email: 'kavya.p2024@vitstudent.ac.in', role: 'Computer Vision', isHost: false, isLead: false, isSelf: false, isMuted: true }
-          ]
-        };
+      const activeMeetings = (state.liveMeetings || []).filter(m => m && m.isLive);
+      voiceListContainer.innerHTML = '';
+
+      if (activeMeetings.length === 0) {
+        const emptyLi = document.createElement('li');
+        emptyLi.className = 'channel-item live-meetings-empty';
+        emptyLi.style.cssText = 'opacity: 0.65; cursor: default; font-size: 0.78rem; padding: 0.5rem 0.8rem; display: flex; align-items: center; gap: 0.5rem;';
+        emptyLi.innerHTML = `
+          <span style="font-size: 0.9rem;">💤</span>
+          <span style="color: var(--text-muted); font-style: italic;">No active meetings</span>
+        `;
+        voiceListContainer.appendChild(emptyLi);
+        return;
       }
 
+      activeMeetings.forEach(meeting => {
+        const isCurrentActive = state.isMeetingActive && state.currentMeeting && state.currentMeeting.id === meeting.id;
+        const li = document.createElement('li');
+        li.className = `channel-item voice-room-item live-meeting-item ${isCurrentActive ? 'active' : ''}`;
+        li.dataset.meetingId = meeting.id;
+        li.dataset.voiceRoom = meeting.name;
+        li.title = `Click to join live meeting: ${meeting.name}`;
+        if (isCurrentActive) {
+          li.style.background = 'rgba(0, 255, 102, 0.08)';
+          li.style.color = 'var(--accent-primary)';
+        }
+
+        li.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden; width: 100%;">
+            <span class="channel-icon" style="color: #ff3366; font-size: 0.85rem; display: inline-flex; align-items: center;">
+              <span class="live-rec-dot" style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff3366; box-shadow: 0 0 8px #ff3366; animation: liveDotPulse 1.4s infinite ease-in-out;"></span>
+            </span>
+            <span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 135px; font-size: 0.85rem;" title="${escapeHtml(meeting.name)}">
+              ${escapeHtml(meeting.name)}
+            </span>
+            <div class="voice-wave" style="margin-left: auto;">
+              <span class="voice-wave-bar"></span>
+              <span class="voice-wave-bar"></span>
+              <span class="voice-wave-bar"></span>
+            </div>
+          </div>
+        `;
+
+        li.addEventListener('click', (e) => {
+          e.preventDefault();
+          state.currentMeeting = meeting;
+          openMeeting(meeting);
+          renderLiveMeetingsList();
+          showGlobalToast(`Connected to Live Video Meeting: "${meeting.name}"`, '📹');
+        });
+
+        voiceListContainer.appendChild(li);
+      });
+    }
+
+    window.renderLiveMeetingsList = renderLiveMeetingsList;
+
+    // Open / Launch Active Meeting
+    function openMeeting(meetingObj) {
+      if (!meetingModal) return;
+
+      if (meetingObj) {
+        state.currentMeeting = meetingObj;
+      }
+
+      // If no meeting configured yet, pick active or generate default
+      if (!state.currentMeeting) {
+        const live = (state.liveMeetings || []).find(m => m && m.isLive);
+        if (live) {
+          state.currentMeeting = live;
+        } else {
+          state.currentMeeting = {
+            id: 'ras-meet-' + Math.random().toString(36).substring(2, 6) + '-' + Math.random().toString(36).substring(2, 6),
+            name: 'Hardware Standup • Core Robotics Sprint',
+            channel: state.activeChannel || 'ai-ml-projects',
+            quality: '1080p60',
+            hostEmail: state.currentUser.email,
+            hostName: state.currentUser.name,
+            hostRole: state.currentUser.roleTitle || 'Lead Architect',
+            isLive: true,
+            isLocked: false,
+            isChatLocked: false,
+            allowShare: true,
+            autoRecord: true,
+            attendees: [
+              {
+                id: 'self',
+                name: state.currentUser.name + ' (You)',
+                email: state.currentUser.email,
+                role: state.currentUser.roleTitle || 'Organizer',
+                isHost: true,
+                isLead: state.currentUser.role === 'club_lead',
+                isSelf: true,
+                isMuted: false
+              },
+              { id: 'att-1', name: 'Ananya Sharma', email: 'ananya.s2024@vitstudent.ac.in', role: 'Hardware Lead', isHost: false, isLead: true, isSelf: false, isMuted: false },
+              { id: 'att-2', name: 'Rohan Verma', email: 'rohan.v2024@vitstudent.ac.in', role: 'Firmware Dev', isHost: false, isLead: false, isSelf: false, isMuted: true },
+              { id: 'att-3', name: 'Kavya Patel', email: 'kavya.p2024@vitstudent.ac.in', role: 'Computer Vision', isHost: false, isLead: false, isSelf: false, isMuted: true }
+            ]
+          };
+          if (!state.liveMeetings) state.liveMeetings = [];
+          state.liveMeetings.unshift(state.currentMeeting);
+        }
+      }
+
+      state.currentMeeting.isLive = true;
       meetingModal.classList.add('active');
       state.isMeetingActive = true;
 
@@ -2474,6 +2570,8 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         }, 1000);
       }
 
+      renderLiveMeetingsList();
+
       const welcomeMsg = hasAdmin 
         ? `Started "${state.currentMeeting.name}". You have full Host Admin privileges.`
         : `Joined "${state.currentMeeting.name}".`;
@@ -2492,13 +2590,42 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         meetingTimerInterval = null;
       }
       if (reactionsFlyout) reactionsFlyout.classList.remove('active');
+      renderLiveMeetingsList();
     }
 
-    if (closeMeetingBtn) closeMeetingBtn.addEventListener('click', closeMeeting);
+    if (closeMeetingBtn) {
+      closeMeetingBtn.addEventListener('click', () => {
+        closeMeeting();
+        showGlobalToast('Meeting minimized. Still active in Live Video Meetings.', 'ℹ️');
+      });
+    }
+
     if (leaveMeetingBtn) {
       leaveMeetingBtn.addEventListener('click', () => {
-        closeMeeting();
-        showGlobalToast('You left the video meeting.', '👋');
+        const leftMeeting = state.currentMeeting;
+        const isHost = leftMeeting && leftMeeting.hostEmail && state.currentUser.email &&
+                       leftMeeting.hostEmail.toLowerCase() === state.currentUser.email.toLowerCase();
+        
+        if (isHost || (leftMeeting && (!leftMeeting.attendees || leftMeeting.attendees.length <= 1))) {
+          // If host leaves or single user, conclude and end meeting so it's not shown over there
+          if (leftMeeting) {
+            leftMeeting.isLive = false;
+            state.liveMeetings = (state.liveMeetings || []).filter(m => m.id !== leftMeeting.id);
+          }
+          state.currentMeeting = null;
+          closeMeeting();
+          renderLiveMeetingsList();
+          showGlobalToast('You left and ended the video meeting.', '👋');
+        } else {
+          // Participant leaves
+          if (leftMeeting && leftMeeting.attendees) {
+            leftMeeting.attendees = leftMeeting.attendees.filter(a => !a.isSelf);
+          }
+          state.currentMeeting = null;
+          closeMeeting();
+          renderLiveMeetingsList();
+          showGlobalToast('You left the video meeting.', '👋');
+        }
       });
     }
 
@@ -2506,10 +2633,20 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     if (endMeetingAllBtn) {
       endMeetingAllBtn.addEventListener('click', () => {
         if (!isCurrentMeetingAdmin()) return;
+        const endedMeetingName = state.currentMeeting ? state.currentMeeting.name : 'Video meeting';
+        if (state.currentMeeting) {
+          state.currentMeeting.isLive = false;
+          state.liveMeetings = (state.liveMeetings || []).filter(m => m.id !== state.currentMeeting.id);
+          state.currentMeeting = null;
+        }
         closeMeeting();
-        showGlobalToast('Meeting ended for all attendees by Meeting Admin.', '🛑');
+        renderLiveMeetingsList();
+        showGlobalToast(`Meeting "${endedMeetingName}" ended for all attendees.`, '🛑');
       });
     }
+
+    // Initial render of Live Meetings list
+    renderLiveMeetingsList();
 
     // Admin Control: Mute All Participants
     if (btnMeetingMuteAll) {

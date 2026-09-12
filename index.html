@@ -788,21 +788,23 @@
             </ul>
           </div>
 
-          <!-- Voice Channels -->
+          <!-- Live Video Meetings (formerly Voice Channels) -->
           <div>
-            <div class="sidebar-section-title">Voice Rooms</div>
-            <ul class="channel-list" id="member-voice-list">
-              <li class="channel-item voice-room-item" data-voice-room="General Voice">
-                <span class="channel-icon">🔊</span>
-                General Voice
-              </li>
-              <li class="channel-item voice-room-item active" data-voice-room="Hardware Standup" style="background: rgba(0, 255, 102, 0.08); color: var(--accent-primary);">
-                <span class="channel-icon">🔊</span>
-                Hardware Standup
-                <div class="voice-wave">
-                  <span class="voice-wave-bar"></span>
-                  <span class="voice-wave-bar"></span>
-                  <span class="voice-wave-bar"></span>
+            <div class="sidebar-section-title" id="sidebar-meetings-title">Live Video Meetings</div>
+            <ul class="channel-list live-meetings-list" id="member-voice-list">
+              <li class="channel-item voice-room-item live-meeting-item active" data-meeting-id="ras-meet-hardware-standup" data-voice-room="Hardware Standup • Core Robotics Sprint" style="background: rgba(0, 255, 102, 0.08); color: var(--accent-primary);" title="Click to join live meeting: Hardware Standup">
+                <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden; width: 100%;">
+                  <span class="channel-icon" style="color: #ff3366; font-size: 0.85rem; display: inline-flex; align-items: center;">
+                    <span class="live-rec-dot" style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff3366; box-shadow: 0 0 8px #ff3366; animation: liveDotPulse 1.4s infinite ease-in-out;"></span>
+                  </span>
+                  <span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 135px; font-size: 0.85rem;" title="Hardware Standup • Core Robotics Sprint">
+                    Hardware Standup
+                  </span>
+                  <div class="voice-wave" style="margin-left: auto;">
+                    <span class="voice-wave-bar"></span>
+                    <span class="voice-wave-bar"></span>
+                    <span class="voice-wave-bar"></span>
+                  </div>
                 </div>
               </li>
             </ul>

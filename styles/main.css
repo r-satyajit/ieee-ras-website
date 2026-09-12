@@ -2051,6 +2051,60 @@ h1, h2, h3, h4, .font-display {
   100% { transform: scaleY(1.2); }
 }
 
+/* ==========================================================================
+   LIVE VIDEO MEETINGS SIDEBAR WIDGET
+   ========================================================================== */
+
+.live-meetings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.live-meeting-item {
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.live-meeting-item:hover {
+  background: rgba(0, 255, 102, 0.05);
+}
+
+[data-theme="light"] .live-meeting-item:hover {
+  background: rgba(0, 180, 216, 0.08);
+}
+
+.live-rec-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff3366;
+  box-shadow: 0 0 8px #ff3366;
+  animation: liveDotPulse 1.4s infinite ease-in-out;
+}
+
+@keyframes liveDotPulse {
+  0% { transform: scale(0.9); opacity: 0.7; box-shadow: 0 0 4px #ff3366; }
+  50% { transform: scale(1.25); opacity: 1; box-shadow: 0 0 10px #ff3366; }
+  100% { transform: scale(0.9); opacity: 0.7; box-shadow: 0 0 4px #ff3366; }
+}
+
+.live-meetings-empty {
+  padding: 0.55rem 0.8rem;
+  border-radius: 6px;
+  border: 1px dashed var(--border-subtle);
+  background: rgba(255, 255, 255, 0.02);
+  margin-top: 0.2rem;
+}
+
+[data-theme="light"] .live-meetings-empty {
+  background: #F8FAFC;
+  border-color: rgba(200, 210, 225, 0.8);
+}
+
 .sidebar-bottom-actions {
   padding: 1rem;
   border-top: 1px solid var(--sidebar-border);
