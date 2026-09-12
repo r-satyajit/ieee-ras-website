@@ -498,70 +498,197 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
 
-      <!-- Left Pane (Member Access) -->
-      <div class="auth-pane-member">
-        <div class="binary-code-bg">
-          01010010 01001111 01010011 00110010 00100000 01001110 01001111 01000100 01000101 00100000 01001111 01001110 01001100 01001001 01001110 01000101 00001010 01010011 01001100 01000001 01001101 00100000 01010000 01001111 01010011 01000101 00111010 00100000 01111000 00111101 00110010 00101110 00110100 00110101 00101100 00100000 01111001 00111101 00110001 00101110 00111001 00110010
-        </div>
+      <!-- Auth Modal Mode Tabs -->
+      <div class="auth-modal-tabs">
+        <button type="button" class="auth-tab-btn active" id="tab-auth-sso">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+          Quick SSO Sign In
+        </button>
+        <button type="button" class="auth-tab-btn" id="tab-auth-register">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+          Create New Account
+        </button>
+      </div>
 
-        <div class="auth-pane-content">
-          <div class="auth-icon-circle member">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <polyline points="4 17 10 11 4 5"></polyline>
-              <line x1="12" y1="19" x2="20" y2="19"></line>
-            </svg>
+      <!-- VIEW 1: Dual SSO Gateway (GitHub / Google) -->
+      <div class="auth-view-content active" id="auth-view-sso">
+        <div class="auth-split-layout">
+          <!-- Left Pane (Member Access) -->
+          <div class="auth-pane-member">
+            <div class="binary-code-bg">
+              01010010 01001111 01010011 00110010 00100000 01001110 01001111 01000100 01000101 00100000 01001111 01001110 01001100 01001001 01001110 01000101 00001010 01010011 01001100 01000001 01001101 00100000 01010000 01001111 01010011 01000101 00111010 00100000 01111000 00111101 00110010 00101110 00110100 00110101 00101100 00100000 01111001 00111101 00110001 00101110 00111001 00110010
+            </div>
+
+            <div class="auth-pane-content">
+              <div class="auth-icon-circle member">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <polyline points="4 17 10 11 4 5"></polyline>
+                  <line x1="12" y1="19" x2="20" y2="19"></line>
+                </svg>
+              </div>
+              <div>
+                <h3 class="auth-pane-heading">Core Member Portal</h3>
+                <p class="auth-pane-subtext">Access society internal virtual workspace, chat channels, hardware repositories, and active build logs.</p>
+              </div>
+            </div>
+
+            <div class="auth-actions-group">
+              <button class="btn btn-primary chamfer-btn auth-btn-full" id="btn-login-member">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                Login with GitHub (Member SSO)
+              </button>
+              <button class="btn btn-secondary chamfer-btn auth-btn-full" id="btn-login-member-google">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.053 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>
+                Login with Google
+              </button>
+              <button type="button" class="auth-switch-link btn-switch-to-register">
+                Don't have an SSO account? <span>Create Account Directly →</span>
+              </button>
+            </div>
+
+            <div class="auth-footer-badge font-mono">
+              SECURE PROTOCOL // 256-BIT RAS MEMBER ENCRYPTION
+            </div>
           </div>
-          <div>
-            <h3 class="auth-pane-heading">Core Member Portal</h3>
-            <p class="auth-pane-subtext">Access society internal virtual workspace, chat channels, hardware repositories, and active build logs.</p>
+
+          <!-- Right Pane (Participant Access) -->
+          <div class="auth-pane-participant">
+            <div class="ticket-grid-bg"></div>
+
+            <div class="auth-pane-content">
+              <div class="auth-icon-circle participant">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                  <path d="M4 22h16"></path>
+                  <path d="M10 14.66V17c0 .55-.45 1-1 1H7v2h10v-2h-2c-.55 0-1-.45-1-1v-2.34"></path>
+                  <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="auth-pane-heading">Event Participant Portal</h3>
+                <p class="auth-pane-subtext">Submit hackathon projects, track round progressions, verify timelines, and download verifiable certificates.</p>
+              </div>
+            </div>
+
+            <div class="auth-actions-group">
+              <button class="btn btn-primary chamfer-btn auth-btn-full btn-participant-login" id="btn-login-participant">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.053 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>
+                Continue with Google (Participant SSO)
+              </button>
+              <button type="button" class="auth-switch-link btn-switch-to-register">
+                Registering for events? <span>Create Account On Website →</span>
+              </button>
+            </div>
+
+            <div class="auth-footer-badge font-mono">
+              AUTHENTICATION FOR ROBOHACK & CHAPTER EVENTS
+            </div>
           </div>
-        </div>
-
-        <div class="auth-actions-group">
-          <button class="btn btn-primary chamfer-btn auth-btn-full" id="btn-login-member">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-            Login with GitHub (Member SSO)
-          </button>
-          <button class="btn btn-secondary chamfer-btn auth-btn-full" id="btn-login-member-google">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.053 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>
-            Login with Google
-          </button>
-        </div>
-
-        <div class="auth-footer-badge font-mono">
-          SECURE PROTOCOL // 256-BIT RAS MEMBER ENCRYPTION
         </div>
       </div>
 
-      <!-- Right Pane (Participant Access) -->
-      <div class="auth-pane-participant">
-        <div class="ticket-grid-bg"></div>
-
-        <div class="auth-pane-content">
-          <div class="auth-icon-circle participant">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-              <path d="M4 22h16"></path>
-              <path d="M10 14.66V17c0 .55-.45 1-1 1H7v2h10v-2h-2c-.55 0-1-.45-1-1v-2.34"></path>
-              <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path>
-            </svg>
+      <!-- VIEW 2: Native On-Site Account Creation -->
+      <div class="auth-view-content" id="auth-view-register">
+        <div class="register-pane-inner">
+          <div class="register-header">
+            <div class="badge-pill badge-green font-mono" style="font-size: 0.72rem; margin-bottom: 0.4rem; display: inline-flex;">
+              DIRECT PORTAL REGISTRATION // IEEE RAS VITC
+            </div>
+            <h3 class="register-heading">Create IEEE RAS Account</h3>
+            <p class="register-subtext">Register directly within the website to access robotics laboratories, technical channels, codebases, and hackathon workspaces.</p>
           </div>
-          <div>
-            <h3 class="auth-pane-heading">Event Participant Portal</h3>
-            <p class="auth-pane-subtext">Submit hackathon projects, track round progressions, verify timelines, and download verifiable certificates.</p>
-          </div>
-        </div>
 
-        <div class="auth-actions-group">
-          <button class="btn btn-primary chamfer-btn auth-btn-full btn-participant-login" id="btn-login-participant">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.053 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>
-            Continue with Google (Participant SSO)
-          </button>
-        </div>
+          <form id="form-register-account" class="register-form" autocomplete="off">
+            <!-- Account Destination Radio Cards -->
+            <div class="form-group-full">
+              <label class="register-field-label">Select Account Type / Portal Destination</label>
+              <div class="destination-selector-grid">
+                <label class="destination-card active" id="dest-card-member">
+                  <input type="radio" name="reg-destination" value="member" checked>
+                  <div class="destination-card-content">
+                    <div class="destination-card-icon">🤖</div>
+                    <div class="destination-card-text">
+                      <div class="destination-card-title">Core Member Workspace</div>
+                      <div class="destination-card-desc">Internal channels, code repos, ROS2 build logs, hardware lab access.</div>
+                    </div>
+                  </div>
+                </label>
+                <label class="destination-card" id="dest-card-participant">
+                  <input type="radio" name="reg-destination" value="participant">
+                  <div class="destination-card-content">
+                    <div class="destination-card-icon">🏆</div>
+                    <div class="destination-card-text">
+                      <div class="destination-card-title">Event Participant Portal</div>
+                      <div class="destination-card-desc">RoboHack submissions, round milestones, timers, and verifiable certificates.</div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
 
-        <div class="auth-footer-badge font-mono">
-          AUTHENTICATION FOR ROBOHACK & CHAPTER EVENTS
+            <!-- Name and Email -->
+            <div class="form-row-2col">
+              <div class="form-field-group">
+                <label for="reg-fullname" class="register-field-label">Full Name *</label>
+                <div class="input-with-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  <input type="text" id="reg-fullname" class="register-input" placeholder="e.g. Alex Chen" required>
+                </div>
+              </div>
+              <div class="form-field-group">
+                <label for="reg-email" class="register-field-label">VIT Email or Registration No. *</label>
+                <div class="input-with-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                  <input type="text" id="reg-email" class="register-input" placeholder="e.g. alex.c2024@vitstudent.ac.in" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Password and Confirm Password -->
+            <div class="form-row-2col">
+              <div class="form-field-group">
+                <label for="reg-password" class="register-field-label">Create Password *</label>
+                <div class="input-with-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  <input type="password" id="reg-password" class="register-input" placeholder="Minimum 6 characters" minlength="6" required>
+                </div>
+              </div>
+              <div class="form-field-group">
+                <label for="reg-confirm-password" class="register-field-label">Confirm Password *</label>
+                <div class="input-with-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                  <input type="password" id="reg-confirm-password" class="register-input" placeholder="Re-enter password" minlength="6" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Specialization Track -->
+            <div class="form-field-group">
+              <label for="reg-track" class="register-field-label">Primary Technical Track / Interest</label>
+              <select id="reg-track" class="register-select">
+                <option value="aiml">AI & Computer Vision (YOLO, LiDAR SLAM, Perception)</option>
+                <option value="autonomous">Autonomous Systems & ROS2 Navigation</option>
+                <option value="embedded">Embedded Systems, Microcontrollers & IoT</option>
+                <option value="mechanical">Mechanical CAD, Kinematics & Robotics Design</option>
+                <option value="drones">Autonomous Aerial Drones & Swarm Robotics</option>
+              </select>
+            </div>
+
+            <div id="reg-alert-box" class="register-alert-box" style="display: none;"></div>
+
+            <!-- Submit Button & Return to SSO -->
+            <div class="register-actions-row">
+              <button type="submit" class="btn btn-primary chamfer-btn auth-btn-full" id="btn-submit-register">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Create Account &amp; Access Portal
+              </button>
+              <div class="register-footer-links">
+                <span>Already registered or have SSO?</span>
+                <button type="button" class="auth-switch-link" id="btn-back-to-sso">Return to Google / GitHub Sign In</button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -578,18 +705,25 @@
       <aside class="member-sidebar">
         <div class="sidebar-user-block">
           <div class="user-profile-info">
-            <div class="user-avatar-small">SR</div>
+            <div class="user-avatar-small" id="member-sidebar-avatar">SR</div>
             <div>
-              <div class="user-meta-name">Satyajit R</div>
+              <div class="user-meta-name" id="member-sidebar-name">Satyajit R</div>
               <div class="user-meta-status font-mono">
                 <span class="status-dot online"></span>
-                Lead Architect
+                <span id="member-sidebar-role-label">Lead Architect</span>
               </div>
             </div>
           </div>
-          <button class="theme-toggle-btn" title="Toggle Theme" style="width: 32px; height: 32px;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
-          </button>
+          <div class="user-sidebar-controls" style="display: flex; gap: 0.4rem; align-items: center;">
+            <!-- Interactive Role Switcher to test RBAC -->
+            <button class="role-switch-btn" id="btn-toggle-member-role" title="Switch Role for Testing (Lead vs Member)" type="button">
+              <span class="role-badge-icon">⚡</span>
+              <span id="member-role-toggle-text">Lead</span>
+            </button>
+            <button class="theme-toggle-btn" title="Toggle Theme" style="width: 32px; height: 32px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
+            </button>
+          </div>
         </div>
 
         <div class="sidebar-nav-scroll">
@@ -610,8 +744,13 @@
 
           <!-- Channels (MS Teams / Discord style) -->
           <div>
-            <div class="sidebar-section-title">Channels</div>
-            <ul class="channel-list">
+            <div class="sidebar-section-header">
+              <div class="sidebar-section-title">Channels</div>
+              <button class="btn-create-channel-trigger" id="btn-open-create-channel" title="Create New Channel (Club Leads Only)" type="button">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              </button>
+            </div>
+            <ul class="channel-list" id="member-channel-list">
               <li class="channel-item" data-channel="general">
                 <span class="channel-icon">#</span>
                 general
@@ -1273,6 +1412,144 @@
         </div>
 
       </aside>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: CREATE NEW CHANNEL (RESTRICTED TO CLUB LEADS)
+       ======================================================================== -->
+  <div class="auth-modal-overlay" id="channel-create-modal">
+    <div class="channel-create-window glass-panel-heavy chamfer-card">
+      <button class="auth-modal-close-btn" id="btn-close-channel-modal" title="Close" aria-label="Close Modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+
+      <div class="channel-create-header">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+          <div class="badge-pill badge-green font-mono" style="font-size: 0.72rem;">LEAD PRIVILEGE // RBAC AUTHORIZED</div>
+          <span style="font-size: 0.8rem; color: var(--accent-primary); font-family: var(--font-mono);">Role: Club Lead</span>
+        </div>
+        <h3 style="font-size: 1.45rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.3rem 0; font-family: var(--font-display);">Create New Channel</h3>
+        <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0;">Channels are where technical teams communicate, share ROS2 build nodes, and collaborate on hardware sprints.</p>
+      </div>
+
+      <form id="form-create-channel" class="channel-create-form" autocomplete="off">
+        <div class="channel-form-group">
+          <label for="input-channel-name" class="register-field-label">Channel Name *</label>
+          <div class="input-with-icon">
+            <span class="channel-name-prefix font-mono">#</span>
+            <input type="text" id="input-channel-name" class="register-input" placeholder="e.g. ros2-navigation or swarm-drones" required pattern="^[a-zA-Z0-9_-]+$" title="Only letters, numbers, hyphens, and underscores">
+          </div>
+          <div class="input-hint font-mono">Names must be lowercase with hyphens (e.g. #autonomous-vision)</div>
+        </div>
+
+        <div class="channel-form-group">
+          <label for="input-channel-topic" class="register-field-label">Channel Topic / Description</label>
+          <textarea id="input-channel-topic" class="register-textarea" rows="2" placeholder="What is this channel about? (e.g. Gazebo simulation testing and trajectory generation)"></textarea>
+        </div>
+
+        <div class="channel-form-group">
+          <label class="register-field-label">Channel Visibility</label>
+          <div class="channel-type-grid">
+            <label class="channel-type-card active">
+              <input type="radio" name="channel-visibility" value="public" checked>
+              <div class="channel-type-inner">
+                <span class="channel-type-icon">#</span>
+                <div>
+                  <div class="channel-type-title">Public Channel</div>
+                  <div class="channel-type-desc">Visible to all registered IEEE RAS members and researchers.</div>
+                </div>
+              </div>
+            </label>
+            <label class="channel-type-card">
+              <input type="radio" name="channel-visibility" value="private">
+              <div class="channel-type-inner">
+                <span class="channel-type-icon">🔒</span>
+                <div>
+                  <div class="channel-type-title">Private / Lead Only</div>
+                  <div class="channel-type-desc">Restricted to Core Leads & designated subsystem architects.</div>
+                </div>
+              </div>
+            </label>
+            <label class="channel-type-card">
+              <input type="radio" name="channel-visibility" value="hardware">
+              <div class="channel-type-inner">
+                <span class="channel-type-icon">⚙️</span>
+                <div>
+                  <div class="channel-type-title">Hardware Lab Dedicated</div>
+                  <div class="channel-type-desc">Tied to physical lab benches, 3D printers, and CNC machines.</div>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="channel-form-group">
+          <label for="select-channel-domain" class="register-field-label">Subsystem Domain Tag</label>
+          <select id="select-channel-domain" class="register-select">
+            <option value="AI / ML">AI / ML & Computer Vision</option>
+            <option value="Robotics">Robotics & ROS2 Control</option>
+            <option value="Firmware">Embedded Firmware & Microcontrollers</option>
+            <option value="Hardware">Mechanical & PCB Hardware</option>
+            <option value="General">General Technical Discussion</option>
+          </select>
+        </div>
+
+        <div class="channel-create-actions">
+          <button type="button" class="btn btn-secondary chamfer-btn" id="btn-cancel-channel-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary chamfer-btn" id="btn-submit-channel-create">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Create Channel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: RBAC ACCESS RESTRICTED WARNING
+       ======================================================================== -->
+  <div class="auth-modal-overlay" id="rbac-warning-modal">
+    <div class="rbac-warning-window glass-panel-heavy chamfer-card">
+      <button class="auth-modal-close-btn" id="btn-close-rbac-modal" title="Close" aria-label="Close Modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+
+      <div class="rbac-warning-content">
+        <div class="rbac-shield-icon">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#ff3366" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+
+        <div class="badge-pill font-mono" style="background: rgba(255, 51, 102, 0.15); border: 1px solid rgba(255, 51, 102, 0.4); color: #ff3366; font-size: 0.72rem; margin-bottom: 0.8rem; display: inline-flex;">
+          SECURITY PROTOCOL // ACCESS RESTRICTED
+        </div>
+
+        <h3 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.6rem 0; font-family: var(--font-display);">
+          Lead Authorization Required
+        </h3>
+
+        <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin: 0 0 1.2rem 0;">
+          Channel creation privileges in the IEEE RAS Virtual Workspace are strictly restricted to <strong>Club Leads and Executive Chapter Officers</strong>. Regular members and event participants cannot create public or private channels.
+        </p>
+
+        <div class="rbac-current-role-banner font-mono">
+          <span>Active Session Role:</span>
+          <span class="badge-pill" id="rbac-modal-role-indicator" style="background: rgba(255, 255, 255, 0.08); color: var(--text-secondary);">Regular Member</span>
+        </div>
+
+        <div class="rbac-actions-group">
+          <button class="btn btn-primary chamfer-btn" id="btn-rbac-switch-to-lead" style="flex: 1;">
+            ⚡ Switch to Club Lead (Demo Mode)
+          </button>
+          <button class="btn btn-secondary chamfer-btn" id="btn-rbac-dismiss">
+            Acknowledge &amp; Close
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

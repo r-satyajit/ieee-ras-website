@@ -15,7 +15,14 @@
     isMeetingActive: false,
     countdownSeconds: 12 * 3600 + 45 * 60 + 30, // 12h 45m 30s
     uploadProgress: 75,
-    uploadInterval: null
+    uploadInterval: null,
+    currentUser: {
+      name: 'Satyajit R',
+      email: 'satyajit.r2024@vitstudent.ac.in',
+      role: 'club_lead', // 'club_lead' | 'regular_member'
+      roleTitle: 'Lead Architect',
+      track: 'Autonomous Systems & ROS2 Navigation'
+    }
   };
 
   // DOM Cache
@@ -95,60 +102,197 @@
     if (authModal) {
       authModal.classList.remove('active');
       document.body.style.overflow = '';
+      // Reset alert box
+      const regAlertBox = document.getElementById('reg-alert-box');
+      if (regAlertBox) regAlertBox.style.display = 'none';
     }
   }
 
-  // Bind auth buttons
-  document.querySelectorAll('.open-auth-trigger').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      openAuthModal();
-    });
-  });
+  /* ==========================================================================
+     UNIFIED AUTHENTICATION GATEWAY & ON-SITE ACCOUNT CREATION
+     ========================================================================== */
+  function initAuthGateway() {
+    // Mode Switcher Tabs
+    const tabAuthSso = document.getElementById('tab-auth-sso');
+    const tabAuthRegister = document.getElementById('tab-auth-register');
+    const authViewSso = document.getElementById('auth-view-sso');
+    const authViewRegister = document.getElementById('auth-view-register');
+    const btnBackToSso = document.getElementById('btn-back-to-sso');
+    const switchLinksToRegister = document.querySelectorAll('.btn-switch-to-register');
 
-  const authCloseBtn = document.getElementById('auth-modal-close');
-  if (authCloseBtn) {
-    authCloseBtn.addEventListener('click', closeAuthModal);
-  }
+    function switchAuthTab(tab) {
+      if (tab === 'register') {
+        if (tabAuthSso) tabAuthSso.classList.remove('active');
+        if (tabAuthRegister) tabAuthRegister.classList.add('active');
+        if (authViewSso) authViewSso.classList.remove('active');
+        if (authViewRegister) authViewRegister.classList.add('active');
+      } else {
+        if (tabAuthRegister) tabAuthRegister.classList.remove('active');
+        if (tabAuthSso) tabAuthSso.classList.add('active');
+        if (authViewRegister) authViewRegister.classList.remove('active');
+        if (authViewSso) authViewSso.classList.add('active');
+      }
+    }
 
-  if (authModal) {
-    authModal.addEventListener('click', (e) => {
-      if (e.target === authModal) closeAuthModal();
+    if (tabAuthSso) tabAuthSso.addEventListener('click', () => switchAuthTab('sso'));
+    if (tabAuthRegister) tabAuthRegister.addEventListener('click', () => switchAuthTab('register'));
+    if (btnBackToSso) btnBackToSso.addEventListener('click', () => switchAuthTab('sso'));
+    switchLinksToRegister.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchAuthTab('register');
+      });
     });
-  }
 
-  // Member Login button click -> switch to Member Portal (Screen 3)
-  const btnLoginMember = document.getElementById('btn-login-member');
-  const btnLoginMemberGoogle = document.getElementById('btn-login-member-google');
-  if (btnLoginMember) {
-    btnLoginMember.addEventListener('click', () => {
-      closeAuthModal();
-      switchScreen('member');
-    });
-  }
-  if (btnLoginMemberGoogle) {
-    btnLoginMemberGoogle.addEventListener('click', () => {
-      closeAuthModal();
-      switchScreen('member');
-    });
-  }
+    // Destination Selector Radio Cards
+    const destCardMember = document.getElementById('dest-card-member');
+    const destCardParticipant = document.getElementById('dest-card-participant');
+    if (destCardMember && destCardParticipant) {
+      destCardMember.addEventListener('click', () => {
+        destCardMember.classList.add('active');
+        destCardParticipant.classList.remove('active');
+        const radio = destCardMember.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+      });
+      destCardParticipant.addEventListener('click', () => {
+        destCardParticipant.classList.add('active');
+        destCardMember.classList.remove('active');
+        const radio = destCardParticipant.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+      });
+    }
 
-  // Participant Login button click -> switch to Participant Portal (Screen 4)
-  const btnLoginParticipant = document.getElementById('btn-login-participant');
-  if (btnLoginParticipant) {
-    btnLoginParticipant.addEventListener('click', () => {
-      closeAuthModal();
-      switchScreen('participant');
+    // Native Account Registration Form Submission
+    const formRegister = document.getElementById('form-register-account');
+    const regNameInput = document.getElementById('reg-fullname');
+    const regEmailInput = document.getElementById('reg-email');
+    const regPassInput = document.getElementById('reg-password');
+    const regConfirmPassInput = document.getElementById('reg-confirm-password');
+    const regTrackSelect = document.getElementById('reg-track');
+    const regAlertBox = document.getElementById('reg-alert-box');
+
+    if (formRegister) {
+      formRegister.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fullName = regNameInput ? regNameInput.value.trim() : '';
+        const email = regEmailInput ? regEmailInput.value.trim() : '';
+        const pass = regPassInput ? regPassInput.value : '';
+        const confirmPass = regConfirmPassInput ? regConfirmPassInput.value : '';
+        const destination = formRegister.querySelector('input[name="reg-destination"]:checked')?.value || 'member';
+        const track = regTrackSelect ? regTrackSelect.options[regTrackSelect.selectedIndex].text : 'Robotics R&D';
+
+        // Validation
+        if (pass !== confirmPass) {
+          if (regAlertBox) {
+            regAlertBox.style.display = 'flex';
+            regAlertBox.className = 'register-alert-box error';
+            regAlertBox.innerHTML = `⚠️ Passwords do not match. Please verify both password entries.`;
+          }
+          return;
+        }
+
+        if (pass.length < 6) {
+          if (regAlertBox) {
+            regAlertBox.style.display = 'flex';
+            regAlertBox.className = 'register-alert-box error';
+            regAlertBox.innerHTML = `⚠️ Password must contain at least 6 characters.`;
+          }
+          return;
+        }
+
+        // Generate Avatar Initials
+        const initials = fullName
+          .split(' ')
+          .map(n => n[0])
+          .filter(Boolean)
+          .join('')
+          .substring(0, 2)
+          .toUpperCase() || 'SR';
+
+        // Update Global User State
+        state.currentUser = {
+          name: fullName,
+          email: email,
+          role: destination === 'member' ? 'club_lead' : 'participant',
+          roleTitle: destination === 'member' ? 'Lead Architect' : 'Participant Lead',
+          track: track
+        };
+
+        // Sync with Member Portal Profile
+        const memberSidebarAvatar = document.getElementById('member-sidebar-avatar');
+        const memberSidebarName = document.getElementById('member-sidebar-name');
+        const memberSidebarRole = document.getElementById('member-sidebar-role-label');
+        if (memberSidebarAvatar) memberSidebarAvatar.textContent = initials;
+        if (memberSidebarName) memberSidebarName.textContent = fullName;
+        if (memberSidebarRole) memberSidebarRole.textContent = state.currentUser.roleTitle;
+
+        // Feedback & Portal Redirect
+        if (regAlertBox) {
+          regAlertBox.style.display = 'flex';
+          regAlertBox.className = 'register-alert-box success';
+          regAlertBox.innerHTML = `✓ Account created successfully! Launching ${destination === 'member' ? 'Member Workspace' : 'Participant Portal'}...`;
+        }
+
+        setTimeout(() => {
+          closeAuthModal();
+          switchScreen(destination);
+          if (regAlertBox) regAlertBox.style.display = 'none';
+        }, 650);
+      });
+    }
+
+    // Modal Trigger Buttons
+    document.querySelectorAll('.open-auth-trigger').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openAuthModal();
+      });
+    });
+
+    const authCloseBtn = document.getElementById('auth-modal-close');
+    if (authCloseBtn) {
+      authCloseBtn.addEventListener('click', closeAuthModal);
+    }
+
+    if (authModal) {
+      authModal.addEventListener('click', (e) => {
+        if (e.target === authModal) closeAuthModal();
+      });
+    }
+
+    // SSO Member Buttons
+    const btnLoginMember = document.getElementById('btn-login-member');
+    const btnLoginMemberGoogle = document.getElementById('btn-login-member-google');
+    if (btnLoginMember) {
+      btnLoginMember.addEventListener('click', () => {
+        closeAuthModal();
+        switchScreen('member');
+      });
+    }
+    if (btnLoginMemberGoogle) {
+      btnLoginMemberGoogle.addEventListener('click', () => {
+        closeAuthModal();
+        switchScreen('member');
+      });
+    }
+
+    // SSO Participant Button
+    const btnLoginParticipant = document.getElementById('btn-login-participant');
+    if (btnLoginParticipant) {
+      btnLoginParticipant.addEventListener('click', () => {
+        closeAuthModal();
+        switchScreen('participant');
+      });
+    }
+
+    // Logout Triggers
+    document.querySelectorAll('.logout-trigger').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchScreen('landing');
+      });
     });
   }
-
-  // Logout / Return buttons
-  document.querySelectorAll('.logout-trigger').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      switchScreen('landing');
-    });
-  });
 
   /* ==========================================================================
      INTERACTIVE ROBOTICS & TELEMETRY CANVAS
@@ -326,23 +470,248 @@
       });
     });
 
-    // Channel Switching
-    channelItems.forEach(item => {
-      item.addEventListener('click', (e) => {
+    // Channel Selection & Switching
+    const channelListContainer = document.getElementById('member-channel-list');
+
+    function selectChannel(channelName, itemElement) {
+      workspaceItems.forEach(wi => wi.classList.remove('active'));
+      document.querySelectorAll('.channel-item').forEach(i => i.classList.remove('active'));
+      if (itemElement) itemElement.classList.add('active');
+      
+      switchWorkspaceView('chat');
+      
+      state.activeChannel = channelName;
+      if (channelTitleElem) {
+        channelTitleElem.textContent = `#${channelName}`;
+      }
+    }
+
+    if (channelListContainer) {
+      channelListContainer.addEventListener('click', (e) => {
+        const item = e.target.closest('.channel-item');
+        if (!item) return;
         e.preventDefault();
-        workspaceItems.forEach(wi => wi.classList.remove('active'));
-        channelItems.forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        
-        switchWorkspaceView('chat');
-        
         const channelName = item.dataset.channel || 'ai-ml-projects';
-        state.activeChannel = channelName;
-        if (channelTitleElem) {
-          channelTitleElem.textContent = `#${channelName}`;
+        selectChannel(channelName, item);
+      });
+    }
+
+    /* ------------------------------------------------------------------------
+       ROLE-BASED ACCESS CONTROL (RBAC) & TESTING ROLE SWITCHER
+       ------------------------------------------------------------------------ */
+    const btnToggleRole = document.getElementById('btn-toggle-member-role');
+    const roleToggleText = document.getElementById('member-role-toggle-text');
+    const sidebarRoleLabel = document.getElementById('member-sidebar-role-label');
+
+    function updateRoleUI() {
+      const isLead = state.currentUser.role === 'club_lead';
+      if (roleToggleText) {
+        roleToggleText.textContent = isLead ? 'Lead' : 'Member';
+      }
+      if (sidebarRoleLabel) {
+        sidebarRoleLabel.textContent = isLead ? 'Lead Architect' : 'Junior Researcher';
+      }
+      if (btnToggleRole) {
+        if (isLead) {
+          btnToggleRole.classList.remove('role-regular-member');
+          const icon = btnToggleRole.querySelector('.role-badge-icon');
+          if (icon) icon.textContent = '⚡';
+          btnToggleRole.title = 'Current Role: Club Lead (Click to switch to Regular Member for testing)';
+        } else {
+          btnToggleRole.classList.add('role-regular-member');
+          const icon = btnToggleRole.querySelector('.role-badge-icon');
+          if (icon) icon.textContent = '👤';
+          btnToggleRole.title = 'Current Role: Regular Member (Click to switch to Club Lead for testing)';
+        }
+      }
+    }
+
+    if (btnToggleRole) {
+      btnToggleRole.addEventListener('click', () => {
+        state.currentUser.role = state.currentUser.role === 'club_lead' ? 'regular_member' : 'club_lead';
+        state.currentUser.roleTitle = state.currentUser.role === 'club_lead' ? 'Lead Architect' : 'Junior Researcher';
+        updateRoleUI();
+      });
+    }
+
+    /* ------------------------------------------------------------------------
+       CHANNEL CREATION MODAL & LEAD RBAC RESTRICTION
+       ------------------------------------------------------------------------ */
+    const btnOpenCreateChannel = document.getElementById('btn-open-create-channel');
+    const channelCreateModal = document.getElementById('channel-create-modal');
+    const btnCloseChannelModal = document.getElementById('btn-close-channel-modal');
+    const btnCancelChannelModal = document.getElementById('btn-cancel-channel-modal');
+    const formCreateChannel = document.getElementById('form-create-channel');
+    const inputChannelName = document.getElementById('input-channel-name');
+    const inputChannelTopic = document.getElementById('input-channel-topic');
+    const selectChannelDomain = document.getElementById('select-channel-domain');
+
+    const rbacWarningModal = document.getElementById('rbac-warning-modal');
+    const btnCloseRbacModal = document.getElementById('btn-close-rbac-modal');
+    const btnRbacDismiss = document.getElementById('btn-rbac-dismiss');
+    const btnRbacSwitchToLead = document.getElementById('btn-rbac-switch-to-lead');
+    const rbacModalRoleIndicator = document.getElementById('rbac-modal-role-indicator');
+
+    function openChannelModal() {
+      if (channelCreateModal) {
+        channelCreateModal.classList.add('active');
+        if (inputChannelName) {
+          inputChannelName.value = '';
+          inputChannelName.focus();
+        }
+        if (inputChannelTopic) inputChannelTopic.value = '';
+      }
+    }
+
+    function closeChannelModal() {
+      if (channelCreateModal) channelCreateModal.classList.remove('active');
+    }
+
+    function openRbacWarning() {
+      if (rbacModalRoleIndicator) {
+        rbacModalRoleIndicator.textContent = state.currentUser.role === 'club_lead' ? 'Club Lead' : 'Regular Member';
+      }
+      if (rbacWarningModal) rbacWarningModal.classList.add('active');
+    }
+
+    function closeRbacModal() {
+      if (rbacWarningModal) rbacWarningModal.classList.remove('active');
+    }
+
+    // Trigger '+' button click
+    if (btnOpenCreateChannel) {
+      btnOpenCreateChannel.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Strict RBAC Verification: ONLY CLUB LEADS CAN CREATE CHANNELS
+        if (state.currentUser.role !== 'club_lead') {
+          openRbacWarning();
+        } else {
+          openChannelModal();
         }
       });
+    }
+
+    // Channel Modal Close handlers
+    if (btnCloseChannelModal) btnCloseChannelModal.addEventListener('click', closeChannelModal);
+    if (btnCancelChannelModal) btnCancelChannelModal.addEventListener('click', closeChannelModal);
+    if (channelCreateModal) {
+      channelCreateModal.addEventListener('click', (e) => {
+        if (e.target === channelCreateModal) closeChannelModal();
+      });
+    }
+
+    // RBAC Modal Close handlers
+    if (btnCloseRbacModal) btnCloseRbacModal.addEventListener('click', closeRbacModal);
+    if (btnRbacDismiss) btnRbacDismiss.addEventListener('click', closeRbacModal);
+    if (rbacWarningModal) {
+      rbacWarningModal.addEventListener('click', (e) => {
+        if (e.target === rbacWarningModal) closeRbacModal();
+      });
+    }
+
+    // Switch to Lead action inside RBAC warning
+    if (btnRbacSwitchToLead) {
+      btnRbacSwitchToLead.addEventListener('click', () => {
+        state.currentUser.role = 'club_lead';
+        state.currentUser.roleTitle = 'Lead Architect';
+        updateRoleUI();
+        closeRbacModal();
+        openChannelModal();
+      });
+    }
+
+    // Channel Visibility Radio selection
+    document.querySelectorAll('.channel-type-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.channel-type-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+      });
     });
+
+    // Handle Channel Creation Submit
+    if (formCreateChannel) {
+      formCreateChannel.addEventListener('submit', (e) => {
+        e.preventDefault();
+        // Permission check
+        if (state.currentUser.role !== 'club_lead') {
+          closeChannelModal();
+          openRbacWarning();
+          return;
+        }
+
+        const rawName = inputChannelName ? inputChannelName.value.trim() : '';
+        if (!rawName) return;
+
+        // Clean slug formatting
+        const channelSlug = rawName.toLowerCase()
+          .replace(/^#+/, '')
+          .replace(/[^a-z0-9_-]/g, '-')
+          .replace(/-+/g, '-');
+
+        const topic = inputChannelTopic ? inputChannelTopic.value.trim() : '';
+        const domainTag = selectChannelDomain ? selectChannelDomain.value : 'General';
+        const visibility = formCreateChannel.querySelector('input[name="channel-visibility"]:checked')?.value || 'public';
+
+        let iconHtml = '#';
+        if (visibility === 'private') {
+          iconHtml = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`;
+        } else if (visibility === 'hardware') {
+          iconHtml = '⚙️';
+        }
+
+        // Check if already exists
+        const existing = document.querySelector(`.channel-item[data-channel="${channelSlug}"]`);
+        if (existing) {
+          alert(`Channel #${channelSlug} already exists! Switching to it.`);
+          closeChannelModal();
+          selectChannel(channelSlug, existing);
+          return;
+        }
+
+        // Create new DOM Channel element
+        const newLi = document.createElement('li');
+        newLi.className = 'channel-item';
+        newLi.dataset.channel = channelSlug;
+        newLi.innerHTML = `
+          <span class="channel-icon">${iconHtml}</span>
+          ${channelSlug}
+          <span class="new-channel-badge font-mono">NEW</span>
+        `;
+
+        if (channelListContainer) {
+          channelListContainer.appendChild(newLi);
+        }
+
+        // Close modal and switch to the newly created channel
+        closeChannelModal();
+        selectChannel(channelSlug, newLi);
+
+        // Inject Welcome Announcement in Chat Feed
+        if (chatMessagesContainer) {
+          const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const welcomeRow = document.createElement('div');
+          welcomeRow.className = 'chat-msg-row';
+          welcomeRow.innerHTML = `
+            <div class="msg-avatar msg-avatar-user" style="background: linear-gradient(135deg, #00FF66, #00B4D8); color: #000;">RAS</div>
+            <div class="msg-body">
+              <div class="msg-meta">
+                <span class="msg-author">IEEE RAS Lead System</span>
+                <span class="badge-pill badge-green" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">Channel Created</span>
+                <span class="msg-time">${timeStr}</span>
+              </div>
+              <div class="msg-bubble" style="border-left: 3px solid var(--accent-primary); background: var(--accent-subtle);">
+                <strong>Channel #${channelSlug} has been created by Lead Architect ${escapeHtml(state.currentUser.name)}!</strong><br>
+                <span style="color: var(--text-secondary); font-size: 0.88rem;">${topic ? escapeHtml(topic) : 'Workspace initialized for ' + domainTag + ' subsystem engineering & collaboration.'}</span>
+              </div>
+            </div>
+          `;
+          chatMessagesContainer.appendChild(welcomeRow);
+          chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        }
+      });
+    }
 
     // Send Message
     function sendMessage() {
@@ -351,14 +720,27 @@
       if (!text) return;
 
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const initials = (state.currentUser.name || 'Satyajit R')
+        .split(' ')
+        .map(n => n[0])
+        .filter(Boolean)
+        .join('')
+        .substring(0, 2)
+        .toUpperCase() || 'SR';
+
+      const isLead = state.currentUser.role === 'club_lead';
+      const roleBadge = isLead
+        ? `<span class="badge-pill badge-green" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">Lead</span>`
+        : `<span class="badge-pill" style="padding: 0.1rem 0.4rem; font-size: 0.65rem; background: rgba(255,255,255,0.1); color: var(--text-secondary);">Member</span>`;
+
       const msgRow = document.createElement('div');
       msgRow.className = 'chat-msg-row';
       msgRow.innerHTML = `
-        <div class="msg-avatar msg-avatar-user">SR</div>
+        <div class="msg-avatar msg-avatar-user">${initials}</div>
         <div class="msg-body">
           <div class="msg-meta">
-            <span class="msg-author">Satyajit R</span>
-            <span class="badge-pill badge-green" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">Lead</span>
+            <span class="msg-author">${escapeHtml(state.currentUser.name)}</span>
+            ${roleBadge}
             <span class="msg-time">${timeStr}</span>
           </div>
           <div class="msg-bubble">${escapeHtml(text)}</div>
@@ -1227,6 +1609,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     applyTheme(state.theme);
     initRoboticsCanvas();
+    initAuthGateway();
     initMemberPortal();
     initParticipantPortal();
 
