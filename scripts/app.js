@@ -2027,7 +2027,7 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     });
 
 
-    // Gemini AI Assistant Interactive Chips & Responses
+    // AI Assistant Interactive Chips & Responses
     const aiChips = document.querySelectorAll('.ai-query-chip');
     const aiResponseBox = document.getElementById('ai-response-display');
 
@@ -2048,7 +2048,7 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       chip.addEventListener('click', () => {
         const queryKey = chip.dataset.query || 'summary';
         if (aiResponseBox) {
-          aiResponseBox.innerHTML = `<span style="color: var(--accent-primary); font-family: var(--font-mono);">⚡ Gemini AI is synthesizing channel telemetry...</span>`;
+          aiResponseBox.innerHTML = `<span style="color: var(--accent-primary); font-family: var(--font-mono);">⚡ AI Assistant is synthesizing channel telemetry...</span>`;
           setTimeout(() => {
             aiResponseBox.innerHTML = aiResponses[queryKey] || aiResponses.summary;
           }, 450);
