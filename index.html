@@ -733,11 +733,6 @@
             </div>
           </div>
           <div class="user-sidebar-controls" style="display: flex; gap: 0.4rem; align-items: center;">
-            <!-- Interactive Role Switcher to test RBAC -->
-            <button class="role-switch-btn" id="btn-toggle-member-role" title="Switch Role for Testing (Lead vs Member)" type="button">
-              <span class="role-badge-icon">⚡</span>
-              <span id="member-role-toggle-text">Lead</span>
-            </button>
             <button class="theme-toggle-btn" title="Toggle Theme" style="width: 32px; height: 32px;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
             </button>
@@ -796,12 +791,12 @@
           <!-- Voice Channels -->
           <div>
             <div class="sidebar-section-title">Voice Rooms</div>
-            <ul class="channel-list">
-              <li class="channel-item">
+            <ul class="channel-list" id="member-voice-list">
+              <li class="channel-item voice-room-item" data-voice-room="General Voice">
                 <span class="channel-icon">🔊</span>
                 General Voice
               </li>
-              <li class="channel-item active" style="background: rgba(0, 255, 102, 0.08); color: var(--accent-primary);">
+              <li class="channel-item voice-room-item active" data-voice-room="Hardware Standup" style="background: rgba(0, 255, 102, 0.08); color: var(--accent-primary);">
                 <span class="channel-icon">🔊</span>
                 Hardware Standup
                 <div class="voice-wave">
@@ -1372,23 +1367,26 @@
         </div>
 
         <!-- View 4: Member Management & Role Provisioning (Restricted to Club Leads) -->
-        <div id="member-view-members" class="workspace-panel-view">
-          <div class="workspace-view-header">
-            <div class="workspace-header-info">
-              <div class="badge-pill badge-green font-mono" style="font-size: 0.72rem; margin-bottom: 0.4rem;">
-                LEAD PRIVILEGE // CHAPTER ACCESS CONTROL
+        <div id="member-view-members" class="member-center-view">
+          <div class="workspace-top-bar">
+            <div class="workspace-view-title">
+              <div class="brand-logo-hex" style="width: 32px; height: 32px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
               </div>
-              <h2 class="workspace-header-title">Member Directory &amp; Role Provisioning</h2>
-              <p class="workspace-header-desc">
-                Exclusive Club Lead administrative suite for provisioning new core society members, granting laboratory permissions, and assigning technical subsystem roles.
-              </p>
+              <div>
+                <div class="badge-pill badge-green font-mono" style="font-size: 0.68rem; margin-bottom: 0.2rem; display: inline-block;">
+                  LEAD PRIVILEGE // CHAPTER ACCESS CONTROL
+                </div>
+                <h2>Member Directory &amp; Role Provisioning</h2>
+              </div>
             </div>
-            <button class="btn btn-secondary chamfer-btn btn-back-to-chat" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+            <button class="btn btn-secondary chamfer-btn btn-back-to-chat" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
               ← Back to Chat
             </button>
           </div>
 
-          <div class="member-mgmt-container">
+          <div class="workspace-content-scroll">
+            <div class="member-mgmt-container">
             <!-- Provision Form Card -->
             <div class="member-provision-card glass-panel chamfer-card">
               <div class="provision-card-header">
@@ -1491,6 +1489,7 @@
             </div>
           </div>
         </div>
+      </div>
 
       </div>
 
@@ -1682,7 +1681,7 @@
         </h3>
 
         <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin: 0 0 1.2rem 0;">
-          Channel creation privileges in the IEEE RAS Virtual Workspace are strictly restricted to <strong>Club Leads and Executive Chapter Officers</strong>. Regular members and event participants cannot create public or private channels.
+          This administrative feature in the IEEE RAS Virtual Workspace is strictly restricted to <strong>Club Leads and Executive Chapter Officers</strong>. Regular members and event participants do not have permission to provision accounts or create channels.
         </p>
 
         <div class="rbac-current-role-banner font-mono">
@@ -1690,11 +1689,8 @@
           <span class="badge-pill" id="rbac-modal-role-indicator" style="background: rgba(255, 255, 255, 0.08); color: var(--text-secondary);">Regular Member</span>
         </div>
 
-        <div class="rbac-actions-group">
-          <button class="btn btn-primary chamfer-btn" id="btn-rbac-switch-to-lead" style="flex: 1;">
-            ⚡ Switch to Club Lead (Demo Mode)
-          </button>
-          <button class="btn btn-secondary chamfer-btn" id="btn-rbac-dismiss">
+        <div class="rbac-actions-group" style="justify-content: flex-end;">
+          <button class="btn btn-secondary chamfer-btn" id="btn-rbac-dismiss" style="min-width: 140px;">
             Acknowledge &amp; Close
           </button>
         </div>

@@ -4047,6 +4047,22 @@ h1, h2, h3, h4, .font-display {
    MEMBER DIRECTORY & ROLE PROVISIONING VIEW (#member-view-members)
    ========================================================================== */
 
+#member-view-members {
+  display: none;
+  height: 100%;
+  flex-direction: column;
+}
+
+#member-view-members.active-view {
+  display: flex !important;
+  animation: fadeIn 0.25s ease forwards;
+}
+
+#member-view-members:not(.active-view),
+.workspace-panel-view:not(.active-view) {
+  display: none !important;
+}
+
 .member-mgmt-container {
   display: flex;
   flex-direction: column;

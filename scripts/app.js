@@ -138,18 +138,16 @@
   }
 
 
-  // Unified Role UI Synchronizer (Active for both Lead and Member accounts)
+  // Unified Role UI Synchronizer (Enforces true authenticated role; regular members have NO demo switchers)
   function updateRoleUI() {
     const isLead = state.currentUser.role === 'club_lead';
-    const roleToggleText = document.getElementById('member-role-toggle-text');
     const sidebarRoleLabel = document.getElementById('member-sidebar-role-label');
     const memberSidebarName = document.getElementById('member-sidebar-name');
     const memberSidebarAvatar = document.getElementById('member-sidebar-avatar');
-    const btnToggleRole = document.getElementById('btn-toggle-member-role');
+    const membersNav = document.getElementById('nav-workspace-members');
+    const btnQuickManage = document.getElementById('btn-quick-manage-members');
+    const btnOpenCreateChannel = document.getElementById('btn-open-create-channel');
 
-    if (roleToggleText) {
-      roleToggleText.textContent = isLead ? 'Lead' : 'Member';
-    }
     if (sidebarRoleLabel) {
       sidebarRoleLabel.textContent = state.currentUser.roleTitle || (isLead ? 'Lead Architect' : 'Core R&D Engineer');
     }
@@ -160,17 +158,23 @@
       const initials = state.currentUser.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'SR';
       memberSidebarAvatar.textContent = initials;
     }
-    if (btnToggleRole) {
-      if (isLead) {
-        btnToggleRole.classList.remove('role-regular-member');
-        const icon = btnToggleRole.querySelector('.role-badge-icon');
-        if (icon) icon.textContent = '⚡';
-        btnToggleRole.title = 'Current Role: Club Lead (Click to switch to Regular Member for testing)';
-      } else {
-        btnToggleRole.classList.add('role-regular-member');
-        const icon = btnToggleRole.querySelector('.role-badge-icon');
-        if (icon) icon.textContent = '👤';
-        btnToggleRole.title = 'Current Role: Regular Member (Click to switch to Club Lead for testing)';
+
+    // Role-based visibility: ONLY Club Leads see the Member Directory & Roles navigation and channel creation
+    if (membersNav) {
+      membersNav.style.display = isLead ? 'flex' : 'none';
+    }
+    if (btnQuickManage) {
+      btnQuickManage.style.display = isLead ? 'inline-flex' : 'none';
+    }
+    if (btnOpenCreateChannel) {
+      btnOpenCreateChannel.style.display = isLead ? 'inline-flex' : 'none';
+    }
+
+    // If regular member is somehow on members view, redirect to chat immediately
+    const viewMembers = document.getElementById('member-view-members');
+    if (!isLead && viewMembers && viewMembers.classList.contains('active-view')) {
+      if (window.switchWorkspaceView) {
+        window.switchWorkspaceView('chat');
       }
     }
   }
@@ -666,6 +670,11 @@
       } else if (viewId === 'resources' && viewResources) {
         viewResources.classList.add('active-view');
       } else if (viewId === 'members' && viewMembers) {
+        if (state.currentUser.role !== 'club_lead') {
+          if (viewChat) viewChat.classList.add('active-view');
+          showGlobalToast('Access Restricted: Member Directory is reserved for Club Leads.', '🔒');
+          return;
+        }
         viewMembers.classList.add('active-view');
         renderMemberRoster();
       } else if (viewChat) {
@@ -754,18 +763,8 @@
     }
 
     /* ------------------------------------------------------------------------
-       ROLE-BASED ACCESS CONTROL (RBAC) & TESTING ROLE SWITCHER
+       ROLE-BASED ACCESS CONTROL (RBAC) & ROLE SYNCHRONIZATION
        ------------------------------------------------------------------------ */
-    const btnToggleRole = document.getElementById('btn-toggle-member-role');
-
-    if (btnToggleRole) {
-      btnToggleRole.addEventListener('click', () => {
-        state.currentUser.role = state.currentUser.role === 'club_lead' ? 'regular_member' : 'club_lead';
-        state.currentUser.roleTitle = state.currentUser.role === 'club_lead' ? 'Lead Architect' : 'Core R&D Engineer';
-        updateRoleUI();
-      });
-    }
-
     updateRoleUI();
 
     /* ------------------------------------------------------------------------
@@ -783,7 +782,6 @@
     const rbacWarningModal = document.getElementById('rbac-warning-modal');
     const btnCloseRbacModal = document.getElementById('btn-close-rbac-modal');
     const btnRbacDismiss = document.getElementById('btn-rbac-dismiss');
-    const btnRbacSwitchToLead = document.getElementById('btn-rbac-switch-to-lead');
     const rbacModalRoleIndicator = document.getElementById('rbac-modal-role-indicator');
 
     function openChannelModal() {
@@ -847,26 +845,7 @@
       });
     }
 
-    // Switch to Lead action inside RBAC warning
-    if (btnRbacSwitchToLead) {
-      btnRbacSwitchToLead.addEventListener('click', () => {
-        state.currentUser.role = 'club_lead';
-        state.currentUser.roleTitle = 'Lead Architect';
-        updateRoleUI();
-        const actionToResume = rbacPendingAction;
-        closeRbacModal();
-
-        if (actionToResume === 'members') {
-          const membersNav = document.getElementById('nav-workspace-members');
-          channelItems.forEach(ch => ch.classList.remove('active'));
-          workspaceItems.forEach(wi => wi.classList.remove('active'));
-          if (membersNav) membersNav.classList.add('active');
-          switchWorkspaceView('members');
-        } else {
-          openChannelModal();
-        }
-      });
-    }
+    // Dismiss modal handlers ready
 
     // Channel Visibility Radio selection
     document.querySelectorAll('.channel-type-card').forEach(card => {
@@ -1967,11 +1946,10 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
           const memId = btn.dataset.revokeId;
           const targetMem = coreMembers.find(m => m.id === memId);
           const memName = targetMem ? targetMem.name : 'Member';
-          if (confirm(`Are you sure you want to revoke access for ${memName}? They will immediately lose access to the Core Member Portal.`)) {
-            coreMembers = coreMembers.filter(m => m.id !== memId);
-            saveCoreMembers();
-            renderMemberRoster();
-          }
+          coreMembers = coreMembers.filter(m => m.id !== memId);
+          saveCoreMembers();
+          renderMemberRoster();
+          showGlobalToast(`Revoked access for ${memName}. Society roster updated.`, '🗑️');
         });
       });
     }
@@ -2049,6 +2027,51 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
 
     // Pre-render Roster Table
     renderMemberRoster();
+
+    // Exit Workspace / Logout buttons
+    document.querySelectorAll('.logout-trigger').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchScreen('landing');
+        showGlobalToast('Signed out of IEEE RAS Virtual Workspace.', '👋');
+      });
+    });
+
+    // Voice Rooms Interaction
+    const voiceListContainer = document.getElementById('member-voice-list');
+    if (voiceListContainer) {
+      voiceListContainer.addEventListener('click', (e) => {
+        const item = e.target.closest('.voice-room-item');
+        if (!item) return;
+        e.preventDefault();
+        const roomName = item.dataset.voiceRoom || 'Hardware Standup';
+        voiceListContainer.querySelectorAll('.voice-room-item').forEach(vr => {
+          vr.classList.remove('active');
+          vr.style.background = '';
+          vr.style.color = '';
+          const wave = vr.querySelector('.voice-wave');
+          if (wave) wave.remove();
+        });
+        item.classList.add('active');
+        item.style.background = 'rgba(0, 255, 102, 0.08)';
+        item.style.color = 'var(--accent-primary)';
+        const wave = document.createElement('div');
+        wave.className = 'voice-wave';
+        wave.innerHTML = `<span class="voice-wave-bar"></span><span class="voice-wave-bar"></span><span class="voice-wave-bar"></span>`;
+        item.appendChild(wave);
+        showGlobalToast(`Connected to Voice Room: ${roomName} [WebRTC Audio Active]`, '🔊');
+      });
+    }
+
+    // GitHub Commit Items Interactive Inspection
+    document.querySelectorAll('.github-commit-item').forEach(item => {
+      item.style.cursor = 'pointer';
+      item.addEventListener('click', () => {
+        const msg = item.querySelector('.commit-msg')?.textContent?.trim() || 'Commit details';
+        const meta = item.querySelector('.commit-meta')?.textContent?.trim() || 'Recent commit';
+        showGlobalToast(`GitHub Commit: "${msg}" (${meta})`, '🐙');
+      });
+    });
 
     // Initialize Video Conferencing Suite
     initVideoMeetingSuite();
