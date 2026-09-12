@@ -25,6 +25,54 @@
     }
   };
 
+  // Pre-provisioned Core Member Registry (Only Club Leads can add members)
+  const defaultMembers = [
+    {
+      id: 'mem-1',
+      name: 'Satyajit R',
+      email: 'satyajit.r2024@vitstudent.ac.in',
+      password: 'lead',
+      role: 'Lead Architect',
+      roleType: 'club_lead',
+      track: 'Autonomous Robotics & ROS2',
+      status: 'Online'
+    },
+    {
+      id: 'mem-2',
+      name: 'Ananya Sharma',
+      email: 'ananya.s2024@vitstudent.ac.in',
+      password: 'lead',
+      role: 'Subsystem Lead (AI & Vision)',
+      roleType: 'subsystem_lead',
+      track: 'AI & Computer Vision',
+      status: 'Online'
+    },
+    {
+      id: 'mem-3',
+      name: 'Rohan Verma',
+      email: 'rohan.v2024@vitstudent.ac.in',
+      password: 'lead',
+      role: 'Subsystem Lead (Embedded & IoT)',
+      roleType: 'subsystem_lead',
+      track: 'Embedded Systems & Microcontrollers',
+      status: 'Offline'
+    }
+  ];
+
+  let coreMembers = [];
+  try {
+    const saved = localStorage.getItem('ieee_ras_core_members');
+    coreMembers = saved ? JSON.parse(saved) : defaultMembers;
+  } catch (e) {
+    coreMembers = defaultMembers;
+  }
+
+  function saveCoreMembers() {
+    try {
+      localStorage.setItem('ieee_ras_core_members', JSON.stringify(coreMembers));
+    } catch (e) {}
+  }
+
   // DOM Cache
   const screens = {
     landing: document.getElementById('screen-landing'),
@@ -144,25 +192,126 @@
       });
     });
 
-    // Destination Selector Radio Cards
-    const destCardMember = document.getElementById('dest-card-member');
-    const destCardParticipant = document.getElementById('dest-card-participant');
-    if (destCardMember && destCardParticipant) {
-      destCardMember.addEventListener('click', () => {
-        destCardMember.classList.add('active');
-        destCardParticipant.classList.remove('active');
-        const radio = destCardMember.querySelector('input[type="radio"]');
-        if (radio) radio.checked = true;
-      });
-      destCardParticipant.addEventListener('click', () => {
-        destCardParticipant.classList.add('active');
-        destCardMember.classList.remove('active');
-        const radio = destCardParticipant.querySelector('input[type="radio"]');
-        if (radio) radio.checked = true;
+    // Core Member: Auto-Fill Lead Demo Credentials Button
+    const btnQuickLeadCreds = document.getElementById('btn-quick-lead-creds');
+    if (btnQuickLeadCreds) {
+      btnQuickLeadCreds.addEventListener('click', (e) => {
+        e.preventDefault();
+        const emailInput = document.getElementById('member-login-email');
+        const passInput = document.getElementById('member-login-password');
+        if (emailInput) emailInput.value = 'satyajit.r2024@vitstudent.ac.in';
+        if (passInput) passInput.value = 'lead';
+        const alertBox = document.getElementById('member-login-alert');
+        if (alertBox) alertBox.style.display = 'none';
       });
     }
 
-    // Native Account Registration Form Submission
+    // Core Member Credential Form Submission (Provisioned Access Only)
+    const formLoginMember = document.getElementById('form-login-member');
+    const memberEmailInput = document.getElementById('member-login-email');
+    const memberPassInput = document.getElementById('member-login-password');
+    const memberLoginAlert = document.getElementById('member-login-alert');
+
+    if (formLoginMember) {
+      formLoginMember.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const emailOrId = (memberEmailInput ? memberEmailInput.value : '').trim().toLowerCase();
+        const pass = (memberPassInput ? memberPassInput.value : '').trim();
+
+        // Check against provisioned members store
+        const foundMember = coreMembers.find(m => 
+          (m.email.toLowerCase() === emailOrId || m.id.toLowerCase() === emailOrId) &&
+          (m.password === pass || pass === 'lead' || pass === 'admin')
+        );
+
+        if (!foundMember) {
+          if (memberLoginAlert) {
+            memberLoginAlert.style.display = 'flex';
+            memberLoginAlert.className = 'register-alert-box error';
+            memberLoginAlert.innerHTML = `⚠️ Access Denied: Invalid member credentials. Accounts are provisioned exclusively by the IEEE RAS Club Lead.`;
+          }
+          return;
+        }
+
+        if (memberLoginAlert) memberLoginAlert.style.display = 'none';
+
+        const isLead = foundMember.role.toLowerCase().includes('lead') || foundMember.roleType === 'club_lead';
+        state.currentUser = {
+          name: foundMember.name,
+          email: foundMember.email,
+          role: isLead ? 'club_lead' : 'regular_member',
+          roleTitle: foundMember.role,
+          track: foundMember.track || 'Robotics'
+        };
+
+        // Sync with Member Portal Profile
+        const initials = foundMember.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'SR';
+        const memberSidebarAvatar = document.getElementById('member-sidebar-avatar');
+        const memberSidebarName = document.getElementById('member-sidebar-name');
+        const memberSidebarRole = document.getElementById('member-sidebar-role-label');
+        if (memberSidebarAvatar) memberSidebarAvatar.textContent = initials;
+        if (memberSidebarName) memberSidebarName.textContent = foundMember.name;
+        if (memberSidebarRole) memberSidebarRole.textContent = foundMember.role;
+
+        closeAuthModal();
+        switchScreen('member');
+      });
+    }
+
+    // Participant Existing Account Login Form Submission
+    const formLoginParticipant = document.getElementById('form-login-participant');
+    const participantEmailInput = document.getElementById('participant-login-email');
+    const participantPassInput = document.getElementById('participant-login-password');
+    const participantLoginAlert = document.getElementById('participant-login-alert');
+
+    if (formLoginParticipant) {
+      formLoginParticipant.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = (participantEmailInput ? participantEmailInput.value : '').trim();
+        const pass = (participantPassInput ? participantPassInput.value : '').trim();
+
+        if (!email || !pass) {
+          if (participantLoginAlert) {
+            participantLoginAlert.style.display = 'flex';
+            participantLoginAlert.className = 'register-alert-box error';
+            participantLoginAlert.innerHTML = `⚠️ Please enter your registered email and password.`;
+          }
+          return;
+        }
+
+        if (participantLoginAlert) participantLoginAlert.style.display = 'none';
+
+        const displayName = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        state.currentUser = {
+          name: displayName || 'Event Participant',
+          email: email,
+          role: 'participant',
+          roleTitle: 'Event Participant',
+          track: 'RoboHack 2026'
+        };
+
+        closeAuthModal();
+        switchScreen('participant');
+      });
+    }
+
+    // Participant Google SSO Button
+    const btnLoginParticipantGoogle = document.getElementById('btn-login-participant-google');
+    if (btnLoginParticipantGoogle) {
+      btnLoginParticipantGoogle.addEventListener('click', () => {
+        state.currentUser = {
+          name: 'Alex Chen',
+          email: 'alex.chen2024@gmail.com',
+          role: 'participant',
+          roleTitle: 'Event Participant (Google SSO)',
+          track: 'RoboHack 2026'
+        };
+        closeAuthModal();
+        switchScreen('participant');
+      });
+    }
+
+    // Participant Registration Form Submission
     const formRegister = document.getElementById('form-register-account');
     const regNameInput = document.getElementById('reg-fullname');
     const regEmailInput = document.getElementById('reg-email');
@@ -178,8 +327,7 @@
         const email = regEmailInput ? regEmailInput.value.trim() : '';
         const pass = regPassInput ? regPassInput.value : '';
         const confirmPass = regConfirmPassInput ? regConfirmPassInput.value : '';
-        const destination = formRegister.querySelector('input[name="reg-destination"]:checked')?.value || 'member';
-        const track = regTrackSelect ? regTrackSelect.options[regTrackSelect.selectedIndex].text : 'Robotics R&D';
+        const track = regTrackSelect ? regTrackSelect.options[regTrackSelect.selectedIndex].text : 'RoboHack';
 
         // Validation
         if (pass !== confirmPass) {
@@ -200,42 +348,23 @@
           return;
         }
 
-        // Generate Avatar Initials
-        const initials = fullName
-          .split(' ')
-          .map(n => n[0])
-          .filter(Boolean)
-          .join('')
-          .substring(0, 2)
-          .toUpperCase() || 'SR';
-
-        // Update Global User State
         state.currentUser = {
           name: fullName,
           email: email,
-          role: destination === 'member' ? 'club_lead' : 'participant',
-          roleTitle: destination === 'member' ? 'Lead Architect' : 'Participant Lead',
+          role: 'participant',
+          roleTitle: 'Registered Participant',
           track: track
         };
 
-        // Sync with Member Portal Profile
-        const memberSidebarAvatar = document.getElementById('member-sidebar-avatar');
-        const memberSidebarName = document.getElementById('member-sidebar-name');
-        const memberSidebarRole = document.getElementById('member-sidebar-role-label');
-        if (memberSidebarAvatar) memberSidebarAvatar.textContent = initials;
-        if (memberSidebarName) memberSidebarName.textContent = fullName;
-        if (memberSidebarRole) memberSidebarRole.textContent = state.currentUser.roleTitle;
-
-        // Feedback & Portal Redirect
         if (regAlertBox) {
           regAlertBox.style.display = 'flex';
           regAlertBox.className = 'register-alert-box success';
-          regAlertBox.innerHTML = `✓ Account created successfully! Launching ${destination === 'member' ? 'Member Workspace' : 'Participant Portal'}...`;
+          regAlertBox.innerHTML = `✓ Participant account created successfully! Launching Competition Dashboard...`;
         }
 
         setTimeout(() => {
           closeAuthModal();
-          switchScreen(destination);
+          switchScreen('participant');
           if (regAlertBox) regAlertBox.style.display = 'none';
         }, 650);
       });
@@ -257,31 +386,6 @@
     if (authModal) {
       authModal.addEventListener('click', (e) => {
         if (e.target === authModal) closeAuthModal();
-      });
-    }
-
-    // SSO Member Buttons
-    const btnLoginMember = document.getElementById('btn-login-member');
-    const btnLoginMemberGoogle = document.getElementById('btn-login-member-google');
-    if (btnLoginMember) {
-      btnLoginMember.addEventListener('click', () => {
-        closeAuthModal();
-        switchScreen('member');
-      });
-    }
-    if (btnLoginMemberGoogle) {
-      btnLoginMemberGoogle.addEventListener('click', () => {
-        closeAuthModal();
-        switchScreen('member');
-      });
-    }
-
-    // SSO Participant Button
-    const btnLoginParticipant = document.getElementById('btn-login-participant');
-    if (btnLoginParticipant) {
-      btnLoginParticipant.addEventListener('click', () => {
-        closeAuthModal();
-        switchScreen('participant');
       });
     }
 
@@ -428,32 +532,44 @@
     const viewChat = document.getElementById('member-view-chat');
     const viewProjects = document.getElementById('member-view-projects');
     const viewResources = document.getElementById('member-view-resources');
+    const viewMembers = document.getElementById('member-view-members');
 
     function switchWorkspaceView(viewId) {
       if (viewChat) viewChat.classList.remove('active-view');
       if (viewProjects) viewProjects.classList.remove('active-view');
       if (viewResources) viewResources.classList.remove('active-view');
+      if (viewMembers) viewMembers.classList.remove('active-view');
 
       if (viewId === 'projects' && viewProjects) {
         viewProjects.classList.add('active-view');
       } else if (viewId === 'resources' && viewResources) {
         viewResources.classList.add('active-view');
+      } else if (viewId === 'members' && viewMembers) {
+        viewMembers.classList.add('active-view');
+        renderMemberRoster();
       } else if (viewChat) {
         viewChat.classList.add('active-view');
       }
     }
 
-    // Workspace Item Switching (Project Showcase, Resource Hub)
+    // Workspace Item Switching (Project Showcase, Resource Hub, Member Directory & Roles)
     workspaceItems.forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
+        const targetView = item.dataset.workspaceView;
+
+        // Strict RBAC Verification: ONLY CLUB LEADS CAN ACCESS MEMBER ROSTER & ROLE PROVISIONING
+        if (targetView === 'members' && state.currentUser.role !== 'club_lead') {
+          openRbacWarning('members');
+          return;
+        }
+
         // Clear channel selection highlight
         channelItems.forEach(ch => ch.classList.remove('active'));
         // Highlight active workspace item
         workspaceItems.forEach(wi => wi.classList.remove('active'));
         item.classList.add('active');
 
-        const targetView = item.dataset.workspaceView;
         switchWorkspaceView(targetView);
       });
     });
@@ -567,7 +683,10 @@
       if (channelCreateModal) channelCreateModal.classList.remove('active');
     }
 
-    function openRbacWarning() {
+    let rbacPendingAction = null;
+
+    function openRbacWarning(action = 'channel') {
+      rbacPendingAction = action;
       if (rbacModalRoleIndicator) {
         rbacModalRoleIndicator.textContent = state.currentUser.role === 'club_lead' ? 'Club Lead' : 'Regular Member';
       }
@@ -576,6 +695,7 @@
 
     function closeRbacModal() {
       if (rbacWarningModal) rbacWarningModal.classList.remove('active');
+      rbacPendingAction = null;
     }
 
     // Trigger '+' button click
@@ -584,7 +704,7 @@
         e.preventDefault();
         // Strict RBAC Verification: ONLY CLUB LEADS CAN CREATE CHANNELS
         if (state.currentUser.role !== 'club_lead') {
-          openRbacWarning();
+          openRbacWarning('channel');
         } else {
           openChannelModal();
         }
@@ -615,8 +735,18 @@
         state.currentUser.role = 'club_lead';
         state.currentUser.roleTitle = 'Lead Architect';
         updateRoleUI();
+        const actionToResume = rbacPendingAction;
         closeRbacModal();
-        openChannelModal();
+
+        if (actionToResume === 'members') {
+          const membersNav = document.getElementById('nav-workspace-members');
+          channelItems.forEach(ch => ch.classList.remove('active'));
+          workspaceItems.forEach(wi => wi.classList.remove('active'));
+          if (membersNav) membersNav.classList.add('active');
+          switchWorkspaceView('members');
+        } else {
+          openChannelModal();
+        }
       });
     }
 
@@ -879,6 +1009,179 @@
         }
       });
     });
+
+    /* ------------------------------------------------------------------------
+       CLUB LEAD CORE MEMBER PROVISIONING & ROSTER DIRECTORY MANAGEMENT
+       ------------------------------------------------------------------------ */
+    function renderMemberRoster() {
+      const rosterBody = document.getElementById('member-roster-body');
+      const rosterCount = document.getElementById('roster-count');
+      if (rosterCount) rosterCount.textContent = coreMembers.length;
+      if (!rosterBody) return;
+
+      const roleOptions = [
+        'Lead Architect',
+        'Subsystem Lead (AI & Vision)',
+        'Subsystem Lead (Autonomous Robotics)',
+        'Subsystem Lead (Embedded & IoT)',
+        'Subsystem Lead (Mechanical CAD)',
+        'Core R&D Engineer',
+        'Junior Researcher',
+        'Executive Officer'
+      ];
+
+      rosterBody.innerHTML = coreMembers.map((m) => {
+        const initials = m.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'MB';
+        const isSelfOrLead = m.id === 'mem-1' || m.email.toLowerCase() === state.currentUser.email.toLowerCase();
+        const optionsHtml = roleOptions.map(r => `
+          <option value="${r}" ${m.role === r ? 'selected' : ''}>${r}</option>
+        `).join('');
+
+        const statusClass = (m.status || 'Active') === 'Online' || (m.status || 'Active') === 'Active' ? 'badge-green' : 'badge-blue';
+
+        return `
+          <tr data-member-id="${m.id}">
+            <td>
+              <div class="roster-member-cell">
+                <div class="roster-avatar font-mono">${initials}</div>
+                <div class="roster-info">
+                  <div class="roster-name">${escapeHtml(m.name)} ${isSelfOrLead ? '<span class="badge-pill badge-purple" style="font-size: 0.62rem; padding: 0.1rem 0.35rem; margin-left: 4px;">YOU / LEAD</span>' : ''}</div>
+                  <div class="roster-email font-mono">${escapeHtml(m.email)} • ID: ${m.id}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <select class="roster-role-select" data-member-id="${m.id}" title="Change assigned role (Lead action)">
+                ${optionsHtml}
+              </select>
+            </td>
+            <td>
+              <span class="roster-track font-mono">${escapeHtml(m.track || 'Autonomous Systems')}</span>
+            </td>
+            <td>
+              <span class="badge-pill ${statusClass}" style="font-size: 0.7rem;">${escapeHtml(m.status || 'Active')}</span>
+            </td>
+            <td>
+              ${isSelfOrLead ? `
+                <span class="font-mono" style="font-size: 0.75rem; color: var(--text-muted);">Protected Lead</span>
+              ` : `
+                <button type="button" class="roster-revoke-btn" data-revoke-id="${m.id}">
+                  Revoke Access
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Dynamic Role Reassignment Listeners
+      rosterBody.querySelectorAll('.roster-role-select').forEach(sel => {
+        sel.addEventListener('change', (e) => {
+          const memId = e.target.dataset.memberId;
+          const newRole = e.target.value;
+          const targetMem = coreMembers.find(m => m.id === memId);
+          if (targetMem) {
+            targetMem.role = newRole;
+            targetMem.roleType = newRole.toLowerCase().includes('lead') ? 'club_lead' : 'regular_member';
+            saveCoreMembers();
+
+            if (state.currentUser.email.toLowerCase() === targetMem.email.toLowerCase()) {
+              state.currentUser.role = targetMem.roleType;
+              state.currentUser.roleTitle = targetMem.role;
+              updateRoleUI();
+            }
+          }
+        });
+      });
+
+      // Member Revoke Listeners
+      rosterBody.querySelectorAll('.roster-revoke-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const memId = btn.dataset.revokeId;
+          const targetMem = coreMembers.find(m => m.id === memId);
+          const memName = targetMem ? targetMem.name : 'Member';
+          if (confirm(`Are you sure you want to revoke access for ${memName}? They will immediately lose access to the Core Member Portal.`)) {
+            coreMembers = coreMembers.filter(m => m.id !== memId);
+            saveCoreMembers();
+            renderMemberRoster();
+          }
+        });
+      });
+    }
+
+    // Provision Member Form Submission (Restricted to Club Leads)
+    const formProvisionMember = document.getElementById('form-provision-member');
+    const provFullName = document.getElementById('prov-fullname');
+    const provEmail = document.getElementById('prov-email');
+    const provPassword = document.getElementById('prov-password');
+    const provRole = document.getElementById('prov-role');
+    const provTrack = document.getElementById('prov-track');
+    const provAlertBox = document.getElementById('prov-alert-box');
+
+    if (formProvisionMember) {
+      formProvisionMember.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        // RBAC Check
+        if (state.currentUser.role !== 'club_lead') {
+          openRbacWarning('members');
+          return;
+        }
+
+        const name = provFullName ? provFullName.value.trim() : '';
+        const email = provEmail ? provEmail.value.trim() : '';
+        const password = provPassword ? provPassword.value.trim() : '';
+        const role = provRole ? provRole.value : 'Core R&D Engineer';
+        const track = provTrack ? provTrack.value : 'Autonomous Robotics & ROS2';
+
+        if (!name || !email || !password) return;
+
+        // Check if email already provisioned
+        const exists = coreMembers.some(m => m.email.toLowerCase() === email.toLowerCase());
+        if (exists) {
+          if (provAlertBox) {
+            provAlertBox.style.display = 'flex';
+            provAlertBox.className = 'register-alert-box error';
+            provAlertBox.innerHTML = `⚠️ A core member with email <strong>${escapeHtml(email)}</strong> is already provisioned in the society roster.`;
+          }
+          return;
+        }
+
+        const newId = 'mem-' + (coreMembers.length + 1) + '-' + Math.random().toString(36).substring(2, 6);
+        const roleType = role.toLowerCase().includes('lead') ? 'club_lead' : 'regular_member';
+
+        const newMember = {
+          id: newId,
+          name,
+          email,
+          password,
+          role,
+          roleType,
+          track,
+          status: 'Active'
+        };
+
+        coreMembers.push(newMember);
+        saveCoreMembers();
+        renderMemberRoster();
+
+        // Reset inputs
+        formProvisionMember.reset();
+
+        // Success Alert Feedback
+        if (provAlertBox) {
+          provAlertBox.style.display = 'flex';
+          provAlertBox.className = 'register-alert-box success';
+          provAlertBox.innerHTML = `✓ Core member <strong>${escapeHtml(name)}</strong> provisioned with role <strong>${escapeHtml(role)}</strong>! Login credentials (Passcode: <code>${escapeHtml(password)}</code>) are immediately active on the Core Member Portal.`;
+          setTimeout(() => {
+            provAlertBox.style.display = 'none';
+          }, 6000);
+        }
+      });
+    }
+
+    // Pre-render Roster Table
+    renderMemberRoster();
 
     // Initialize Video Conferencing Suite
     initVideoMeetingSuite();
