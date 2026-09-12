@@ -597,11 +597,11 @@
           <div>
             <div class="sidebar-section-title">Workspaces</div>
             <ul class="workspace-list">
-              <li class="workspace-item">
+              <li class="workspace-item" data-workspace-view="projects">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline></svg>
                 Project Showcase
               </li>
-              <li class="workspace-item">
+              <li class="workspace-item" data-workspace-view="resources">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                 Resource Hub / Docs
               </li>
@@ -660,55 +660,56 @@
         </div>
       </aside>
 
-      <!-- Center Column: Communication Hub (60%) -->
-      <main class="member-chat-hub">
-        <!-- Top Nav Bar -->
-        <div class="chat-header-bar">
-          <div class="chat-channel-title">
-            <span style="color: var(--accent-primary);">#</span>
-            <span id="chat-active-channel-name">ai-ml-projects</span>
-            <span class="badge-pill badge-green" style="font-size: 0.7rem; padding: 0.15rem 0.6rem;">Active Thread</span>
-          </div>
-
-          <div class="chat-header-actions">
-            <div class="participant-avatar-stack">
-              <div class="avatar-stack-item">SR</div>
-              <div class="avatar-stack-item" style="background: #0077b6;">AS</div>
-              <div class="avatar-stack-item" style="background: #7b2cbf;">RV</div>
-              <div class="avatar-stack-item" style="background: #38b000;">KN</div>
-              <div class="avatar-stack-item" style="background: #2b2d42;">+8</div>
+      <!-- Center Column: Multi-View Workspace Hub (60%) -->
+      <div class="member-center-container" style="display: flex; flex-direction: column; height: 100%; overflow: hidden; position: relative;">
+        
+        <!-- VIEW 1: Communication Hub (Channel Chat) -->
+        <div id="member-view-chat" class="member-center-view active-view">
+          <div class="chat-header-bar">
+            <div class="chat-channel-title">
+              <span style="color: var(--accent-primary);">#</span>
+              <span id="chat-active-channel-name">ai-ml-projects</span>
+              <span class="badge-pill badge-green" style="font-size: 0.7rem; padding: 0.15rem 0.6rem;">Active Thread</span>
             </div>
 
-            <button class="btn btn-primary chamfer-btn" id="btn-start-video" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-              Start Video Meeting
-            </button>
+            <div class="chat-header-actions">
+              <div class="participant-avatar-stack">
+                <div class="avatar-stack-item">SR</div>
+                <div class="avatar-stack-item" style="background: #0077b6;">AS</div>
+                <div class="avatar-stack-item" style="background: #7b2cbf;">RV</div>
+                <div class="avatar-stack-item" style="background: #38b000;">KN</div>
+                <div class="avatar-stack-item" style="background: #2b2d42;">+8</div>
+              </div>
+
+              <button class="btn btn-primary chamfer-btn" id="btn-start-video" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                Start Video Meeting
+              </button>
+            </div>
           </div>
-        </div>
 
-        <!-- Chat Messages Thread -->
-        <div class="chat-messages-container" id="chat-messages-box">
-          
-          <!-- Message 1 -->
-          <div class="chat-msg-row">
-            <div class="msg-avatar" style="background: #0077b6; color: #fff;">AS</div>
-            <div class="msg-body">
-              <div class="msg-meta">
-                <span class="msg-author">Ananya Sharma</span>
-                <span class="badge-pill badge-blue" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">AI Lead</span>
-                <span class="msg-time">10:42 AM</span>
-              </div>
-              <div class="msg-bubble">
-                Rover point cloud alignment has been integrated with the new ROS2 Humble nav2 costmap layer. The loop closure drift is down to &lt; 1.2cm. Take a look at the revised SLAM lifecycle node:
-              </div>
-
-              <!-- Syntax Highlighted Code Snippet -->
-              <div class="chat-code-block">
-                <div class="code-header">
-                  <span>ros2_autonomous_nav_node.py</span>
-                  <button class="toolbar-btn font-mono" id="btn-copy-code" style="font-size: 0.72rem; color: var(--accent-primary);">Copy</button>
+          <!-- Chat Messages Thread -->
+          <div class="chat-messages-container" id="chat-messages-box">
+            <!-- Message 1 -->
+            <div class="chat-msg-row">
+              <div class="msg-avatar" style="background: #0077b6; color: #fff;">AS</div>
+              <div class="msg-body">
+                <div class="msg-meta">
+                  <span class="msg-author">Ananya Sharma</span>
+                  <span class="badge-pill badge-blue" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">AI Lead</span>
+                  <span class="msg-time">10:42 AM</span>
                 </div>
-                <pre class="code-content" id="sample-ros-code"><code><span class="code-keyword">import</span> rclpy
+                <div class="msg-bubble">
+                  Rover point cloud alignment has been integrated with the new ROS2 Humble nav2 costmap layer. The loop closure drift is down to &lt; 1.2cm. Take a look at the revised SLAM lifecycle node:
+                </div>
+
+                <!-- Syntax Highlighted Code Snippet -->
+                <div class="chat-code-block">
+                  <div class="code-header">
+                    <span>ros2_autonomous_nav_node.py</span>
+                    <button class="toolbar-btn font-mono" id="btn-copy-code" style="font-size: 0.72rem; color: var(--accent-primary);">Copy</button>
+                  </div>
+                  <pre class="code-content" id="sample-ros-code"><code><span class="code-keyword">import</span> rclpy
 <span class="code-keyword">from</span> rclpy.node <span class="code-keyword">import</span> Node
 <span class="code-keyword">from</span> sensor_msgs.msg <span class="code-keyword">import</span> LaserScan, PointCloud2
 <span class="code-keyword">from</span> geometry_msgs.msg <span class="code-keyword">import</span> Twist
@@ -727,65 +728,483 @@
         twist.linear.x = 0.45 <span class="code-keyword">if</span> min_dist > 0.8 <span class="code-keyword">else</span> 0.0
         twist.angular.z = 0.0 <span class="code-keyword">if</span> min_dist > 0.8 <span class="code-keyword">else</span> 0.35
         self.cmd_pub.publish(twist)</code></pre>
+                </div>
               </div>
             </div>
+
+            <!-- Message 2: Attached PDF Document UI -->
+            <div class="chat-msg-row">
+              <div class="msg-avatar" style="background: #7b2cbf; color: #fff;">RV</div>
+              <div class="msg-body">
+                <div class="msg-meta">
+                  <span class="msg-author">Rohan Verma</span>
+                  <span class="badge-pill badge-purple" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">Embedded Lead</span>
+                  <span class="msg-time">10:48 AM</span>
+                </div>
+                <div class="msg-bubble">
+                  I've also attached the technical documentation for the custom STM32 CAN-FD motor driver PCB. Includes the schematic layout and bill of materials (BOM):
+                </div>
+                
+                <div class="chat-attachment-card">
+                  <div class="attachment-icon-pdf">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                  </div>
+                  <div class="attachment-meta">
+                    <span class="attachment-name">IEEE_RAS_Autonomous_Navigation_Whitepaper.pdf</span>
+                    <span class="attachment-size">4.8 MB • Verified Document</span>
+                  </div>
+                  <button class="btn btn-secondary chamfer-btn" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+                    View
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <!-- Message 2: Attached PDF Document UI -->
-          <div class="chat-msg-row">
-            <div class="msg-avatar" style="background: #7b2cbf; color: #fff;">RV</div>
-            <div class="msg-body">
-              <div class="msg-meta">
-                <span class="msg-author">Rohan Verma</span>
-                <span class="badge-pill badge-purple" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">Embedded Lead</span>
-                <span class="msg-time">10:48 AM</span>
-              </div>
-              <div class="msg-bubble">
-                I've also attached the technical documentation for the custom STM32 CAN-FD motor driver PCB. Includes the schematic layout and bill of materials (BOM):
-              </div>
-              
-              <div class="chat-attachment-card">
-                <div class="attachment-icon-pdf">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <!-- Chat Input Bar -->
+          <div class="chat-input-wrapper">
+            <div class="chat-input-box">
+              <textarea class="chat-input-field" id="chat-user-input" placeholder="Message #ai-ml-projects (Press Enter to send)..." rows="1"></textarea>
+              <div class="chat-input-toolbar">
+                <div class="toolbar-icons">
+                  <button class="toolbar-btn" title="Attach File">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                  </button>
+                  <button class="toolbar-btn" title="Format Text">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                  </button>
+                  <button class="toolbar-btn" title="Mention @">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"></path></svg>
+                  </button>
                 </div>
-                <div class="attachment-meta">
-                  <span class="attachment-name">IEEE_RAS_Autonomous_Navigation_Whitepaper.pdf</span>
-                  <span class="attachment-size">4.8 MB • Verified Document</span>
-                </div>
-                <button class="btn btn-secondary chamfer-btn" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
-                  View
+
+                <button class="btn btn-primary chamfer-btn" id="btn-send-chat" style="padding: 0.35rem 0.8rem; font-size: 0.82rem;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                  Send
                 </button>
               </div>
             </div>
           </div>
-
         </div>
 
-        <!-- Chat Input Bar -->
-        <div class="chat-input-wrapper">
-          <div class="chat-input-box">
-            <textarea class="chat-input-field" id="chat-user-input" placeholder="Message #ai-ml-projects (Press Enter to send)..." rows="1"></textarea>
-            <div class="chat-input-toolbar">
-              <div class="toolbar-icons">
-                <button class="toolbar-btn" title="Attach File">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                </button>
-                <button class="toolbar-btn" title="Format Text">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
-                </button>
-                <button class="toolbar-btn" title="Mention @">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"></path></svg>
-                </button>
+        <!-- VIEW 2: Society Projects Showcase -->
+        <div id="member-view-projects" class="member-center-view">
+          <div class="workspace-top-bar">
+            <div class="workspace-view-title">
+              <div class="brand-logo-hex" style="width: 32px; height: 32px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline></svg>
+              </div>
+              <div>
+                <h2>Society Projects Showcase</h2>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">ACTIVE RESEARCH &amp; COMPETITION BUILDS</span>
+              </div>
+            </div>
+            <button class="btn btn-secondary chamfer-btn btn-back-to-chat" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
+              ← Back to Chat
+            </button>
+          </div>
+
+          <div class="workspace-content-scroll">
+            <div class="showcase-stats-bar">
+              <div class="showcase-stat-box">
+                <span class="showcase-stat-value">14</span>
+                <span class="showcase-stat-label">Active Society Builds</span>
+              </div>
+              <div class="showcase-stat-box">
+                <span class="showcase-stat-value">98.4%</span>
+                <span class="showcase-stat-label">SLAM Mapping Precision</span>
+              </div>
+              <div class="showcase-stat-box">
+                <span class="showcase-stat-value">6</span>
+                <span class="showcase-stat-label">National Podiums</span>
+              </div>
+              <div class="showcase-stat-box">
+                <span class="showcase-stat-value">100%</span>
+                <span class="showcase-stat-label">Open Society Source</span>
+              </div>
+            </div>
+
+            <!-- Project Filter Pills -->
+            <div class="filter-pills-row" id="showcase-filter-row">
+              <button class="filter-pill-btn active" data-showcase-filter="all">All Projects (4)</button>
+              <button class="filter-pill-btn" data-showcase-filter="amr">Autonomous Mobile (AMR)</button>
+              <button class="filter-pill-btn" data-showcase-filter="manipulators">Manipulators &amp; Bionics</button>
+              <button class="filter-pill-btn" data-showcase-filter="marine-aerial">Marine &amp; Aerial</button>
+            </div>
+
+            <!-- Projects Grid -->
+            <div class="showcase-projects-grid">
+              <!-- Project 1: Mars Rover -->
+              <div class="showcase-project-card chamfer-card" data-showcase-cat="amr">
+                <div class="showcase-card-visual">
+                  <svg viewBox="0 0 340 180" fill="none" style="width: 100%; height: 100%;">
+                    <circle cx="170" cy="90" r="50" stroke="var(--accent-primary)" stroke-width="1.5" stroke-dasharray="4 4"/>
+                    <circle cx="170" cy="90" r="28" stroke="var(--accent-primary)" stroke-width="2"/>
+                    <path d="M120 90H220M170 40V140" stroke="var(--accent-primary)" stroke-width="1" stroke-opacity="0.3"/>
+                    <rect x="135" y="70" width="70" height="40" rx="4" fill="var(--surface-card)" stroke="var(--accent-primary)" stroke-width="1.5"/>
+                    <text x="170" y="94" fill="var(--accent-primary)" font-family="'Roboto Mono'" font-size="10" text-anchor="middle">ROVER_V2</text>
+                  </svg>
+                  <span class="badge-pill badge-green" style="position: absolute; top: 12px; right: 12px; font-size: 0.68rem;">National 1st</span>
+                </div>
+                <div class="showcase-card-body">
+                  <div class="showcase-card-title-row">
+                    <h3 class="showcase-card-title">Autonomous Mars Rover v2 (AMR-2)</h3>
+                  </div>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+                    6-wheel rocker-bogie exploration platform equipped with dual stereo depth perception, 3D LiDAR SLAM, and RTK-GPS waypoint navigation for extreme terrain obstacle traversing.
+                  </p>
+                  <div class="showcase-specs-list">
+                    <span class="showcase-spec-chip">ROS2 Humble</span>
+                    <span class="showcase-spec-chip">NVIDIA Jetson Orin</span>
+                    <span class="showcase-spec-chip">CAN-FD 1Mbps</span>
+                    <span class="showcase-spec-chip">Hokuyo LiDAR</span>
+                  </div>
+                  <div class="showcase-metrics-grid">
+                    <div class="showcase-metric-cell">
+                      <span>45 kg</span>
+                      <span>Max Payload</span>
+                    </div>
+                    <div class="showcase-metric-cell">
+                      <span>1.8 m/s</span>
+                      <span>Cruising Speed</span>
+                    </div>
+                    <div class="showcase-metric-cell">
+                      <span>3.5 hrs</span>
+                      <span>LiFePO4 Life</span>
+                    </div>
+                  </div>
+                  <div class="showcase-card-actions">
+                    <button class="btn btn-primary chamfer-btn" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Launching Rover Telemetry ROS2 visualizer...')">
+                      Launch ROS2 Node
+                    </button>
+                    <button class="btn btn-secondary chamfer-btn" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Opening CAD 3D Model Explorer...')">
+                      CAD Assembly
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <button class="btn btn-primary chamfer-btn" id="btn-send-chat" style="padding: 0.35rem 0.8rem; font-size: 0.82rem;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                Send
-              </button>
+              <!-- Project 2: RoboHound Quadruped -->
+              <div class="showcase-project-card chamfer-card" data-showcase-cat="manipulators">
+                <div class="showcase-card-visual">
+                  <svg viewBox="0 0 340 180" fill="none" style="width: 100%; height: 100%;">
+                    <line x1="90" y1="130" x2="130" y2="80" stroke="var(--accent-blue)" stroke-width="2.5"/>
+                    <circle cx="130" cy="80" r="7" fill="var(--accent-blue)"/>
+                    <line x1="130" y1="80" x2="210" y2="80" stroke="var(--accent-blue)" stroke-width="2.5"/>
+                    <circle cx="210" cy="80" r="7" fill="var(--accent-blue)"/>
+                    <line x1="210" y1="80" x2="250" y2="130" stroke="var(--accent-blue)" stroke-width="2.5"/>
+                    <circle cx="250" cy="130" r="7" fill="var(--accent-blue)"/>
+                    <text x="170" y="150" fill="var(--accent-blue)" font-family="'Roboto Mono'" font-size="10" text-anchor="middle">12-DOF QUADRUPED</text>
+                  </svg>
+                  <span class="badge-pill badge-blue" style="position: absolute; top: 12px; right: 12px; font-size: 0.68rem;">Active R&amp;D</span>
+                </div>
+                <div class="showcase-card-body">
+                  <div class="showcase-card-title-row">
+                    <h3 class="showcase-card-title">Bio-Inspired Quadruped (RoboHound-X)</h3>
+                  </div>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+                    12-DOF quadruped robot utilizing closed-loop inverse kinematics, custom cycloidal reducers, and reinforcement-learning trotting gaits across unstable rocky terrain.
+                  </p>
+                  <div class="showcase-specs-list">
+                    <span class="showcase-spec-chip">12x Dynamixel XM430</span>
+                    <span class="showcase-spec-chip">STM32H7 480MHz</span>
+                    <span class="showcase-spec-chip">PyBullet RL</span>
+                    <span class="showcase-spec-chip">IMU MPU9250</span>
+                  </div>
+                  <div class="showcase-metrics-grid">
+                    <div class="showcase-metric-cell">
+                      <span>12 DOF</span>
+                      <span>Compliant Joints</span>
+                    </div>
+                    <div class="showcase-metric-cell">
+                      <span>25°</span>
+                      <span>Max Incline</span>
+                    </div>
+                    <div class="showcase-metric-cell">
+                      <span>6.2 kg</span>
+                      <span>Chassis Weight</span>
+                    </div>
+                  </div>
+                  <div class="showcase-card-actions">
+                    <button class="btn btn-primary chamfer-btn" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Opening Jacobian Kinematics Matrix solver...')">
+                      Kinematics Math
+                    </button>
+                    <button class="btn btn-secondary chamfer-btn" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Opening Motor Driver Schematics...')">
+                      PCB Drivers
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Project 3: Submersible AUV -->
+              <div class="showcase-project-card chamfer-card" data-showcase-cat="marine-aerial">
+                <div class="showcase-card-visual">
+                  <svg viewBox="0 0 340 180" fill="none" style="width: 100%; height: 100%;">
+                    <path d="M80 120C120 60 220 60 260 120" stroke="var(--accent-primary)" stroke-width="2"/>
+                    <circle cx="170" cy="80" r="22" fill="var(--surface-card)" stroke="var(--accent-primary)" stroke-width="2"/>
+                    <polygon points="170 60 178 76 162 76" fill="var(--accent-primary)"/>
+                    <text x="170" y="145" fill="var(--accent-primary)" font-family="'Roboto Mono'" font-size="10" text-anchor="middle">AUV-THALASSA</text>
+                  </svg>
+                  <span class="badge-pill badge-green" style="position: absolute; top: 12px; right: 12px; font-size: 0.68rem;">Gold Medalist</span>
+                </div>
+                <div class="showcase-card-body">
+                  <div class="showcase-card-title-row">
+                    <h3 class="showcase-card-title">Autonomous Underwater Vehicle (AUV Thalassa)</h3>
+                  </div>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+                    Hydrodynamic submersible with 4-thruster brushless vectoring, acoustic Doppler velocity logging, and underwater computer vision for submerged obstacle navigation.
+                  </p>
+                  <div class="showcase-specs-list">
+                    <span class="showcase-spec-chip">Teensy 4.1</span>
+                    <span class="showcase-spec-chip">T200 Thrusters</span>
+                    <span class="showcase-spec-chip">Pressure Hull 50m</span>
+                    <span class="showcase-spec-chip">Hydrophone Sonar</span>
+                  </div>
+                  <div class="showcase-metrics-grid">
+                    <div class="showcase-metric-cell">
+                      <span>50 m</span>
+                      <span>Depth Rating</span>
+                    </div>
+                    <div class="showcase-metric-cell">
+                      <span>3.2 knots</span>
+                      <span>Max Thrust</span>
+                    </div>
+                    <div class="showcase-metric-cell">
+                      <span>4 hrs</span>
+                      <span>Submerged Life</span>
+                    </div>
+                  </div>
+                  <div class="showcase-card-actions">
+                    <button class="btn btn-primary chamfer-btn" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Viewing Hydrodynamics simulation report...')">
+                      Hydrodynamics
+                    </button>
+                    <button class="btn btn-secondary chamfer-btn" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Opening Underwater Control Firmware...')">
+                      Firmware Repo
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Project 4: Swarm Drones -->
+              <div class="showcase-project-card chamfer-card" data-showcase-cat="marine-aerial">
+                <div class="showcase-card-visual">
+                  <svg viewBox="0 0 340 180" fill="none" style="width: 100%; height: 100%;">
+                    <polygon points="170 30 230 65 230 135 170 170 110 135 110 65" stroke="var(--accent-purple)" stroke-width="1.5" stroke-dasharray="6 3"/>
+                    <circle cx="170" cy="100" r="16" fill="var(--accent-purple)"/>
+                    <circle cx="110" cy="65" r="8" fill="var(--accent-blue)"/>
+                    <circle cx="230" cy="65" r="8" fill="var(--accent-blue)"/>
+                    <circle cx="110" cy="135" r="8" fill="var(--accent-primary)"/>
+                    <circle cx="230" cy="135" r="8" fill="var(--accent-primary)"/>
+                    <text x="170" y="135" fill="#fff" font-family="'Roboto Mono'" font-size="10" text-anchor="middle">AEROMESH-4</text>
+                  </svg>
+                  <span class="badge-pill badge-purple" style="position: absolute; top: 12px; right: 12px; font-size: 0.68rem;">Patent Filed</span>
+                </div>
+                <div class="showcase-card-body">
+                  <div class="showcase-card-title-row">
+                    <h3 class="showcase-card-title">Decentralized Drone Swarm (AeroMesh-4)</h3>
+                  </div>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+                    Autonomous multi-agent aerial swarm coordinating via high-speed ESP-NOW mesh networking and UWB ranging without requiring centralized GPS ground stations.
+                  </p>
+                  <div class="showcase-specs-list">
+                    <span class="showcase-spec-chip">UWB Decawave</span>
+                    <span class="showcase-spec-chip">ESP32-S3 Mesh</span>
+                    <span class="showcase-spec-chip">Optical Flow</span>
+                    <span class="showcase-spec-chip">PX4 Autopilot</span>
+                  </div>
+                  <div class="showcase-metrics-grid">
+                    <div class="showcase-metric-cell">
+                      <span>4 Drones</span>
+                      <span>Cooperative Mesh</span>
+                    </div>
+                    <div class="showcase-metric-cell">
+                      <span>&lt; 3 ms</span>
+                      <span>Consensus Lag</span>
+                    </div>
+                    <div class="showcase-metric-cell">
+                      <span>±2 cm</span>
+                      <span>Position Drift</span>
+                    </div>
+                  </div>
+                  <div class="showcase-card-actions">
+                    <button class="btn btn-primary chamfer-btn" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Viewing Swarm Mesh Routing algorithm...')">
+                      Swarm Mesh Code
+                    </button>
+                    <button class="btn btn-secondary chamfer-btn" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Opening UWB Rangefinder logs...')">
+                      Flight Logs
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </main>
+
+        <!-- VIEW 3: Engineering Resource Hub & Technical Documentation -->
+        <div id="member-view-resources" class="member-center-view">
+          <div class="workspace-top-bar">
+            <div class="workspace-view-title">
+              <div class="brand-logo-hex" style="width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent-blue), var(--accent-secondary));">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              </div>
+              <div>
+                <h2>Resource Hub &amp; Technical Docs</h2>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">CENTRALIZED HARDWARE SCHEMATICS &amp; SOFTWARE PACKAGES</span>
+              </div>
+            </div>
+            <button class="btn btn-secondary chamfer-btn btn-back-to-chat" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
+              ← Back to Chat
+            </button>
+          </div>
+
+          <div class="workspace-content-scroll">
+            <!-- Search & Filters -->
+            <div class="resource-search-wrapper">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" class="resource-search-input" placeholder="Search 120+ CAD assemblies, ROS2 packages, STM32 firmware, or component datasheets..." id="resource-search-field">
+            </div>
+
+            <div class="filter-pills-row" id="resource-filter-row">
+              <button class="filter-pill-btn active" data-res-filter="all">All Resources (6)</button>
+              <button class="filter-pill-btn" data-res-filter="ros">ROS2 &amp; Software</button>
+              <button class="filter-pill-btn" data-res-filter="pcb">PCB Schematics</button>
+              <button class="filter-pill-btn" data-res-filter="cad">CAD Models</button>
+              <button class="filter-pill-btn" data-res-filter="datasheets">Datasheets &amp; Docs</button>
+            </div>
+
+            <!-- Resources Grid -->
+            <div class="resources-grid" id="resources-cards-grid">
+              <!-- Resource 1 -->
+              <div class="resource-card" data-res-cat="ros">
+                <div class="resource-card-top">
+                  <div class="resource-format-icon format-ros">ROS2</div>
+                  <div class="resource-meta">
+                    <span class="badge-pill badge-purple" style="font-size: 0.65rem; align-self: flex-start; margin-bottom: 2px;">Software Stack</span>
+                    <h4 class="resource-title">Nav2 Custom Costmap &amp; MPPI Trajectory Stack</h4>
+                    <span class="resource-file-name font-mono">ieee_ras_nav2_plugins.tar.gz • 18.4 MB</span>
+                  </div>
+                </div>
+                <p class="resource-desc">
+                  Optimized ROS2 Humble lifecycle navigation node with GPU-accelerated costmap ray-tracing and obstacle inflation filters for rugged terrain rovers.
+                </p>
+                <div class="resource-card-footer">
+                  <span class="badge-pill badge-green font-mono" style="font-size: 0.68rem;">v2.4.1 Stable</span>
+                  <button class="btn btn-primary chamfer-btn btn-download-resource" style="padding: 0.35rem 0.85rem; font-size: 0.78rem;">
+                    Download Package
+                  </button>
+                </div>
+              </div>
+
+              <!-- Resource 2 -->
+              <div class="resource-card" data-res-cat="pcb">
+                <div class="resource-card-top">
+                  <div class="resource-format-icon format-pcb">PCB</div>
+                  <div class="resource-meta">
+                    <span class="badge-pill badge-green" style="font-size: 0.65rem; align-self: flex-start; margin-bottom: 2px;">Hardware Design</span>
+                    <h4 class="resource-title">STM32 CAN-FD 4-Channel Brushless Motor Driver</h4>
+                    <span class="resource-file-name font-mono">stm32_canfd_driver_rev3.zip • 12.8 MB</span>
+                  </div>
+                </div>
+                <p class="resource-desc">
+                  Altium and KiCAD 4-layer impedance-matched PCB design with integrated current-sensing shunts, TVS transient suppressors, and DRV8301 gate drivers.
+                </p>
+                <div class="resource-card-footer">
+                  <span class="badge-pill badge-blue font-mono" style="font-size: 0.68rem;">Rev 3.2 Certified</span>
+                  <button class="btn btn-primary chamfer-btn btn-download-resource" style="padding: 0.35rem 0.85rem; font-size: 0.78rem;">
+                    Download Gerbers
+                  </button>
+                </div>
+              </div>
+
+              <!-- Resource 3 -->
+              <div class="resource-card" data-res-cat="cad">
+                <div class="resource-card-top">
+                  <div class="resource-format-icon format-cad">STEP</div>
+                  <div class="resource-meta">
+                    <span class="badge-pill badge-blue" style="font-size: 0.65rem; align-self: flex-start; margin-bottom: 2px;">3D Mechanical</span>
+                    <h4 class="resource-title">Rocker-Bogie Suspension CAD &amp; FEA Stress Analysis</h4>
+                    <span class="resource-file-name font-mono">rover_rocker_bogie_assembly.step • 45.2 MB</span>
+                  </div>
+                </div>
+                <p class="resource-desc">
+                  SolidWorks parametric assembly file with differential pivot linkages, CNC 6061-T6 aluminum milling tolerances, and Ansys structural load reports.
+                </p>
+                <div class="resource-card-footer">
+                  <span class="badge-pill badge-purple font-mono" style="font-size: 0.68rem;">SolidWorks 2024</span>
+                  <button class="btn btn-primary chamfer-btn btn-download-resource" style="padding: 0.35rem 0.85rem; font-size: 0.78rem;">
+                    Download STEP
+                  </button>
+                </div>
+              </div>
+
+              <!-- Resource 4 -->
+              <div class="resource-card" data-res-cat="ros">
+                <div class="resource-card-top">
+                  <div class="resource-format-icon format-ros">AI</div>
+                  <div class="resource-meta">
+                    <span class="badge-pill badge-green" style="font-size: 0.65rem; align-self: flex-start; margin-bottom: 2px;">Neural Network</span>
+                    <h4 class="resource-title">YOLOv10 + TensorRT Terrain Obstacle Classifier</h4>
+                    <span class="resource-file-name font-mono">ras_yolov10_robotics.engine • 88.6 MB</span>
+                  </div>
+                </div>
+                <p class="resource-desc">
+                  Pre-compiled TensorRT INT8 engine trained on 14,000 annotated field images for detecting ground obstacles, water puddles, and terrain crevasses at 120 FPS.
+                </p>
+                <div class="resource-card-footer">
+                  <span class="badge-pill badge-green font-mono" style="font-size: 0.68rem;">JetPack 6.0</span>
+                  <button class="btn btn-primary chamfer-btn btn-download-resource" style="padding: 0.35rem 0.85rem; font-size: 0.78rem;">
+                    Download Model
+                  </button>
+                </div>
+              </div>
+
+              <!-- Resource 5 -->
+              <div class="resource-card" data-res-cat="datasheets">
+                <div class="resource-card-top">
+                  <div class="resource-format-icon format-pdf">PDF</div>
+                  <div class="resource-meta">
+                    <span class="badge-pill badge-blue" style="font-size: 0.65rem; align-self: flex-start; margin-bottom: 2px;">Component Datasheet</span>
+                    <h4 class="resource-title">Hokuyo UST-10LX Scanning Laser Rangefinder Spec</h4>
+                    <span class="resource-file-name font-mono">Hokuyo_UST10LX_Reference_Manual.pdf • 3.4 MB</span>
+                  </div>
+                </div>
+                <p class="resource-desc">
+                  Complete technical pinout diagrams, Ethernet packet structures, latency benchmarks, and ROS2 sensor publisher integration documentation.
+                </p>
+                <div class="resource-card-footer">
+                  <span class="badge-pill badge-purple font-mono" style="font-size: 0.68rem;">Official OEM</span>
+                  <button class="btn btn-primary chamfer-btn btn-download-resource" style="padding: 0.35rem 0.85rem; font-size: 0.78rem;">
+                    View Datasheet
+                  </button>
+                </div>
+              </div>
+
+              <!-- Resource 6 -->
+              <div class="resource-card" data-res-cat="datasheets">
+                <div class="resource-card-top">
+                  <div class="resource-format-icon format-pdf">PDF</div>
+                  <div class="resource-meta">
+                    <span class="badge-pill badge-purple" style="font-size: 0.65rem; align-self: flex-start; margin-bottom: 2px;">Chapter Whitepaper</span>
+                    <h4 class="resource-title">IEEE RAS Competitive Robotics Playbook 2026</h4>
+                    <span class="resource-file-name font-mono">IEEE_RAS_Robotics_Playbook_2026.pdf • 6.2 MB</span>
+                  </div>
+                </div>
+                <p class="resource-desc">
+                  Official society engineering standard operating manual covering IPC-A-610 soldering standards, ROS2 lifecycle nodes, and Git trunk-based branch workflows.
+                </p>
+                <div class="resource-card-footer">
+                  <span class="badge-pill badge-green font-mono" style="font-size: 0.68rem;">2026 Edition</span>
+                  <button class="btn btn-primary chamfer-btn btn-download-resource" style="padding: 0.35rem 0.85rem; font-size: 0.78rem;">
+                    Read Playbook
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
 
       <!-- Right Panel: Tech Integrations (20%) -->
       <aside class="member-right-panel">
@@ -857,32 +1276,276 @@
     </div>
   </div>
 
-  <!-- Video Meeting Simulation Modal -->
+  <!-- Video Meeting Simulation Modal (MS Teams / Zoom / GMeet Suite) -->
   <div class="auth-modal-overlay" id="meeting-modal">
-    <div class="auth-modal-container glass-panel-heavy chamfer-card" style="max-width: 820px; grid-template-columns: 1fr; padding: 2rem;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <div style="display: flex; align-items: center; gap: 0.8rem;">
-          <span class="status-dot online"></span>
-          <h3 style="font-size: 1.3rem;">Hardware Standup Video Room</h3>
-          <span class="badge-pill badge-green">4 Connected</span>
-        </div>
-        <button class="btn btn-secondary chamfer-btn" id="btn-close-meeting">Leave Room</button>
+    <div class="meeting-app-window chamfer-card">
+      <!-- Toast notification -->
+      <div class="meeting-toast" id="meeting-toast">
+        <span id="meeting-toast-icon">✋</span>
+        <span id="meeting-toast-msg">Satyajit R raised their hand</span>
       </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; height: 380px;">
-        <div class="meeting-video-tile">
-          <div style="text-align: center;">
-            <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--accent-primary); color: var(--text-inverse); font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; font-family: var(--font-mono);">SR</div>
-            <div style="font-weight: 600; color: var(--text-primary);">Satyajit R (You)</div>
+
+      <!-- Top Bar -->
+      <div class="meeting-top-bar">
+        <div class="meeting-title-left">
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span class="status-dot online"></span>
+            <span style="font-weight: 700; font-family: var(--font-display); font-size: 1.05rem;">Hardware Standup • Core Robotics Sprint</span>
           </div>
-          <span class="badge-pill badge-green" style="position: absolute; bottom: 10px; left: 10px; font-size: 0.68rem;">1080p 60fps</span>
-        </div>
-        <div class="meeting-video-tile">
-          <div style="text-align: center;">
-            <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--accent-blue); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; font-family: var(--font-mono);">AS</div>
-            <div style="font-weight: 600; color: var(--text-primary);">Ananya Sharma</div>
+          <div class="meeting-rec-pill">
+            <span class="rec-dot"></span>
+            <span>REC</span>
+            <span id="meeting-live-timer">00:14:32</span>
           </div>
-          <span class="badge-pill badge-blue" style="position: absolute; bottom: 10px; left: 10px; font-size: 0.68rem;">Mic Active</span>
+          <span class="badge-pill badge-green" style="font-size: 0.7rem;">🔒 E2EE 256-bit</span>
         </div>
+
+        <div class="meeting-top-actions">
+          <button class="dock-btn" id="btn-meeting-layout" title="Toggle Layout (Grid / Spotlight)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          </button>
+          <button class="dock-btn" id="btn-meeting-fullscreen" title="Toggle Fullscreen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+          </button>
+          <button class="btn btn-secondary chamfer-btn" id="btn-close-meeting" style="padding: 0.4rem 0.9rem; font-size: 0.82rem;">
+            Close Window
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Body (Video Stage + Side Panel) -->
+      <div class="meeting-main-body">
+        <!-- Floating Reactions Stage Container -->
+        <div class="floating-reaction-container" id="floating-reactions-box"></div>
+
+        <!-- Video Stage -->
+        <div class="meeting-stage" id="meeting-stage-container">
+          <div class="meeting-grid-4" id="meeting-video-grid">
+            
+            <!-- Tile 1: Satyajit R (You) -->
+            <div class="video-tile" id="tile-self">
+              <div class="hand-raised-badge" id="user-hand-badge">✋ Hand Raised</div>
+              <div class="video-tile-avatar" id="self-video-avatar" style="background: var(--accent-subtle); color: var(--accent-primary); border-color: var(--accent-primary);">
+                SR
+              </div>
+              <div class="video-tile-overlay-bottom">
+                <div class="video-tile-nameplate">
+                  <span>Satyajit R (You)</span>
+                  <span class="badge-pill badge-green" style="font-size: 0.65rem; padding: 2px 6px;">Lead Host</span>
+                </div>
+                <div class="video-tile-badges">
+                  <span class="badge-pill badge-blue" id="self-mic-badge" style="font-size: 0.68rem;">Mic Active</span>
+                  <span class="badge-pill badge-green" style="font-size: 0.68rem;">1080p 60fps</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tile 2: Ananya Sharma (Speaking) -->
+            <div class="video-tile speaking" id="tile-ananya">
+              <div class="video-tile-avatar" style="background: linear-gradient(135deg, #0077b6, #00B4D8);">
+                AS
+              </div>
+              <div class="video-tile-overlay-bottom">
+                <div class="video-tile-nameplate">
+                  <span class="status-dot online" style="width: 8px; height: 8px;"></span>
+                  <span>Ananya Sharma</span>
+                </div>
+                <div class="video-tile-badges">
+                  <span class="badge-pill badge-green" style="font-size: 0.68rem;">🎙️ Speaking</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tile 3: Rohan Verma -->
+            <div class="video-tile" id="tile-rohan">
+              <div class="video-tile-avatar" style="background: linear-gradient(135deg, #7b2cbf, #9d4edd);">
+                RV
+              </div>
+              <div class="video-tile-overlay-bottom">
+                <div class="video-tile-nameplate">
+                  <span>Rohan Verma</span>
+                </div>
+                <div class="video-tile-badges">
+                  <span class="badge-pill badge-blue" style="font-size: 0.68rem;">Mic Active</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tile 4: Screen Share (Gazebo / RViz SLAM Simulation) -->
+            <div class="video-tile" id="tile-screen-share" style="background: #0d1117; border-color: var(--accent-primary);">
+              <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at center, #161b22 0%, #0d1117 100%); padding: 1.5rem; text-align: center;">
+                <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🤖 📡</div>
+                <div style="font-family: var(--font-mono); color: var(--accent-primary); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem;">
+                  [ROS2 Iron] /map & /scan LiDAR Pointcloud
+                </div>
+                <div style="font-family: var(--font-mono); color: var(--text-muted); font-size: 0.75rem;">
+                  Sharing Screen: Gazebo Harmonic • 60 FPS • EKF Slam Node
+                </div>
+              </div>
+              <div class="video-tile-overlay-bottom">
+                <div class="video-tile-nameplate">
+                  <span class="badge-pill badge-blue" style="font-size: 0.65rem;">Screen</span>
+                  <span>Rohan's Desktop - RViz2 Simulation</span>
+                </div>
+                <div class="video-tile-badges">
+                  <span class="badge-pill badge-green" style="font-size: 0.68rem;">HD Stream</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Slide-Over Side Panel (In-Call Chat & Participants) -->
+        <div class="meeting-side-panel" id="meeting-side-panel">
+          <div class="side-panel-header">
+            <span style="font-weight: 700; font-family: var(--font-display); font-size: 0.95rem;" id="side-panel-header-title">In-Call Chat</span>
+            <button class="toolbar-btn" id="btn-close-side-panel" title="Close Panel">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+
+          <div class="side-panel-tabs">
+            <button class="side-tab-btn active" id="tab-in-call-chat" data-panel="chat">Messages (3)</button>
+            <button class="side-tab-btn" id="tab-in-call-people" data-panel="people">People (4)</button>
+          </div>
+
+          <!-- In-Call Chat Tab -->
+          <div id="side-view-chat" style="display: flex; flex-direction: column; flex-grow: 1; overflow: hidden;">
+            <div class="side-panel-content" id="in-call-messages-list">
+              <div class="in-call-msg">
+                <span class="in-call-msg-author">Ananya Sharma • 16:31</span>
+                <span>Can everyone see the LiDAR pointcloud mapping feed in tile 4?</span>
+              </div>
+              <div class="in-call-msg">
+                <span class="in-call-msg-author">Rohan Verma • 16:32</span>
+                <span>Yes, latency is only 18ms over local ROS2 bridge. Looks crystal clear!</span>
+              </div>
+              <div class="in-call-msg">
+                <span class="in-call-msg-author">Satyajit R (You) • 16:33</span>
+                <span>Great, let's verify the obstacle avoidance costmap next.</span>
+              </div>
+            </div>
+            <form class="in-call-input-box" id="form-in-call-chat">
+              <input type="text" class="in-call-input-field" id="input-in-call-chat" placeholder="Send message to meeting..." autocomplete="off" />
+              <button type="submit" class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">Send</button>
+            </form>
+          </div>
+
+          <!-- People Tab -->
+          <div id="side-view-people" class="side-panel-content" style="display: none;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem;">In This Call (4)</div>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0;">
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <div class="user-avatar-small" style="width: 32px; height: 32px; font-size: 0.75rem;">SR</div>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.85rem;">Satyajit R (You)</div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted);">Lead Organizer</div>
+                </div>
+              </div>
+              <span class="badge-pill badge-green" style="font-size: 0.65rem;">Host</span>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0;">
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <div class="user-avatar-small" style="width: 32px; height: 32px; font-size: 0.75rem; background: #0077b6;">AS</div>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.85rem;">Ananya Sharma</div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted);">Hardware Lead</div>
+                </div>
+              </div>
+              <span class="badge-pill badge-blue" style="font-size: 0.65rem;">Mic On</span>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0;">
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <div class="user-avatar-small" style="width: 32px; height: 32px; font-size: 0.75rem; background: #7b2cbf;">RV</div>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.85rem;">Rohan Verma</div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted);">Firmware Dev</div>
+                </div>
+              </div>
+              <span class="badge-pill badge-blue" style="font-size: 0.65rem;">Sharing</span>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0;">
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <div class="user-avatar-small" style="width: 32px; height: 32px; font-size: 0.75rem; background: #38b000;">KP</div>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.85rem;">Kavya Patel</div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted);">Computer Vision</div>
+                </div>
+              </div>
+              <span class="badge-pill badge-green" style="font-size: 0.65rem;">Muted</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Interactive Dock (Controls) -->
+      <div class="meeting-bottom-dock">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted);">ras-meet-x928-qzp</span>
+          <button class="toolbar-btn" id="btn-copy-meet-link" title="Copy Meeting Info">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </button>
+        </div>
+
+        <!-- Center Action Buttons -->
+        <div class="dock-controls-center">
+          <!-- Mic Toggle -->
+          <button class="dock-btn" id="btn-meeting-mic" title="Toggle Microphone (Ctrl+D)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+          </button>
+
+          <!-- Camera Toggle -->
+          <button class="dock-btn" id="btn-meeting-cam" title="Toggle Camera (Ctrl+E)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+          </button>
+
+          <!-- Screen Share Toggle -->
+          <button class="dock-btn" id="btn-meeting-share" title="Share Screen / Spotlight">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          </button>
+
+          <!-- Raise Hand -->
+          <button class="dock-btn" id="btn-meeting-hand" title="Raise / Lower Hand">
+            <span style="font-size: 1.15rem;">✋</span>
+          </button>
+
+          <!-- Emoji Reactions Trigger -->
+          <div style="position: relative;">
+            <button class="dock-btn" id="btn-meeting-react" title="Send Live Reaction">
+              <span style="font-size: 1.15rem;">👏</span>
+            </button>
+            <!-- Reactions Flyout -->
+            <div class="reactions-flyout" id="meeting-reactions-flyout">
+              <button class="reaction-choice-btn" data-emoji="👍" title="Thumbs Up">👍</button>
+              <button class="reaction-choice-btn" data-emoji="👏" title="Clap">👏</button>
+              <button class="reaction-choice-btn" data-emoji="❤️" title="Love">❤️</button>
+              <button class="reaction-choice-btn" data-emoji="🚀" title="Rocket">🚀</button>
+              <button class="reaction-choice-btn" data-emoji="🤖" title="Robot">🤖</button>
+              <button class="reaction-choice-btn" data-emoji="🔥" title="Fire">🔥</button>
+            </div>
+          </div>
+
+          <!-- Chat Toggle -->
+          <button class="dock-btn" id="btn-meeting-chat" title="Toggle In-Call Chat">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </button>
+
+          <!-- People Toggle -->
+          <button class="dock-btn" id="btn-meeting-people" title="Toggle Participants">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </button>
+        </div>
+
+        <!-- End Call Button -->
+        <button class="dock-btn-danger" id="btn-leave-meeting">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6 19.8 19.8 0 0 1-3.12-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"></path><line x1="23" y1="1" x2="1" y2="23"></line></svg>
+          <span>Leave Call</span>
+        </button>
       </div>
     </div>
   </div>

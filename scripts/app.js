@@ -268,24 +268,74 @@
   }
 
   /* ==========================================================================
-     MEMBER PORTAL (SCREEN 3) INTERACTION
+     MEMBER PORTAL (SCREEN 3) INTERACTION & WORKSPACE VIEWS
      ========================================================================== */
   function initMemberPortal() {
     const channelItems = document.querySelectorAll('.channel-item');
+    const workspaceItems = document.querySelectorAll('.workspace-item[data-workspace-view]');
+    const backToChatBtns = document.querySelectorAll('.btn-back-to-chat');
     const channelTitleElem = document.getElementById('chat-active-channel-name');
     const chatMessagesContainer = document.getElementById('chat-messages-box');
     const chatInput = document.getElementById('chat-user-input');
     const sendBtn = document.getElementById('btn-send-chat');
-    const videoMeetingBtn = document.getElementById('btn-start-video');
-    const closeMeetingBtn = document.getElementById('btn-close-meeting');
     const copyCodeBtn = document.getElementById('btn-copy-code');
+
+    // Views
+    const viewChat = document.getElementById('member-view-chat');
+    const viewProjects = document.getElementById('member-view-projects');
+    const viewResources = document.getElementById('member-view-resources');
+
+    function switchWorkspaceView(viewId) {
+      if (viewChat) viewChat.classList.remove('active-view');
+      if (viewProjects) viewProjects.classList.remove('active-view');
+      if (viewResources) viewResources.classList.remove('active-view');
+
+      if (viewId === 'projects' && viewProjects) {
+        viewProjects.classList.add('active-view');
+      } else if (viewId === 'resources' && viewResources) {
+        viewResources.classList.add('active-view');
+      } else if (viewChat) {
+        viewChat.classList.add('active-view');
+      }
+    }
+
+    // Workspace Item Switching (Project Showcase, Resource Hub)
+    workspaceItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Clear channel selection highlight
+        channelItems.forEach(ch => ch.classList.remove('active'));
+        // Highlight active workspace item
+        workspaceItems.forEach(wi => wi.classList.remove('active'));
+        item.classList.add('active');
+
+        const targetView = item.dataset.workspaceView;
+        switchWorkspaceView(targetView);
+      });
+    });
+
+    // Back to Chat buttons (from Showcase or Resource Hub)
+    backToChatBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        workspaceItems.forEach(wi => wi.classList.remove('active'));
+        switchWorkspaceView('chat');
+        // Restore default channel highlight
+        const defaultChannel = document.querySelector('.channel-item[data-channel="ai-ml-projects"]');
+        if (defaultChannel) defaultChannel.classList.add('active');
+      });
+    });
 
     // Channel Switching
     channelItems.forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
+        workspaceItems.forEach(wi => wi.classList.remove('active'));
         channelItems.forEach(i => i.classList.remove('active'));
         item.classList.add('active');
+        
+        switchWorkspaceView('chat');
+        
         const channelName = item.dataset.channel || 'ai-ml-projects';
         state.activeChannel = channelName;
         if (channelTitleElem) {
@@ -345,17 +395,79 @@
       });
     }
 
-    // Video Meeting Modal Simulation
-    if (videoMeetingBtn && meetingModal) {
-      videoMeetingBtn.addEventListener('click', () => {
-        meetingModal.classList.add('active');
+    // Project Showcase Filtering
+    const showcaseFilterBtns = document.querySelectorAll('#showcase-filter-row .filter-pill-btn');
+    const showcaseCards = document.querySelectorAll('.showcase-project-card');
+
+    showcaseFilterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        showcaseFilterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const filter = btn.dataset.showcaseFilter || 'all';
+        showcaseCards.forEach(card => {
+          if (filter === 'all' || card.dataset.showcaseCat === filter) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    // Resource Hub Filtering & Search
+    const resourceFilterBtns = document.querySelectorAll('#resource-filter-row .filter-pill-btn');
+    const resourceCards = document.querySelectorAll('#resources-cards-grid .resource-card');
+    const resourceSearchInput = document.getElementById('resource-search-field');
+
+    let activeResourceFilter = 'all';
+    let activeResourceSearch = '';
+
+    function filterResources() {
+      resourceCards.forEach(card => {
+        const cat = card.dataset.resCat || '';
+        const text = card.textContent.toLowerCase();
+        const matchesCategory = (activeResourceFilter === 'all' || cat === activeResourceFilter);
+        const matchesSearch = (!activeResourceSearch || text.includes(activeResourceSearch));
+
+        if (matchesCategory && matchesSearch) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
       });
     }
-    if (closeMeetingBtn && meetingModal) {
-      closeMeetingBtn.addEventListener('click', () => {
-        meetingModal.classList.remove('active');
+
+    resourceFilterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        resourceFilterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeResourceFilter = btn.dataset.resFilter || 'all';
+        filterResources();
+      });
+    });
+
+    if (resourceSearchInput) {
+      resourceSearchInput.addEventListener('input', (e) => {
+        activeResourceSearch = e.target.value.toLowerCase().trim();
+        filterResources();
       });
     }
+
+    // Resource Hub Download buttons feedback
+    document.querySelectorAll('.btn-download-resource').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Downloaded';
+        btn.style.background = 'var(--accent-primary)';
+        btn.style.color = 'var(--text-inverse)';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 2200);
+      });
+    });
 
     // Gemini AI Assistant Interactive Chips & Responses
     const aiChips = document.querySelectorAll('.ai-query-chip');
@@ -384,6 +496,354 @@
           }, 450);
         }
       });
+    });
+
+    // Initialize Video Conferencing Suite
+    initVideoMeetingSuite();
+  }
+
+  /* ==========================================================================
+     ADVANCED VIDEO CONFERENCING SUITE (MS TEAMS / ZOOM / GMEET)
+     ========================================================================== */
+  function initVideoMeetingSuite() {
+    const videoMeetingBtn = document.getElementById('btn-start-video');
+    const closeMeetingBtn = document.getElementById('btn-close-meeting');
+    const leaveMeetingBtn = document.getElementById('btn-leave-meeting');
+    const meetingModal = document.getElementById('meeting-modal');
+
+    // Controls
+    const micBtn = document.getElementById('btn-meeting-mic');
+    const camBtn = document.getElementById('btn-meeting-cam');
+    const shareBtn = document.getElementById('btn-meeting-share');
+    const layoutBtn = document.getElementById('btn-meeting-layout');
+    const handBtn = document.getElementById('btn-meeting-hand');
+    const reactBtn = document.getElementById('btn-meeting-react');
+    const chatBtn = document.getElementById('btn-meeting-chat');
+    const peopleBtn = document.getElementById('btn-meeting-people');
+    const fullscreenBtn = document.getElementById('btn-meeting-fullscreen');
+    const copyLinkBtn = document.getElementById('btn-copy-meet-link');
+    const closeSidePanelBtn = document.getElementById('btn-close-side-panel');
+
+    // Badges & Containers
+    const toast = document.getElementById('meeting-toast');
+    const toastMsg = document.getElementById('meeting-toast-msg');
+    const toastIcon = document.getElementById('meeting-toast-icon');
+    const userHandBadge = document.getElementById('user-hand-badge');
+    const selfMicBadge = document.getElementById('self-mic-badge');
+    const selfAvatar = document.getElementById('self-video-avatar');
+    const videoGrid = document.getElementById('meeting-video-grid');
+    const reactionsFlyout = document.getElementById('meeting-reactions-flyout');
+    const reactionsBox = document.getElementById('floating-reactions-box');
+    const sidePanel = document.getElementById('meeting-side-panel');
+    const sidePanelTitle = document.getElementById('side-panel-header-title');
+    const tabChat = document.getElementById('tab-in-call-chat');
+    const tabPeople = document.getElementById('tab-in-call-people');
+    const sideViewChat = document.getElementById('side-view-chat');
+    const sideViewPeople = document.getElementById('side-view-people');
+    const formInCallChat = document.getElementById('form-in-call-chat');
+    const inputInCallChat = document.getElementById('input-in-call-chat');
+    const inCallMessagesList = document.getElementById('in-call-messages-list');
+    const timerElem = document.getElementById('meeting-live-timer');
+
+    // State
+    let meetingTimerInterval = null;
+    let callDurationSec = 14 * 60 + 32; // 00:14:32 initial
+    let isMicMuted = false;
+    let isCamOff = false;
+    let isHandRaised = false;
+    let isSpotlight = false;
+    let toastTimeout = null;
+
+    function showToast(msg, icon = '💡') {
+      if (!toast) return;
+      if (toastTimeout) clearTimeout(toastTimeout);
+      if (toastIcon) toastIcon.textContent = icon;
+      if (toastMsg) toastMsg.textContent = msg;
+      toast.classList.add('active');
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('active');
+      }, 2600);
+    }
+
+    function updateTimerDisplay() {
+      if (!timerElem) return;
+      const hours = Math.floor(callDurationSec / 3600);
+      const mins = Math.floor((callDurationSec % 3600) / 60);
+      const secs = callDurationSec % 60;
+      timerElem.textContent = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function openMeeting() {
+      if (!meetingModal) return;
+      meetingModal.classList.add('active');
+      state.isMeetingActive = true;
+      if (!meetingTimerInterval) {
+        meetingTimerInterval = setInterval(() => {
+          callDurationSec++;
+          updateTimerDisplay();
+        }, 1000);
+      }
+      showToast('Joined Hardware Standup Video Room', '🎙️');
+    }
+
+    function closeMeeting() {
+      if (!meetingModal) return;
+      meetingModal.classList.remove('active');
+      state.isMeetingActive = false;
+      if (meetingTimerInterval) {
+        clearInterval(meetingTimerInterval);
+        meetingTimerInterval = null;
+      }
+      if (reactionsFlyout) reactionsFlyout.classList.remove('active');
+    }
+
+    if (videoMeetingBtn) videoMeetingBtn.addEventListener('click', openMeeting);
+    if (closeMeetingBtn) closeMeetingBtn.addEventListener('click', closeMeeting);
+    if (leaveMeetingBtn) leaveMeetingBtn.addEventListener('click', closeMeeting);
+
+    // Mic Toggle
+    function toggleMic() {
+      isMicMuted = !isMicMuted;
+      if (micBtn) {
+        micBtn.classList.toggle('muted', isMicMuted);
+        micBtn.title = isMicMuted ? 'Unmute Microphone (Ctrl+D)' : 'Mute Microphone (Ctrl+D)';
+        micBtn.innerHTML = isMicMuted
+          ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`
+          : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`;
+      }
+      if (selfMicBadge) {
+        if (isMicMuted) {
+          selfMicBadge.textContent = 'Muted';
+          selfMicBadge.className = 'badge-pill';
+          selfMicBadge.style.background = 'rgba(255, 51, 102, 0.2)';
+          selfMicBadge.style.color = '#ff3366';
+          selfMicBadge.style.borderColor = '#ff3366';
+        } else {
+          selfMicBadge.textContent = 'Mic Active';
+          selfMicBadge.className = 'badge-pill badge-blue';
+          selfMicBadge.style.background = '';
+          selfMicBadge.style.color = '';
+          selfMicBadge.style.borderColor = '';
+        }
+      }
+      showToast(isMicMuted ? 'Microphone muted' : 'Microphone unmuted', isMicMuted ? '🔇' : '🎙️');
+    }
+
+    if (micBtn) micBtn.addEventListener('click', toggleMic);
+
+    // Camera Toggle
+    function toggleCam() {
+      isCamOff = !isCamOff;
+      if (camBtn) {
+        camBtn.classList.toggle('muted', isCamOff);
+        camBtn.title = isCamOff ? 'Turn On Camera (Ctrl+E)' : 'Turn Off Camera (Ctrl+E)';
+        camBtn.innerHTML = isCamOff
+          ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M21 21l-3.34-3.34M23 7l-7 5 1.5 1.07"></path><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3"></path></svg>`
+          : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>`;
+      }
+      if (selfAvatar) {
+        selfAvatar.style.filter = isCamOff ? 'grayscale(1) opacity(0.5)' : 'none';
+        selfAvatar.textContent = isCamOff ? '📷 OFF' : 'SR';
+        selfAvatar.style.fontSize = isCamOff ? '0.85rem' : '1.4rem';
+      }
+      showToast(isCamOff ? 'Camera turned off' : 'Camera turned on', isCamOff ? '📷' : '📹');
+    }
+
+    if (camBtn) camBtn.addEventListener('click', toggleCam);
+
+    // Screen Share / Spotlight Layout Toggle
+    function toggleSpotlight() {
+      isSpotlight = !isSpotlight;
+      if (videoGrid) {
+        if (isSpotlight) {
+          videoGrid.className = 'meeting-grid-spotlight';
+          // Move tile-screen-share to spotlight 1st position
+          const shareTile = document.getElementById('tile-screen-share');
+          if (shareTile) videoGrid.prepend(shareTile);
+        } else {
+          videoGrid.className = 'meeting-grid-4';
+          // Restore default order
+          const selfTile = document.getElementById('tile-self');
+          if (selfTile) videoGrid.prepend(selfTile);
+        }
+      }
+      if (shareBtn) shareBtn.classList.toggle('active', isSpotlight);
+      if (layoutBtn) layoutBtn.classList.toggle('active', isSpotlight);
+      showToast(isSpotlight ? 'Spotlight: RViz2 ROS2 Stream' : 'Switched to 2x2 Grid View', '🖥️');
+    }
+
+    if (shareBtn) shareBtn.addEventListener('click', toggleSpotlight);
+    if (layoutBtn) layoutBtn.addEventListener('click', toggleSpotlight);
+
+    // Hand Raise Toggle
+    function toggleHandRaise() {
+      isHandRaised = !isHandRaised;
+      if (handBtn) handBtn.classList.toggle('active', isHandRaised);
+      if (userHandBadge) userHandBadge.classList.toggle('active', isHandRaised);
+      showToast(isHandRaised ? 'Satyajit R raised their hand' : 'Hand lowered', '✋');
+    }
+
+    if (handBtn) handBtn.addEventListener('click', toggleHandRaise);
+
+    // Emoji Reactions Flyout & Spawn Floating Reactions
+    function spawnFloatingEmoji(emoji) {
+      if (!reactionsBox) return;
+      const emojiElem = document.createElement('div');
+      emojiElem.className = 'floating-emoji';
+      emojiElem.textContent = emoji;
+
+      // Random horizontal position from 20% to 75%
+      const leftPercent = Math.floor(Math.random() * 55) + 20;
+      emojiElem.style.left = `${leftPercent}%`;
+      emojiElem.style.bottom = '80px';
+
+      reactionsBox.appendChild(emojiElem);
+      setTimeout(() => {
+        if (emojiElem.parentNode) {
+          emojiElem.parentNode.removeChild(emojiElem);
+        }
+      }, 2300);
+    }
+
+    if (reactBtn && reactionsFlyout) {
+      reactBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        reactionsFlyout.classList.toggle('active');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (reactionsFlyout.classList.contains('active') && !reactionsFlyout.contains(e.target) && e.target !== reactBtn) {
+          reactionsFlyout.classList.remove('active');
+        }
+      });
+
+      document.querySelectorAll('.reaction-choice-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const emoji = btn.dataset.emoji || '👏';
+          spawnFloatingEmoji(emoji);
+          reactionsFlyout.classList.remove('active');
+          showToast(`Reacted with ${emoji}`, emoji);
+        });
+      });
+    }
+
+    // Side Panel: Tabs & Toggles (Chat & People)
+    function openSidePanel(tabName) {
+      if (!sidePanel) return;
+      sidePanel.classList.add('active');
+
+      if (tabName === 'chat') {
+        if (sidePanelTitle) sidePanelTitle.textContent = 'In-Call Chat';
+        if (tabChat) tabChat.classList.add('active');
+        if (tabPeople) tabPeople.classList.remove('active');
+        if (sideViewChat) sideViewChat.style.display = 'flex';
+        if (sideViewPeople) sideViewPeople.style.display = 'none';
+        if (chatBtn) chatBtn.classList.add('active');
+        if (peopleBtn) peopleBtn.classList.remove('active');
+      } else {
+        if (sidePanelTitle) sidePanelTitle.textContent = 'Call Participants (4)';
+        if (tabPeople) tabPeople.classList.add('active');
+        if (tabChat) tabChat.classList.remove('active');
+        if (sideViewPeople) sideViewPeople.style.display = 'block';
+        if (sideViewChat) sideViewChat.style.display = 'none';
+        if (peopleBtn) peopleBtn.classList.add('active');
+        if (chatBtn) chatBtn.classList.remove('active');
+      }
+    }
+
+    function closeSidePanel() {
+      if (sidePanel) sidePanel.classList.remove('active');
+      if (chatBtn) chatBtn.classList.remove('active');
+      if (peopleBtn) peopleBtn.classList.remove('active');
+    }
+
+    if (chatBtn) {
+      chatBtn.addEventListener('click', () => {
+        if (sidePanel && sidePanel.classList.contains('active') && tabChat && tabChat.classList.contains('active')) {
+          closeSidePanel();
+        } else {
+          openSidePanel('chat');
+        }
+      });
+    }
+
+    if (peopleBtn) {
+      peopleBtn.addEventListener('click', () => {
+        if (sidePanel && sidePanel.classList.contains('active') && tabPeople && tabPeople.classList.contains('active')) {
+          closeSidePanel();
+        } else {
+          openSidePanel('people');
+        }
+      });
+    }
+
+    if (closeSidePanelBtn) closeSidePanelBtn.addEventListener('click', closeSidePanel);
+    if (tabChat) tabChat.addEventListener('click', () => openSidePanel('chat'));
+    if (tabPeople) tabPeople.addEventListener('click', () => openSidePanel('people'));
+
+    // In-Call Chat Post Message
+    if (formInCallChat) {
+      formInCallChat.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!inputInCallChat) return;
+        const msgText = inputInCallChat.value.trim();
+        if (!msgText) return;
+
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const msgElem = document.createElement('div');
+        msgElem.className = 'in-call-msg';
+        msgElem.innerHTML = `
+          <span class="in-call-msg-author">Satyajit R (You) • ${timeStr}</span>
+          <span>${escapeHtml(msgText)}</span>
+        `;
+
+        if (inCallMessagesList) {
+          inCallMessagesList.appendChild(msgElem);
+          inCallMessagesList.scrollTop = inCallMessagesList.scrollHeight;
+        }
+
+        inputInCallChat.value = '';
+      });
+    }
+
+    // Copy Meeting Info Link
+    if (copyLinkBtn) {
+      copyLinkBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText('https://meet.ieee-ras.org/ras-meet-x928-qzp').then(() => {
+          showToast('Meeting invite link copied to clipboard!', '🔗');
+        });
+      });
+    }
+
+    // Fullscreen Toggle
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener('click', () => {
+        const windowElem = document.querySelector('.meeting-app-window');
+        if (!document.fullscreenElement) {
+          if (windowElem && windowElem.requestFullscreen) {
+            windowElem.requestFullscreen().catch(() => {});
+          }
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          }
+        }
+      });
+    }
+
+    // Keyboard Shortcuts (Ctrl+D = Mic, Ctrl+E = Camera)
+    window.addEventListener('keydown', (e) => {
+      if (!meetingModal || !meetingModal.classList.contains('active')) return;
+      if (document.activeElement === inputInCallChat) return;
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        toggleMic();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') {
+        e.preventDefault();
+        toggleCam();
+      }
     });
   }
 
