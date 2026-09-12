@@ -304,7 +304,7 @@
       const msgRow = document.createElement('div');
       msgRow.className = 'chat-msg-row';
       msgRow.innerHTML = `
-        <div class="msg-avatar" style="background: rgba(0, 255, 102, 0.2); color: var(--accent-primary); border: 1px solid var(--accent-primary);">SR</div>
+        <div class="msg-avatar msg-avatar-user">SR</div>
         <div class="msg-body">
           <div class="msg-meta">
             <span class="msg-author">Satyajit R</span>
