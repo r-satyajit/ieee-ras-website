@@ -3680,6 +3680,146 @@ h1, h2, h3, h4, .font-display {
 }
 
 /* ==========================================================================
+   VIDEO MEETING CONFIGURATION & ADMIN CONTROLS MODAL (#modal-create-meeting)
+   ========================================================================== */
+
+.meeting-invitees-grid {
+  max-height: 145px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.6rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+[data-theme="light"] .meeting-invitees-grid {
+  background: #F8FAFC;
+  border-color: rgba(200, 210, 225, 0.9);
+}
+
+.invitee-check-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.invitee-check-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-subtle);
+}
+
+[data-theme="light"] .invitee-check-row {
+  background: #FFFFFF;
+}
+
+[data-theme="light"] .invitee-check-row:hover {
+  background: #EFF6FF;
+  border-color: var(--accent-subtle);
+}
+
+.invitee-user-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.meeting-options-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+[data-theme="light"] .meeting-options-card {
+  background: #FFFFFF;
+  border-color: rgba(200, 210, 225, 0.85);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+/* Meeting Attendee Row in Side Panel */
+.meeting-attendee-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  transition: background var(--transition-fast);
+}
+
+.meeting-attendee-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="light"] .meeting-attendee-item:hover {
+  background: #F1F5F9;
+}
+
+.attendee-actions-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-kick-participant {
+  background: none;
+  border: 1px solid rgba(255, 51, 102, 0.3);
+  color: #ff3366;
+  font-size: 0.68rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition: all var(--transition-fast);
+}
+
+.btn-kick-participant:hover {
+  background: rgba(255, 51, 102, 0.15);
+  border-color: #ff3366;
+}
+
+.btn-mute-participant {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition: all var(--transition-fast);
+}
+
+.btn-mute-participant:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+#btn-end-meeting-all {
+  background: #dc2626;
+  border: 1px solid #ef4444;
+  box-shadow: 0 0 16px rgba(220, 38, 38, 0.4);
+}
+
+#btn-end-meeting-all:hover {
+  background: #b91c1c;
+  box-shadow: 0 0 24px rgba(220, 38, 38, 0.7);
+}
+
+/* ==========================================================================
    PARTICIPANT PORTAL: MULTI-EVENT & MULTI-STAGE ARCHITECTURE
    ========================================================================== */
 

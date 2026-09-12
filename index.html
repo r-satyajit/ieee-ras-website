@@ -1746,6 +1746,107 @@
     </div>
   </div>
 
+  <!-- ========================================================================
+       MODAL: CREATE / LAUNCH NEW VIDEO MEETING (WITH ADMIN CONTROLS & INVITES)
+       ======================================================================== -->
+  <div class="auth-modal-overlay" id="modal-create-meeting">
+    <div class="auth-modal-window chamfer-card" style="max-width: 580px; width: 92%; padding: 0; overflow: hidden; background: var(--surface-glass-heavy); border: 1px solid var(--surface-card-border); box-shadow: 0 25px 70px rgba(0,0,0,0.5);">
+      <div class="auth-modal-header" style="padding: 1.3rem 1.6rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; background: var(--chat-header-bg);">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="brand-logo-hex" style="width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-blue)); display: flex; align-items: center; justify-content: center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+          </div>
+          <div>
+            <div class="badge-pill badge-green font-mono" style="font-size: 0.65rem; margin-bottom: 0.15rem; display: inline-block;">SECURE WEBRTC SUITE</div>
+            <h3 style="margin: 0; font-size: 1.18rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-display);">Launch New Video Conference</h3>
+          </div>
+        </div>
+        <button class="auth-close-btn" id="btn-close-create-meeting" type="button" style="font-size: 1.2rem; color: var(--text-muted); background: none; border: none; cursor: pointer;">✕</button>
+      </div>
+
+      <form id="form-create-meeting" style="padding: 1.5rem 1.6rem; display: flex; flex-direction: column; gap: 1.1rem;" autocomplete="off">
+        <!-- Meeting Title -->
+        <div class="form-field-group">
+          <label for="create-meet-name" class="register-field-label">Meeting Name / Agenda *</label>
+          <div class="input-with-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <input type="text" id="create-meet-name" class="register-input" placeholder="e.g. SLAM LiDAR Telemetry &amp; Hardware Review" required />
+          </div>
+        </div>
+
+        <!-- Channel & Quality Options -->
+        <div class="form-row-2col">
+          <div class="form-field-group">
+            <label for="create-meet-channel" class="register-field-label">Associated Channel</label>
+            <select id="create-meet-channel" class="register-select">
+              <option value="ai-ml-projects"># ai-ml-projects</option>
+              <option value="hardware-troubleshooting"># hardware-troubleshooting</option>
+              <option value="general"># general</option>
+              <option value="core-leads-private"># core-leads (Executive)</option>
+            </select>
+          </div>
+          <div class="form-field-group">
+            <label for="create-meet-video-quality" class="register-field-label">Video Stream Profile</label>
+            <select id="create-meet-video-quality" class="register-select">
+              <option value="1080p60">1080p 60FPS (Ultra HD / Low Latency)</option>
+              <option value="720p30">720p 30FPS (Optimized Bandwidth)</option>
+              <option value="audio-only">WebRTC Audio-Only (Mobile Friendly)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Invite Members Checklist -->
+        <div class="form-field-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label class="register-field-label" style="margin: 0;">Invite Society Members</label>
+            <button type="button" id="btn-select-all-invites" style="background: none; border: none; color: var(--accent-primary); font-size: 0.75rem; font-family: var(--font-mono); cursor: pointer; text-decoration: underline;">Select All</button>
+          </div>
+          <div class="meeting-invitees-grid" id="meeting-invitees-container">
+            <!-- Dynamically populated from active coreMembers registry -->
+          </div>
+        </div>
+
+        <!-- Meeting Security & Host Preferences ("Other Stuff") -->
+        <div class="meeting-options-card">
+          <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-family: var(--font-mono);">Meeting Security &amp; Features ("Other Stuff")</span>
+          
+          <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; color: var(--text-primary); cursor: pointer;">
+            <input type="checkbox" id="meet-opt-mute-entry" checked style="accent-color: var(--accent-primary);" />
+            <span>Mute participant microphones upon entry</span>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; color: var(--text-primary); cursor: pointer;">
+            <input type="checkbox" id="meet-opt-allow-share" checked style="accent-color: var(--accent-primary);" />
+            <span>Allow participants to share screen and CAD / RViz models</span>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; color: var(--text-primary); cursor: pointer;">
+            <input type="checkbox" id="meet-opt-record" checked style="accent-color: var(--accent-primary);" />
+            <span>Auto-enable cloud recording &amp; Gemini AI session minutes</span>
+          </label>
+        </div>
+
+        <!-- Host Admin Notice -->
+        <div style="padding: 0.65rem 0.9rem; background: rgba(0, 255, 102, 0.06); border: 1px solid var(--accent-glow); border-radius: 6px; display: flex; align-items: center; gap: 0.65rem; font-size: 0.78rem;">
+          <span style="font-size: 1.1rem;">🛡️</span>
+          <span style="color: var(--text-secondary);">
+            Organizer (<strong id="create-meet-host-name">Satyajit R</strong>) will be the <strong>Meeting Admin</strong> with full kick, mute, and room control privileges. Club Leads retain administrative authority in all meetings.
+          </span>
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.2rem;">
+          <button type="button" class="btn btn-secondary chamfer-btn" id="btn-cancel-create-meeting" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary chamfer-btn" id="btn-submit-start-meeting" style="padding: 0.5rem 1.3rem; font-size: 0.85rem;">
+            🚀 Start Meeting Now
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Video Meeting Simulation Modal (MS Teams / Zoom / GMeet Suite) -->
   <div class="auth-modal-overlay" id="meeting-modal">
     <div class="meeting-app-window chamfer-card">
@@ -1760,17 +1861,21 @@
         <div class="meeting-title-left">
           <div style="display: flex; align-items: center; gap: 0.6rem;">
             <span class="status-dot online"></span>
-            <span style="font-weight: 700; font-family: var(--font-display); font-size: 1.05rem;">Hardware Standup • Core Robotics Sprint</span>
+            <span style="font-weight: 700; font-family: var(--font-display); font-size: 1.05rem;" id="meeting-display-title">Hardware Standup • Core Robotics Sprint</span>
           </div>
-          <div class="meeting-rec-pill">
+          <div class="meeting-rec-pill" id="meeting-rec-indicator">
             <span class="rec-dot"></span>
             <span>REC</span>
-            <span id="meeting-live-timer">00:14:32</span>
+            <span id="meeting-live-timer">00:00:00</span>
           </div>
           <span class="badge-pill badge-green" style="font-size: 0.7rem;">🔒 E2EE 256-bit</span>
+          <span class="badge-pill badge-purple font-mono" id="meeting-admin-badge" style="font-size: 0.68rem; display: none;">🛡️ HOST ADMIN</span>
         </div>
 
         <div class="meeting-top-actions">
+          <button class="btn btn-secondary chamfer-btn" id="btn-meeting-lock" title="Admin Control: Lock / Unlock Meeting" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; display: none;">
+            🔓 Unlocked
+          </button>
           <button class="dock-btn" id="btn-meeting-layout" title="Toggle Layout (Grid / Spotlight)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
           </button>
@@ -1904,50 +2009,28 @@
 
           <!-- People Tab -->
           <div id="side-view-people" class="side-panel-content" style="display: none;">
-            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem;">In This Call (4)</div>
+            <!-- Admin Controls Banner in People Tab -->
+            <div id="meeting-admin-people-controls" style="display: none; padding: 0.75rem; background: rgba(0, 255, 102, 0.05); border: 1px solid var(--accent-glow); border-radius: 8px; margin-bottom: 0.8rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--accent-primary); font-weight: 700;">ADMIN ROSTER CONTROLS</span>
+                <span class="badge-pill badge-green font-mono" style="font-size: 0.6rem;">HOST PRIVILEGE</span>
+              </div>
+              <div style="display: flex; gap: 0.4rem;">
+                <button type="button" class="btn btn-secondary chamfer-btn" id="btn-meeting-mute-all" style="flex: 1; padding: 0.35rem 0.6rem; font-size: 0.72rem;">
+                  🔇 Mute All
+                </button>
+                <button type="button" class="btn btn-secondary chamfer-btn" id="btn-meeting-toggle-chat-lock" style="flex: 1; padding: 0.35rem 0.6rem; font-size: 0.72rem;">
+                  🔒 Lock Chat
+                </button>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+              <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-family: var(--font-mono);">In This Call (<span id="meeting-people-count">4</span>)</span>
+            </div>
             
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0;">
-              <div style="display: flex; align-items: center; gap: 0.6rem;">
-                <div class="user-avatar-small" style="width: 32px; height: 32px; font-size: 0.75rem;">SR</div>
-                <div>
-                  <div style="font-weight: 600; font-size: 0.85rem;">Satyajit R (You)</div>
-                  <div style="font-size: 0.72rem; color: var(--text-muted);">Lead Organizer</div>
-                </div>
-              </div>
-              <span class="badge-pill badge-green" style="font-size: 0.65rem;">Host</span>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0;">
-              <div style="display: flex; align-items: center; gap: 0.6rem;">
-                <div class="user-avatar-small" style="width: 32px; height: 32px; font-size: 0.75rem; background: #0077b6;">AS</div>
-                <div>
-                  <div style="font-weight: 600; font-size: 0.85rem;">Ananya Sharma</div>
-                  <div style="font-size: 0.72rem; color: var(--text-muted);">Hardware Lead</div>
-                </div>
-              </div>
-              <span class="badge-pill badge-blue" style="font-size: 0.65rem;">Mic On</span>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0;">
-              <div style="display: flex; align-items: center; gap: 0.6rem;">
-                <div class="user-avatar-small" style="width: 32px; height: 32px; font-size: 0.75rem; background: #7b2cbf;">RV</div>
-                <div>
-                  <div style="font-weight: 600; font-size: 0.85rem;">Rohan Verma</div>
-                  <div style="font-size: 0.72rem; color: var(--text-muted);">Firmware Dev</div>
-                </div>
-              </div>
-              <span class="badge-pill badge-blue" style="font-size: 0.65rem;">Sharing</span>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0;">
-              <div style="display: flex; align-items: center; gap: 0.6rem;">
-                <div class="user-avatar-small" style="width: 32px; height: 32px; font-size: 0.75rem; background: #38b000;">KP</div>
-                <div>
-                  <div style="font-weight: 600; font-size: 0.85rem;">Kavya Patel</div>
-                  <div style="font-size: 0.72rem; color: var(--text-muted);">Computer Vision</div>
-                </div>
-              </div>
-              <span class="badge-pill badge-green" style="font-size: 0.65rem;">Muted</span>
+            <div id="meeting-attendees-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <!-- Populated dynamically by JavaScript -->
             </div>
           </div>
         </div>
@@ -2011,11 +2094,20 @@
           </button>
         </div>
 
-        <!-- End Call Button -->
-        <button class="dock-btn-danger" id="btn-leave-meeting">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6 19.8 19.8 0 0 1-3.12-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"></path><line x1="23" y1="1" x2="1" y2="23"></line></svg>
-          <span>Leave Call</span>
-        </button>
+        <!-- Call Exit Actions -->
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <!-- Admin-Only End Call for All Button -->
+          <button class="dock-btn-danger" id="btn-end-meeting-all" title="Admin Action: Terminate Meeting for All Attendees" style="display: none; background: #dc2626; border: 1px solid #ef4444;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>
+            <span>End Meeting for All</span>
+          </button>
+
+          <!-- Standard Leave Call Button -->
+          <button class="dock-btn-danger" id="btn-leave-meeting" title="Leave Video Meeting">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6 19.8 19.8 0 0 1-3.12-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"></path><line x1="23" y1="1" x2="1" y2="23"></line></svg>
+            <span>Leave Call</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>

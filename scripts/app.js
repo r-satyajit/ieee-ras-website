@@ -2084,7 +2084,34 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     const videoMeetingBtn = document.getElementById('btn-start-video');
     const closeMeetingBtn = document.getElementById('btn-close-meeting');
     const leaveMeetingBtn = document.getElementById('btn-leave-meeting');
+    const endMeetingAllBtn = document.getElementById('btn-end-meeting-all');
     const meetingModal = document.getElementById('meeting-modal');
+
+    // Create Meeting Setup Modal Elements
+    const createMeetingModal = document.getElementById('modal-create-meeting');
+    const closeCreateMeetingBtn = document.getElementById('btn-close-create-meeting');
+    const cancelCreateMeetingBtn = document.getElementById('btn-cancel-create-meeting');
+    const formCreateMeeting = document.getElementById('form-create-meeting');
+    const inputMeetName = document.getElementById('create-meet-name');
+    const selectMeetChannel = document.getElementById('create-meet-channel');
+    const selectMeetQuality = document.getElementById('create-meet-video-quality');
+    const inviteesContainer = document.getElementById('meeting-invitees-container');
+    const btnSelectAllInvites = document.getElementById('btn-select-all-invites');
+    const hostNameNotice = document.getElementById('create-meet-host-name');
+    const optMuteEntry = document.getElementById('meet-opt-mute-entry');
+    const optAllowShare = document.getElementById('meet-opt-allow-share');
+    const optRecord = document.getElementById('meet-opt-record');
+
+    // In-Call Admin Elements
+    const meetingDisplayTitle = document.getElementById('meeting-display-title');
+    const meetingAdminBadge = document.getElementById('meeting-admin-badge');
+    const btnMeetingLock = document.getElementById('btn-meeting-lock');
+    const adminPeopleControls = document.getElementById('meeting-admin-people-controls');
+    const btnMeetingMuteAll = document.getElementById('btn-meeting-mute-all');
+    const btnToggleChatLock = document.getElementById('btn-meeting-toggle-chat-lock');
+    const attendeesListContainer = document.getElementById('meeting-attendees-list');
+    const peopleCountSpan = document.getElementById('meeting-people-count');
+    const selfNameplateHost = document.querySelector('#tile-self .video-tile-nameplate');
 
     // Controls
     const micBtn = document.getElementById('btn-meeting-mic');
@@ -2122,12 +2149,22 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
 
     // State
     let meetingTimerInterval = null;
-    let callDurationSec = 14 * 60 + 32; // 00:14:32 initial
+    let callDurationSec = 0;
     let isMicMuted = false;
     let isCamOff = false;
     let isHandRaised = false;
     let isSpotlight = false;
     let toastTimeout = null;
+
+    // Helper: Determine if current user has Admin Controls in the current meeting
+    // RULE: The one who starts is the admin. AND the club lead has admin control in ANY meeting regardless of who started it!
+    function isCurrentMeetingAdmin() {
+      if (!state.currentMeeting) return false;
+      const isLead = state.currentUser.role === 'club_lead';
+      const isHost = state.currentUser.email && state.currentMeeting.hostEmail &&
+                     state.currentUser.email.toLowerCase() === state.currentMeeting.hostEmail.toLowerCase();
+      return isLead || isHost;
+    }
 
     function showToast(msg, icon = '💡') {
       if (!toast) return;
@@ -2148,20 +2185,303 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       timerElem.textContent = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }
 
+    // Render Attendees in People Tab with Admin Mute / Remove Controls
+    function renderMeetingAttendees() {
+      if (!attendeesListContainer || !state.currentMeeting) return;
+      const attendees = state.currentMeeting.attendees || [];
+      if (peopleCountSpan) peopleCountSpan.textContent = attendees.length;
+
+      const hasAdmin = isCurrentMeetingAdmin();
+
+      attendeesListContainer.innerHTML = attendees.map(att => {
+        const initials = att.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'MB';
+        const isSelf = att.isSelf;
+        const isHost = att.isHost;
+        const isLead = att.isLead;
+
+        return `
+          <div class="meeting-attendee-item" data-att-email="${escapeHtml(att.email)}">
+            <div style="display: flex; align-items: center; gap: 0.6rem; overflow: hidden;">
+              <div class="user-avatar-small" style="width: 32px; height: 32px; font-size: 0.72rem; flex-shrink: 0; background: ${isSelf ? 'var(--accent-subtle)' : isHost ? '#7b2cbf' : '#0077b6'}; color: ${isSelf ? 'var(--accent-primary)' : '#fff'};">
+                ${initials}
+              </div>
+              <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <div style="font-weight: 600; font-size: 0.84rem; color: var(--text-primary);">${escapeHtml(att.name)}</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">${escapeHtml(att.role || 'Society Member')}</div>
+              </div>
+            </div>
+
+            <div class="attendee-actions-cluster">
+              ${isHost ? '<span class="badge-pill badge-green font-mono" style="font-size: 0.62rem;">HOST</span>' : isLead ? '<span class="badge-pill badge-purple font-mono" style="font-size: 0.62rem;">LEAD</span>' : ''}
+              
+              <span class="badge-pill ${att.isMuted ? 'badge-red' : 'badge-blue'} font-mono" style="font-size: 0.62rem;">
+                ${att.isMuted ? '🔇 Muted' : '🎙️ Live'}
+              </span>
+
+              ${hasAdmin && !isSelf ? `
+                <button type="button" class="btn-mute-participant" data-att-email="${escapeHtml(att.email)}" title="Admin Action: Toggle Microphone">
+                  ${att.isMuted ? 'Unmute' : 'Mute'}
+                </button>
+                <button type="button" class="btn-kick-participant" data-att-email="${escapeHtml(att.email)}" title="Admin Action: Remove from Call">
+                  Remove
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Attach dynamic Mute & Kick Listeners for Admin
+      if (hasAdmin) {
+        attendeesListContainer.querySelectorAll('.btn-mute-participant').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const email = btn.dataset.attEmail;
+            const target = state.currentMeeting.attendees.find(a => a.email.toLowerCase() === email.toLowerCase());
+            if (target) {
+              target.isMuted = !target.isMuted;
+              renderMeetingAttendees();
+              showToast(`${target.isMuted ? 'Muted' : 'Unmuted'} ${target.name}`, target.isMuted ? '🔇' : '🎙️');
+            }
+          });
+        });
+
+        attendeesListContainer.querySelectorAll('.btn-kick-participant').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const email = btn.dataset.attEmail;
+            const target = state.currentMeeting.attendees.find(a => a.email.toLowerCase() === email.toLowerCase());
+            const name = target ? target.name : 'Participant';
+            state.currentMeeting.attendees = state.currentMeeting.attendees.filter(a => a.email.toLowerCase() !== email.toLowerCase());
+            renderMeetingAttendees();
+            showToast(`Admin removed ${name} from the conference call.`, '🚪');
+          });
+        });
+      }
+    }
+
+    // Open Video Meeting Setup Modal
+    function openMeetingSetupModal() {
+      if (!createMeetingModal) {
+        openMeeting();
+        return;
+      }
+
+      // Pre-fill meeting name
+      const curChan = state.activeChannel || 'ai-ml-projects';
+      if (inputMeetName) {
+        inputMeetName.value = `#${curChan} Sprint Sync & Architecture Review`;
+      }
+      if (selectMeetChannel) {
+        selectMeetChannel.value = curChan;
+      }
+      if (hostNameNotice) {
+        hostNameNotice.textContent = `${state.currentUser.name} (${state.currentUser.role === 'club_lead' ? 'Club Lead' : 'Core Member'})`;
+      }
+
+      // Populate Society Member Invite Checklist from active coreMembers registry
+      if (inviteesContainer) {
+        const otherMembers = coreMembers.filter(m => m.email.toLowerCase() !== state.currentUser.email.toLowerCase());
+        inviteesContainer.innerHTML = otherMembers.map(m => {
+          const initials = m.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'MB';
+          return `
+            <label class="invitee-check-row">
+              <div class="invitee-user-meta">
+                <input type="checkbox" class="invitee-checkbox" value="${escapeHtml(m.email)}" checked style="accent-color: var(--accent-primary);" />
+                <div class="user-avatar-small" style="width: 26px; height: 26px; font-size: 0.65rem; background: ${m.roleType === 'club_lead' ? '#7b2cbf' : '#0077b6'}; color: #fff;">${initials}</div>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-primary);">${escapeHtml(m.name)}</div>
+                  <div style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);">${escapeHtml(m.role)}</div>
+                </div>
+              </div>
+              <span class="badge-pill ${m.roleType === 'club_lead' ? 'badge-purple' : 'badge-green'}" style="font-size: 0.62rem;">${m.roleType === 'club_lead' ? 'Lead' : 'Member'}</span>
+            </label>
+          `;
+        }).join('');
+      }
+
+      createMeetingModal.classList.add('active');
+      if (inputMeetName) inputMeetName.focus();
+    }
+
+    function closeMeetingSetupModal() {
+      if (createMeetingModal) createMeetingModal.classList.remove('active');
+    }
+
+    if (videoMeetingBtn) {
+      videoMeetingBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openMeetingSetupModal();
+      });
+    }
+
+    if (closeCreateMeetingBtn) closeCreateMeetingBtn.addEventListener('click', closeMeetingSetupModal);
+    if (cancelCreateMeetingBtn) cancelCreateMeetingBtn.addEventListener('click', closeMeetingSetupModal);
+
+    // Select All / Deselect All Toggle in Invitees
+    if (btnSelectAllInvites) {
+      let allSelected = true;
+      btnSelectAllInvites.addEventListener('click', () => {
+        allSelected = !allSelected;
+        const checkboxes = document.querySelectorAll('.invitee-checkbox');
+        checkboxes.forEach(cb => cb.checked = allSelected);
+        btnSelectAllInvites.textContent = allSelected ? 'Deselect All' : 'Select All';
+      });
+    }
+
+    // Submit Create Meeting Form
+    if (formCreateMeeting) {
+      formCreateMeeting.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const meetName = inputMeetName ? inputMeetName.value.trim() : 'IEEE RAS Technical Sync';
+        const meetChan = selectMeetChannel ? selectMeetChannel.value : 'ai-ml-projects';
+        const meetQual = selectMeetQuality ? selectMeetQuality.value : '1080p60';
+        const muteOnEntry = optMuteEntry ? optMuteEntry.checked : true;
+        const allowShare = optAllowShare ? optAllowShare.checked : true;
+        const autoRecord = optRecord ? optRecord.checked : true;
+
+        const selectedEmails = new Set(
+          Array.from(document.querySelectorAll('.invitee-checkbox:checked')).map(cb => cb.value.toLowerCase())
+        );
+        const invitedMembers = coreMembers.filter(m => selectedEmails.has(m.email.toLowerCase()));
+
+        state.currentMeeting = {
+          id: 'ras-meet-' + Math.random().toString(36).substring(2, 6) + '-' + Math.random().toString(36).substring(2, 6),
+          name: meetName,
+          channel: meetChan,
+          quality: meetQual,
+          hostEmail: state.currentUser.email,
+          hostName: state.currentUser.name,
+          hostRole: state.currentUser.roleTitle || 'Chapter Member',
+          isLocked: false,
+          isChatLocked: false,
+          allowShare: allowShare,
+          autoRecord: autoRecord,
+          attendees: [
+            {
+              id: 'self',
+              name: state.currentUser.name + ' (You)',
+              email: state.currentUser.email,
+              role: state.currentUser.roleTitle || 'Chapter Member',
+              isHost: true,
+              isLead: state.currentUser.role === 'club_lead',
+              isSelf: true,
+              isMuted: false
+            },
+            ...invitedMembers.map((inv, idx) => ({
+              id: 'inv-' + idx,
+              name: inv.name,
+              email: inv.email,
+              role: inv.role,
+              isHost: false,
+              isLead: inv.roleType === 'club_lead',
+              isSelf: false,
+              isMuted: muteOnEntry
+            }))
+          ]
+        };
+
+        closeMeetingSetupModal();
+        openMeeting();
+      });
+    }
+
+    // Open / Launch Active Meeting
     function openMeeting() {
       if (!meetingModal) return;
+
+      // If no meeting configured yet, generate default
+      if (!state.currentMeeting) {
+        state.currentMeeting = {
+          id: 'ras-meet-x928-qzp',
+          name: 'Hardware Standup • Core Robotics Sprint',
+          channel: state.activeChannel || 'ai-ml-projects',
+          quality: '1080p60',
+          hostEmail: state.currentUser.email,
+          hostName: state.currentUser.name,
+          hostRole: state.currentUser.roleTitle || 'Lead Architect',
+          isLocked: false,
+          isChatLocked: false,
+          allowShare: true,
+          autoRecord: true,
+          attendees: [
+            {
+              id: 'self',
+              name: state.currentUser.name + ' (You)',
+              email: state.currentUser.email,
+              role: state.currentUser.roleTitle || 'Organizer',
+              isHost: true,
+              isLead: state.currentUser.role === 'club_lead',
+              isSelf: true,
+              isMuted: false
+            },
+            { id: 'att-1', name: 'Ananya Sharma', email: 'ananya.s2024@vitstudent.ac.in', role: 'Hardware Lead', isHost: false, isLead: true, isSelf: false, isMuted: false },
+            { id: 'att-2', name: 'Rohan Verma', email: 'rohan.v2024@vitstudent.ac.in', role: 'Firmware Dev', isHost: false, isLead: false, isSelf: false, isMuted: true },
+            { id: 'att-3', name: 'Kavya Patel', email: 'kavya.p2024@vitstudent.ac.in', role: 'Computer Vision', isHost: false, isLead: false, isSelf: false, isMuted: true }
+          ]
+        };
+      }
+
       meetingModal.classList.add('active');
       state.isMeetingActive = true;
+
+      // Update Title
+      if (meetingDisplayTitle) {
+        meetingDisplayTitle.textContent = state.currentMeeting.name;
+      }
+
+      // Check Admin Status: Creator OR Club Lead
+      const hasAdmin = isCurrentMeetingAdmin();
+
+      if (meetingAdminBadge) {
+        meetingAdminBadge.style.display = hasAdmin ? 'inline-flex' : 'none';
+        meetingAdminBadge.textContent = state.currentUser.role === 'club_lead' ? '🛡️ LEAD ADMIN CONTROLS' : '🛡️ HOST ADMIN';
+      }
+
+      if (btnMeetingLock) {
+        btnMeetingLock.style.display = hasAdmin ? 'inline-flex' : 'none';
+        btnMeetingLock.textContent = state.currentMeeting.isLocked ? '🔒 Room Locked' : '🔓 Unlocked';
+        btnMeetingLock.style.color = state.currentMeeting.isLocked ? '#ff3366' : '';
+      }
+
+      if (adminPeopleControls) {
+        adminPeopleControls.style.display = hasAdmin ? 'block' : 'none';
+      }
+
+      if (endMeetingAllBtn) {
+        endMeetingAllBtn.style.display = hasAdmin ? 'flex' : 'none';
+      }
+
+      // Update Self Nameplate badge
+      if (selfNameplateHost) {
+        selfNameplateHost.innerHTML = `
+          <span>${escapeHtml(state.currentUser.name)} (You)</span>
+          <span class="badge-pill ${hasAdmin ? 'badge-green' : 'badge-blue'}" style="font-size: 0.65rem; padding: 2px 6px;">
+            ${hasAdmin ? (state.currentUser.role === 'club_lead' ? 'Lead Admin' : 'Host Admin') : 'Participant'}
+          </span>
+        `;
+      }
+
+      // Render Attendees
+      renderMeetingAttendees();
+
+      // Reset & Start Live Call Timer
+      callDurationSec = 0;
+      updateTimerDisplay();
       if (!meetingTimerInterval) {
         meetingTimerInterval = setInterval(() => {
           callDurationSec++;
           updateTimerDisplay();
         }, 1000);
       }
-      showToast('Joined Hardware Standup Video Room', '🎙️');
+
+      const welcomeMsg = hasAdmin 
+        ? `Started "${state.currentMeeting.name}". You have full Host Admin privileges.`
+        : `Joined "${state.currentMeeting.name}".`;
+      showToast(welcomeMsg, hasAdmin ? '🛡️' : '🎙️');
     }
 
     window.openVideoMeeting = openMeeting;
+    window.openMeetingSetupModal = openMeetingSetupModal;
 
     function closeMeeting() {
       if (!meetingModal) return;
@@ -2174,9 +2494,70 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       if (reactionsFlyout) reactionsFlyout.classList.remove('active');
     }
 
-    if (videoMeetingBtn) videoMeetingBtn.addEventListener('click', openMeeting);
     if (closeMeetingBtn) closeMeetingBtn.addEventListener('click', closeMeeting);
-    if (leaveMeetingBtn) leaveMeetingBtn.addEventListener('click', closeMeeting);
+    if (leaveMeetingBtn) {
+      leaveMeetingBtn.addEventListener('click', () => {
+        closeMeeting();
+        showGlobalToast('You left the video meeting.', '👋');
+      });
+    }
+
+    // Admin Control: End Meeting for All
+    if (endMeetingAllBtn) {
+      endMeetingAllBtn.addEventListener('click', () => {
+        if (!isCurrentMeetingAdmin()) return;
+        closeMeeting();
+        showGlobalToast('Meeting ended for all attendees by Meeting Admin.', '🛑');
+      });
+    }
+
+    // Admin Control: Mute All Participants
+    if (btnMeetingMuteAll) {
+      btnMeetingMuteAll.addEventListener('click', () => {
+        if (!isCurrentMeetingAdmin()) return;
+        if (!state.currentMeeting) return;
+        state.currentMeeting.attendees.forEach(a => {
+          if (!a.isSelf) a.isMuted = true;
+        });
+        renderMeetingAttendees();
+        showToast('All participant microphones muted by Admin.', '🔇');
+      });
+    }
+
+    // Admin Control: Toggle Meeting Lock
+    if (btnMeetingLock) {
+      btnMeetingLock.addEventListener('click', () => {
+        if (!isCurrentMeetingAdmin()) return;
+        if (!state.currentMeeting) return;
+        state.currentMeeting.isLocked = !state.currentMeeting.isLocked;
+        btnMeetingLock.textContent = state.currentMeeting.isLocked ? '🔒 Room Locked' : '🔓 Unlocked';
+        btnMeetingLock.style.color = state.currentMeeting.isLocked ? '#ff3366' : '';
+        showToast(
+          state.currentMeeting.isLocked ? 'Room locked. Unauthorized participants cannot join.' : 'Meeting unlocked.',
+          state.currentMeeting.isLocked ? '🔒' : '🔓'
+        );
+      });
+    }
+
+    // Admin Control: Toggle Chat Lock
+    if (btnToggleChatLock) {
+      btnToggleChatLock.addEventListener('click', () => {
+        if (!isCurrentMeetingAdmin()) return;
+        if (!state.currentMeeting) return;
+        state.currentMeeting.isChatLocked = !state.currentMeeting.isChatLocked;
+        btnToggleChatLock.textContent = state.currentMeeting.isChatLocked ? '🔓 Unlock Chat' : '🔒 Lock Chat';
+        if (inputInCallChat) {
+          inputInCallChat.disabled = state.currentMeeting.isChatLocked;
+          inputInCallChat.placeholder = state.currentMeeting.isChatLocked
+            ? 'Chat has been locked by Meeting Admin'
+            : 'Send message to meeting...';
+        }
+        showToast(
+          state.currentMeeting.isChatLocked ? 'In-call chat locked for attendees by Admin.' : 'In-call chat unlocked.',
+          state.currentMeeting.isChatLocked ? '🔒' : '💬'
+        );
+      });
+    }
 
     // Mic Toggle
     function toggleMic() {
