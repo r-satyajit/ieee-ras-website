@@ -45,6 +45,8 @@
       role: 'club_lead', // 'club_lead' | 'regular_member'
       roleTitle: 'Lead Architect',
       track: 'Autonomous Systems & ROS2 Navigation',
+      github: 'satyajit-r',
+      linkedin: 'https://linkedin.com/in/satyajit-r',
       avatarUrl: null
     }
   };
@@ -59,6 +61,8 @@
       role: 'Lead Architect',
       roleType: 'club_lead',
       track: 'Autonomous Robotics & ROS2',
+      github: 'satyajit-r',
+      linkedin: 'https://linkedin.com/in/satyajit-r',
       status: 'Online'
     },
     {
@@ -69,6 +73,8 @@
       role: 'Subsystem Lead (AI & Vision)',
       roleType: 'club_lead',
       track: 'AI & Computer Vision',
+      github: 'ananya-sharma',
+      linkedin: 'https://linkedin.com/in/ananya-sharma',
       status: 'Online'
     },
     {
@@ -79,6 +85,8 @@
       role: 'Core R&D Engineer',
       roleType: 'regular_member',
       track: 'Mechanical CAD & Bionics',
+      github: 'kavya-patel',
+      linkedin: 'https://linkedin.com/in/kavya-patel',
       status: 'Online'
     },
     {
@@ -89,6 +97,8 @@
       role: 'Junior Researcher',
       roleType: 'regular_member',
       track: 'Autonomous Robotics & ROS2',
+      github: 'aryan-nair',
+      linkedin: 'https://linkedin.com/in/aryan-nair',
       status: 'Active'
     },
     {
@@ -99,6 +109,8 @@
       role: 'Core R&D Engineer (Embedded)',
       roleType: 'regular_member',
       track: 'Embedded Systems & Microcontrollers',
+      github: 'rohan-verma',
+      linkedin: 'https://linkedin.com/in/rohan-verma',
       status: 'Offline'
     }
   ];
@@ -108,11 +120,17 @@
     const saved = localStorage.getItem('ieee_ras_core_members');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Ensure all standard test accounts are always present
+      // Ensure all standard test accounts are always present and updated with socials
       const existingEmails = new Set(parsed.map(m => m.email.toLowerCase()));
       defaultMembers.forEach(defM => {
         if (!existingEmails.has(defM.email.toLowerCase())) {
           parsed.push(defM);
+        } else {
+          const found = parsed.find(m => m.email.toLowerCase() === defM.email.toLowerCase());
+          if (found) {
+            if (!found.github) found.github = defM.github;
+            if (!found.linkedin) found.linkedin = defM.linkedin;
+          }
         }
       });
       coreMembers = parsed;
@@ -129,6 +147,124 @@
     } catch (e) {}
   }
 
+  // Pre-seeded Recent GitHub Commits
+  const defaultCommits = [
+    {
+      id: 'c-1',
+      hash: '8f24a1b',
+      msg: 'User updated autonomous-rover-v2',
+      author: 'Satyajit R',
+      github: 'satyajit-r',
+      time: '2m ago',
+      timestamp: Date.now() - 2 * 60 * 1000
+    },
+    {
+      id: 'c-2',
+      hash: '7c31d04',
+      msg: 'Merged PR #42: SLAM LiDAR mapping filter',
+      author: 'Ananya Sharma',
+      github: 'ananya-sharma',
+      time: '14m ago',
+      timestamp: Date.now() - 14 * 60 * 1000
+    },
+    {
+      id: 'c-3',
+      hash: '3e99b7a',
+      msg: 'Fix PID controller jitter on CAN-FD bus',
+      author: 'Rohan Verma',
+      github: 'rohan-verma',
+      time: '1h ago',
+      timestamp: Date.now() - 60 * 60 * 1000
+    }
+  ];
+
+  let recentCommits = [];
+  try {
+    const savedCommits = localStorage.getItem('ieee_ras_recent_commits');
+    if (savedCommits) {
+      recentCommits = JSON.parse(savedCommits);
+    } else {
+      recentCommits = defaultCommits;
+    }
+  } catch (e) {
+    recentCommits = defaultCommits;
+  }
+
+  function saveRecentCommits() {
+    try {
+      localStorage.setItem('ieee_ras_recent_commits', JSON.stringify(recentCommits));
+    } catch (e) {}
+  }
+
+  function renderRecentCommits() {
+    const feedList = document.getElementById('github-commits-feed-list') || document.querySelector('.github-feed-list');
+    if (!feedList) return;
+
+    feedList.innerHTML = recentCommits.map(c => {
+      const authorGithub = c.github || (c.author || 'member').toLowerCase().replace(/\s+/g, '-');
+      const timeStr = c.time || 'Just now';
+      return `
+        <li class="github-commit-item" data-commit-id="${c.id}" data-commit-hash="${c.hash}" title="Click to inspect commit #${c.hash} and diff telemetry" style="cursor: pointer;">
+          <div class="commit-icon">●</div>
+          <div class="commit-body">
+            <div class="commit-msg">${escapeHtml(c.msg)}</div>
+            <div class="commit-meta">
+              <span>${escapeHtml(timeStr)}</span> • 
+              <span class="font-mono">commit ${escapeHtml(c.hash)}</span> • 
+              <span style="color: var(--accent-primary);">by @${escapeHtml(authorGithub)}</span>
+            </div>
+          </div>
+        </li>
+      `;
+    }).join('');
+
+    feedList.querySelectorAll('.github-commit-item').forEach(commitItem => {
+      commitItem.addEventListener('click', () => {
+        const hash = commitItem.dataset.commitHash || '8f24a1b';
+        showGlobalToast(`Inspecting commit #${hash}: telemetry verified.`, '🔍');
+        if (window.openProjectTelemetryModal) {
+          window.openProjectTelemetryModal('auv-firmware');
+        }
+      });
+    });
+  }
+
+  function pushCodeCommit(customMsg) {
+    if (!state.currentUser) return;
+    const authorName = state.currentUser.name || 'Core Member';
+    const cleanGithub = (state.currentUser.github || authorName.toLowerCase().replace(/\s+/g, '-')).replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '');
+    
+    const commitMessagesPool = [
+      'feat(rover): update autonomous LiDAR SLAM mapping filter',
+      'fix(embedded): optimize CAN-FD bus baud rate and error frames',
+      'feat(vision): push trained YOLOv10 obstacle weights to internal NAS',
+      'refactor(kinematics): damping factor tuning for 4-DOF manipulator',
+      'docs(ros2): update multi-agent DDS cyclone discovery configuration',
+      'feat(telemetry): publish battery BMS cell temperature telemetry'
+    ];
+    
+    const randomDefault = commitMessagesPool[Math.floor(Math.random() * commitMessagesPool.length)];
+    const msg = (customMsg || '').trim() || randomDefault;
+    const randomHash = Math.random().toString(16).substring(2, 9);
+
+    const newCommit = {
+      id: 'c-' + Date.now(),
+      hash: randomHash,
+      msg: msg,
+      author: authorName,
+      github: cleanGithub,
+      time: 'Just now',
+      timestamp: Date.now()
+    };
+
+    recentCommits.unshift(newCommit);
+    if (recentCommits.length > 15) recentCommits = recentCommits.slice(0, 15);
+    saveRecentCommits();
+    renderRecentCommits();
+
+    showGlobalToast(`Pushed commit #${randomHash} by @${cleanGithub}! Visible in Recent Commits.`, '🚀');
+  }
+
   // Sync initial state.currentUser with persistent member record if present
   if (state.currentUser && state.currentUser.email) {
     const matchedInitial = coreMembers.find(m => m.email.toLowerCase() === state.currentUser.email.toLowerCase());
@@ -137,6 +273,8 @@
       if (matchedInitial.track) state.currentUser.track = matchedInitial.track;
       if (matchedInitial.role) state.currentUser.roleTitle = matchedInitial.role;
       if (matchedInitial.avatarUrl) state.currentUser.avatarUrl = matchedInitial.avatarUrl;
+      if (matchedInitial.github) state.currentUser.github = matchedInitial.github;
+      if (matchedInitial.linkedin) state.currentUser.linkedin = matchedInitial.linkedin;
     }
   }
 
@@ -482,6 +620,8 @@
           role: isLead ? 'club_lead' : 'regular_member',
           roleTitle: foundMember.role,
           track: foundMember.track || 'Robotics',
+          github: foundMember.github || foundMember.name.toLowerCase().replace(/\s+/g, '-'),
+          linkedin: foundMember.linkedin || '',
           avatarUrl: foundMember.avatarUrl || null
         };
 
@@ -1342,15 +1482,23 @@
     });
 
     /* ------------------------------------------------------------------------
-       RECENT COMMITS TRIGGER FIRMWARE INSPECTION
+       RECENT COMMITS TRIGGER FIRMWARE INSPECTION & GITHUB SYNC
        ------------------------------------------------------------------------ */
-    document.querySelectorAll('.github-commit-item').forEach(commitItem => {
-      commitItem.style.cursor = 'pointer';
-      commitItem.title = 'Click to inspect commit details and firmware diff';
-      commitItem.addEventListener('click', () => {
-        openProjectTelemetryModal('auv-firmware');
+    const btnQuickPushCommit = document.getElementById('btn-quick-push-commit');
+    if (btnQuickPushCommit) {
+      btnQuickPushCommit.addEventListener('click', () => {
+        const defaultSuggestions = [
+          'feat(nav): integrate depth camera pointcloud to costmap',
+          'fix(firmware): resolve motor encoder drift on differential drive',
+          'perf(slam): accelerate GICP scan matching loop closure',
+          'feat(telemetry): publish battery BMS health metrics via ROS2 topic'
+        ];
+        const randomMsg = defaultSuggestions[Math.floor(Math.random() * defaultSuggestions.length)];
+        pushCodeCommit(randomMsg);
       });
-    });
+    }
+
+    renderRecentCommits();
 
     /* ------------------------------------------------------------------------
        INTERACTIVE PROJECT TELEMETRY & ENGINEERING HUB MODAL
@@ -2093,6 +2241,10 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
                 <div class="roster-info">
                   <div class="roster-name">${escapeHtml(m.name)} ${isSelfOrLead ? '<span class="badge-pill badge-purple" style="font-size: 0.62rem; padding: 0.1rem 0.35rem; margin-left: 4px;">YOU / LEAD</span>' : ''}</div>
                   <div class="roster-email font-mono">${escapeHtml(m.email)} • ID: ${m.id}</div>
+                  <div class="roster-socials-row" style="display: flex; gap: 0.35rem; margin-top: 0.25rem; flex-wrap: wrap;">
+                    ${m.github ? `<a href="https://github.com/${escapeHtml(m.github.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, ''))}" target="_blank" class="badge-pill font-mono" style="font-size: 0.62rem; color: #00B4D8; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>@${escapeHtml(m.github.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, ''))}</a>` : ''}
+                    ${m.linkedin ? `<a href="${escapeHtml(m.linkedin.startsWith('http') ? m.linkedin : 'https://linkedin.com/in/' + m.linkedin.replace(/^@/, ''))}" target="_blank" class="badge-pill font-mono" style="font-size: 0.62rem; color: #0077B5; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>LinkedIn</a>` : ''}
+                  </div>
                 </div>
               </div>
             </td>
@@ -2203,6 +2355,8 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
           role,
           roleType,
           track,
+          github: name.toLowerCase().replace(/\s+/g, '-'),
+          linkedin: 'https://linkedin.com/in/' + name.toLowerCase().replace(/\s+/g, '-'),
           status: 'Active'
         };
 
@@ -3651,10 +3805,43 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       const inputRole = document.getElementById('profile-role-display');
       const inputTrack = document.getElementById('profile-track-input');
       const badgeRole = document.getElementById('profile-role-badge');
+      const inputGithub = document.getElementById('profile-github-input');
+      const inputLinkedin = document.getElementById('profile-linkedin-input');
+      const statusGithub = document.getElementById('profile-github-status');
+      const statusLinkedin = document.getElementById('profile-linkedin-status');
+      const pushCard = document.getElementById('profile-github-push-card');
+      const profileCommitMsgInput = document.getElementById('profile-commit-msg-input');
 
       if (inputName) inputName.value = u.name || '';
       if (inputEmail) inputEmail.value = u.email || '';
       if (inputTrack) inputTrack.value = u.track || '';
+      if (inputGithub) inputGithub.value = u.github || '';
+      if (inputLinkedin) inputLinkedin.value = u.linkedin || '';
+      if (profileCommitMsgInput) profileCommitMsgInput.value = '';
+
+      if (statusGithub) {
+        if (u.github) {
+          statusGithub.textContent = 'CONNECTED';
+          statusGithub.className = 'badge-pill badge-green font-mono';
+        } else {
+          statusGithub.textContent = 'NOT CONNECTED';
+          statusGithub.className = 'badge-pill font-mono';
+        }
+      }
+
+      if (statusLinkedin) {
+        if (u.linkedin) {
+          statusLinkedin.textContent = 'CONNECTED';
+          statusLinkedin.className = 'badge-pill badge-blue font-mono';
+        } else {
+          statusLinkedin.textContent = 'NOT CONNECTED';
+          statusLinkedin.className = 'badge-pill font-mono';
+        }
+      }
+
+      if (pushCard) {
+        pushCard.style.display = isMember ? 'block' : 'none';
+      }
 
       if (inputRole) {
         if (isMember) {
@@ -3799,10 +3986,12 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       });
     }
 
-    // Form: Save Profile Details (Name, Track) - Roles are NOT altered
+    // Form: Save Profile Details (Name, Track, GitHub, LinkedIn) - Roles are NOT altered
     const formSaveDetails = document.getElementById('form-save-profile-details');
     const inputName = document.getElementById('profile-fullname-input');
     const inputTrack = document.getElementById('profile-track-input');
+    const inputGithub = document.getElementById('profile-github-input');
+    const inputLinkedin = document.getElementById('profile-linkedin-input');
     const detailsAlert = document.getElementById('profile-details-alert');
 
     if (formSaveDetails) {
@@ -3810,6 +3999,8 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         e.preventDefault();
         const newName = (inputName ? inputName.value : '').trim();
         const newTrack = (inputTrack ? inputTrack.value : '').trim();
+        const newGithub = (inputGithub ? inputGithub.value : '').trim();
+        const newLinkedin = (inputLinkedin ? inputLinkedin.value : '').trim();
 
         if (!newName) {
           if (detailsAlert) {
@@ -3823,6 +4014,8 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         if (!state.currentUser) return;
         state.currentUser.name = newName;
         state.currentUser.track = newTrack;
+        state.currentUser.github = newGithub;
+        state.currentUser.linkedin = newLinkedin;
 
         if (state.currentUser.role === 'participant') {
           const part = participantAccounts.find(p => 
@@ -3832,6 +4025,8 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
           if (part) {
             part.name = newName;
             part.track = newTrack;
+            part.github = newGithub;
+            part.linkedin = newLinkedin;
           }
           saveParticipantAccounts();
         } else {
@@ -3839,9 +4034,33 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
           if (mem) {
             mem.name = newName;
             mem.track = newTrack;
+            mem.github = newGithub;
+            mem.linkedin = newLinkedin;
           }
           saveCoreMembers();
           if (window.renderMembersTable) window.renderMembersTable();
+        }
+
+        // Update status badges immediately
+        const statusGithub = document.getElementById('profile-github-status');
+        const statusLinkedin = document.getElementById('profile-linkedin-status');
+        if (statusGithub) {
+          if (newGithub) {
+            statusGithub.textContent = 'CONNECTED';
+            statusGithub.className = 'badge-pill badge-green font-mono';
+          } else {
+            statusGithub.textContent = 'NOT CONNECTED';
+            statusGithub.className = 'badge-pill font-mono';
+          }
+        }
+        if (statusLinkedin) {
+          if (newLinkedin) {
+            statusLinkedin.textContent = 'CONNECTED';
+            statusLinkedin.className = 'badge-pill badge-blue font-mono';
+          } else {
+            statusLinkedin.textContent = 'NOT CONNECTED';
+            statusLinkedin.className = 'badge-pill font-mono';
+          }
         }
 
         syncUserVisuals();
@@ -3852,6 +4071,17 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
           detailsAlert.innerHTML = '✓ Profile details saved successfully!';
         }
         showGlobalToast('Profile details updated!', '💾');
+      });
+    }
+
+    // Wire Profile Modal Code Commit Push Button
+    const btnProfilePushCommit = document.getElementById('btn-profile-push-commit');
+    const profileCommitMsgInput = document.getElementById('profile-commit-msg-input');
+    if (btnProfilePushCommit) {
+      btnProfilePushCommit.addEventListener('click', () => {
+        const msg = profileCommitMsgInput ? profileCommitMsgInput.value.trim() : '';
+        pushCodeCommit(msg);
+        if (profileCommitMsgInput) profileCommitMsgInput.value = '';
       });
     }
 
@@ -4078,6 +4308,9 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       window.ieeeRas.openProfileSettings = openProfileSettings;
       window.ieeeRas.closeProfileSettings = closeProfileSettings;
       window.ieeeRas.openSensitiveActionWarning = openSensitiveActionWarning;
+      window.ieeeRas.pushCodeCommit = pushCodeCommit;
+      window.ieeeRas.renderRecentCommits = renderRecentCommits;
+      window.ieeeRas.getRecentCommits = () => recentCommits;
     }
   }
 
@@ -4120,7 +4353,10 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     getCoreMembers: () => coreMembers,
     getParticipants: () => participantAccounts,
     saveCoreMembers,
-    saveParticipantAccounts
+    saveParticipantAccounts,
+    pushCodeCommit,
+    renderRecentCommits,
+    getRecentCommits: () => recentCommits
   };
 
 })();
