@@ -555,14 +555,42 @@
                   <button type="submit" class="btn btn-primary chamfer-btn auth-btn-full" id="btn-submit-member-login">
                     Access Member Workspace →
                   </button>
-                  <button type="button" class="btn-demo-quick-login font-mono" id="btn-quick-lead-creds" title="Auto-fill default Lead credentials for testing">
-                    ⚡ Use Lead Demo Credentials
-                  </button>
+                  
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem;">
+                    <button type="button" class="btn-demo-quick-login font-mono" id="btn-quick-lead-creds" title="Auto-fill Club Lead credentials (Satyajit R)">
+                      ⚡ Test as Lead
+                    </button>
+                    <button type="button" class="btn-demo-quick-login font-mono" id="btn-quick-member-creds" title="Auto-fill Regular Member credentials (Kavya Patel)">
+                      👤 Test as Member
+                    </button>
+                  </div>
                 </div>
               </form>
 
+              <!-- Pre-Configured Test Credentials Cheat Sheet -->
+              <div class="test-creds-drawer font-mono">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; color: var(--accent-primary); font-weight: 700; font-size: 0.72rem;">
+                  <span>📋 PRE-CONFIGURED TEST CREDENTIALS</span>
+                  <span style="color: var(--text-muted); font-size: 0.65rem;">ONE-CLICK READY</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; line-height: 1.45;">
+                  <div style="background: rgba(0,255,102,0.06); padding: 0.35rem 0.5rem; border-radius: 4px; border-left: 2px solid var(--accent-primary);">
+                    <span style="color: var(--accent-primary); font-weight: 700;">Club Lead (Satyajit R)</span><br>
+                    <span style="color: var(--text-secondary);">Email:</span> <code style="color: var(--text-primary);">satyajit.r2024@vitstudent.ac.in</code><br>
+                    <span style="color: var(--text-secondary);">Key:</span> <code style="color: var(--accent-primary);">lead123</code> (or <code style="color: var(--accent-primary);">lead</code>)<br>
+                    <span style="font-size: 0.66rem; color: var(--text-muted);">Lead privileges (provisioning &amp; channels)</span>
+                  </div>
+                  <div style="background: rgba(0,180,216,0.06); padding: 0.35rem 0.5rem; border-radius: 4px; border-left: 2px solid var(--accent-blue);">
+                    <span style="color: var(--accent-blue); font-weight: 700;">Regular Member (Kavya P)</span><br>
+                    <span style="color: var(--text-secondary);">Email:</span> <code style="color: var(--text-primary);">kavya.p2024@vitstudent.ac.in</code><br>
+                    <span style="color: var(--text-secondary);">Key:</span> <code style="color: var(--accent-blue);">member123</code> (or <code style="color: var(--accent-blue);">member</code>)<br>
+                    <span style="font-size: 0.66rem; color: var(--text-muted);">Workspace &amp; chat; provisioning restricted</span>
+                  </div>
+                </div>
+              </div>
+
               <div class="member-provisioning-notice font-mono">
-                🔒 PROVISIONED ACCESS ONLY: Core member accounts are provisioned exclusively by the IEEE RAS Club Lead. Public registration is restricted.
+                🔒 PROVISIONED ACCESS: Club Leads can add new members and assign roles under Workspaces → Member Directory. Public member sign-up is restricted.
               </div>
             </div>
 
@@ -849,6 +877,11 @@
               <button class="btn btn-primary chamfer-btn" id="btn-start-video" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
                 Start Video Meeting
+              </button>
+
+              <button class="btn btn-secondary chamfer-btn" id="btn-quick-manage-members" style="padding: 0.45rem 0.85rem; font-size: 0.82rem;" title="Optional: Open Member Directory & Role Provisioning">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Manage Members
               </button>
             </div>
           </div>

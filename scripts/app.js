@@ -31,7 +31,7 @@
       id: 'mem-1',
       name: 'Satyajit R',
       email: 'satyajit.r2024@vitstudent.ac.in',
-      password: 'lead',
+      password: 'lead123',
       role: 'Lead Architect',
       roleType: 'club_lead',
       track: 'Autonomous Robotics & ROS2',
@@ -41,19 +41,39 @@
       id: 'mem-2',
       name: 'Ananya Sharma',
       email: 'ananya.s2024@vitstudent.ac.in',
-      password: 'lead',
+      password: 'lead123',
       role: 'Subsystem Lead (AI & Vision)',
-      roleType: 'subsystem_lead',
+      roleType: 'club_lead',
       track: 'AI & Computer Vision',
       status: 'Online'
     },
     {
       id: 'mem-3',
+      name: 'Kavya Patel',
+      email: 'kavya.p2024@vitstudent.ac.in',
+      password: 'member123',
+      role: 'Core R&D Engineer',
+      roleType: 'regular_member',
+      track: 'Mechanical CAD & Bionics',
+      status: 'Online'
+    },
+    {
+      id: 'mem-4',
+      name: 'Aryan Nair',
+      email: 'aryan.n2024@vitstudent.ac.in',
+      password: 'member123',
+      role: 'Junior Researcher',
+      roleType: 'regular_member',
+      track: 'Autonomous Robotics & ROS2',
+      status: 'Active'
+    },
+    {
+      id: 'mem-5',
       name: 'Rohan Verma',
       email: 'rohan.v2024@vitstudent.ac.in',
-      password: 'lead',
-      role: 'Subsystem Lead (Embedded & IoT)',
-      roleType: 'subsystem_lead',
+      password: 'member123',
+      role: 'Core R&D Engineer (Embedded)',
+      roleType: 'regular_member',
       track: 'Embedded Systems & Microcontrollers',
       status: 'Offline'
     }
@@ -62,7 +82,19 @@
   let coreMembers = [];
   try {
     const saved = localStorage.getItem('ieee_ras_core_members');
-    coreMembers = saved ? JSON.parse(saved) : defaultMembers;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Ensure all standard test accounts are always present
+      const existingEmails = new Set(parsed.map(m => m.email.toLowerCase()));
+      defaultMembers.forEach(defM => {
+        if (!existingEmails.has(defM.email.toLowerCase())) {
+          parsed.push(defM);
+        }
+      });
+      coreMembers = parsed;
+    } else {
+      coreMembers = defaultMembers;
+    }
   } catch (e) {
     coreMembers = defaultMembers;
   }
@@ -71,6 +103,43 @@
     try {
       localStorage.setItem('ieee_ras_core_members', JSON.stringify(coreMembers));
     } catch (e) {}
+  }
+
+  // Unified Role UI Synchronizer (Active for both Lead and Member accounts)
+  function updateRoleUI() {
+    const isLead = state.currentUser.role === 'club_lead';
+    const roleToggleText = document.getElementById('member-role-toggle-text');
+    const sidebarRoleLabel = document.getElementById('member-sidebar-role-label');
+    const memberSidebarName = document.getElementById('member-sidebar-name');
+    const memberSidebarAvatar = document.getElementById('member-sidebar-avatar');
+    const btnToggleRole = document.getElementById('btn-toggle-member-role');
+
+    if (roleToggleText) {
+      roleToggleText.textContent = isLead ? 'Lead' : 'Member';
+    }
+    if (sidebarRoleLabel) {
+      sidebarRoleLabel.textContent = state.currentUser.roleTitle || (isLead ? 'Lead Architect' : 'Core R&D Engineer');
+    }
+    if (memberSidebarName && state.currentUser.name) {
+      memberSidebarName.textContent = state.currentUser.name;
+    }
+    if (memberSidebarAvatar && state.currentUser.name) {
+      const initials = state.currentUser.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'SR';
+      memberSidebarAvatar.textContent = initials;
+    }
+    if (btnToggleRole) {
+      if (isLead) {
+        btnToggleRole.classList.remove('role-regular-member');
+        const icon = btnToggleRole.querySelector('.role-badge-icon');
+        if (icon) icon.textContent = '⚡';
+        btnToggleRole.title = 'Current Role: Club Lead (Click to switch to Regular Member for testing)';
+      } else {
+        btnToggleRole.classList.add('role-regular-member');
+        const icon = btnToggleRole.querySelector('.role-badge-icon');
+        if (icon) icon.textContent = '👤';
+        btnToggleRole.title = 'Current Role: Regular Member (Click to switch to Club Lead for testing)';
+      }
+    }
   }
 
   // DOM Cache
@@ -200,7 +269,21 @@
         const emailInput = document.getElementById('member-login-email');
         const passInput = document.getElementById('member-login-password');
         if (emailInput) emailInput.value = 'satyajit.r2024@vitstudent.ac.in';
-        if (passInput) passInput.value = 'lead';
+        if (passInput) passInput.value = 'lead123';
+        const alertBox = document.getElementById('member-login-alert');
+        if (alertBox) alertBox.style.display = 'none';
+      });
+    }
+
+    // Core Member: Auto-Fill Regular Member Demo Credentials Button
+    const btnQuickMemberCreds = document.getElementById('btn-quick-member-creds');
+    if (btnQuickMemberCreds) {
+      btnQuickMemberCreds.addEventListener('click', (e) => {
+        e.preventDefault();
+        const emailInput = document.getElementById('member-login-email');
+        const passInput = document.getElementById('member-login-password');
+        if (emailInput) emailInput.value = 'kavya.p2024@vitstudent.ac.in';
+        if (passInput) passInput.value = 'member123';
         const alertBox = document.getElementById('member-login-alert');
         if (alertBox) alertBox.style.display = 'none';
       });
@@ -219,23 +302,31 @@
         const pass = (memberPassInput ? memberPassInput.value : '').trim();
 
         // Check against provisioned members store
-        const foundMember = coreMembers.find(m => 
-          (m.email.toLowerCase() === emailOrId || m.id.toLowerCase() === emailOrId) &&
-          (m.password === pass || pass === 'lead' || pass === 'admin')
-        );
+        const foundMember = coreMembers.find(m => {
+          const emailMatch = m.email.toLowerCase() === emailOrId || m.id.toLowerCase() === emailOrId;
+          const shortcutMatch = (m.roleType === 'club_lead' && (emailOrId === 'lead' || emailOrId === 'admin')) ||
+                                (m.roleType === 'regular_member' && (emailOrId === 'member' || emailOrId === 'kavya'));
+          if (!emailMatch && !shortcutMatch) return false;
+
+          // Password validation
+          if (m.password === pass) return true;
+          if (m.roleType === 'club_lead' && (pass === 'lead' || pass === 'lead123' || pass === 'admin')) return true;
+          if (m.roleType === 'regular_member' && (pass === 'member' || pass === 'member123' || pass === 'pass123')) return true;
+          return false;
+        });
 
         if (!foundMember) {
           if (memberLoginAlert) {
             memberLoginAlert.style.display = 'flex';
             memberLoginAlert.className = 'register-alert-box error';
-            memberLoginAlert.innerHTML = `⚠️ Access Denied: Invalid member credentials. Accounts are provisioned exclusively by the IEEE RAS Club Lead.`;
+            memberLoginAlert.innerHTML = `⚠️ Access Denied: Invalid member credentials. Please enter a provisioned VIT student email and passcode.`;
           }
           return;
         }
 
         if (memberLoginAlert) memberLoginAlert.style.display = 'none';
 
-        const isLead = foundMember.role.toLowerCase().includes('lead') || foundMember.roleType === 'club_lead';
+        const isLead = foundMember.roleType === 'club_lead' || foundMember.role.toLowerCase().includes('lead');
         state.currentUser = {
           name: foundMember.name,
           email: foundMember.email,
@@ -244,17 +335,14 @@
           track: foundMember.track || 'Robotics'
         };
 
-        // Sync with Member Portal Profile
-        const initials = foundMember.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'SR';
-        const memberSidebarAvatar = document.getElementById('member-sidebar-avatar');
-        const memberSidebarName = document.getElementById('member-sidebar-name');
-        const memberSidebarRole = document.getElementById('member-sidebar-role-label');
-        if (memberSidebarAvatar) memberSidebarAvatar.textContent = initials;
-        if (memberSidebarName) memberSidebarName.textContent = foundMember.name;
-        if (memberSidebarRole) memberSidebarRole.textContent = foundMember.role;
-
+        updateRoleUI();
         closeAuthModal();
         switchScreen('member');
+
+        // Ensure user always starts in communication hub with channels
+        if (window.switchWorkspaceView) {
+          window.switchWorkspaceView('chat');
+        }
       });
     }
 
@@ -552,6 +640,9 @@
       }
     }
 
+    // Expose workspace switcher globally
+    window.switchWorkspaceView = switchWorkspaceView;
+
     // Workspace Item Switching (Project Showcase, Resource Hub, Member Directory & Roles)
     workspaceItems.forEach(item => {
       item.addEventListener('click', (e) => {
@@ -586,6 +677,23 @@
       });
     });
 
+    // Optional Quick Action Button in Chat Header to manage members
+    const btnQuickManageMembers = document.getElementById('btn-quick-manage-members');
+    if (btnQuickManageMembers) {
+      btnQuickManageMembers.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (state.currentUser.role !== 'club_lead') {
+          openRbacWarning('members');
+        } else {
+          channelItems.forEach(ch => ch.classList.remove('active'));
+          workspaceItems.forEach(wi => wi.classList.remove('active'));
+          const membersNav = document.getElementById('nav-workspace-members');
+          if (membersNav) membersNav.classList.add('active');
+          switchWorkspaceView('members');
+        }
+      });
+    }
+
     // Channel Selection & Switching
     const channelListContainer = document.getElementById('member-channel-list');
 
@@ -616,39 +724,16 @@
        ROLE-BASED ACCESS CONTROL (RBAC) & TESTING ROLE SWITCHER
        ------------------------------------------------------------------------ */
     const btnToggleRole = document.getElementById('btn-toggle-member-role');
-    const roleToggleText = document.getElementById('member-role-toggle-text');
-    const sidebarRoleLabel = document.getElementById('member-sidebar-role-label');
-
-    function updateRoleUI() {
-      const isLead = state.currentUser.role === 'club_lead';
-      if (roleToggleText) {
-        roleToggleText.textContent = isLead ? 'Lead' : 'Member';
-      }
-      if (sidebarRoleLabel) {
-        sidebarRoleLabel.textContent = isLead ? 'Lead Architect' : 'Junior Researcher';
-      }
-      if (btnToggleRole) {
-        if (isLead) {
-          btnToggleRole.classList.remove('role-regular-member');
-          const icon = btnToggleRole.querySelector('.role-badge-icon');
-          if (icon) icon.textContent = '⚡';
-          btnToggleRole.title = 'Current Role: Club Lead (Click to switch to Regular Member for testing)';
-        } else {
-          btnToggleRole.classList.add('role-regular-member');
-          const icon = btnToggleRole.querySelector('.role-badge-icon');
-          if (icon) icon.textContent = '👤';
-          btnToggleRole.title = 'Current Role: Regular Member (Click to switch to Club Lead for testing)';
-        }
-      }
-    }
 
     if (btnToggleRole) {
       btnToggleRole.addEventListener('click', () => {
         state.currentUser.role = state.currentUser.role === 'club_lead' ? 'regular_member' : 'club_lead';
-        state.currentUser.roleTitle = state.currentUser.role === 'club_lead' ? 'Lead Architect' : 'Junior Researcher';
+        state.currentUser.roleTitle = state.currentUser.role === 'club_lead' ? 'Lead Architect' : 'Core R&D Engineer';
         updateRoleUI();
       });
     }
+
+    updateRoleUI();
 
     /* ------------------------------------------------------------------------
        CHANNEL CREATION MODAL & LEAD RBAC RESTRICTION
