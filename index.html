@@ -551,43 +551,12 @@
 
                 <div id="member-login-alert" class="register-alert-box error" style="display: none; font-size: 0.78rem; padding: 0.5rem 0.8rem;"></div>
 
-                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.4rem;">
+                <div style="margin-top: 0.6rem;">
                   <button type="submit" class="btn btn-primary chamfer-btn auth-btn-full" id="btn-submit-member-login">
                     Access Member Workspace →
                   </button>
-                  
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem;">
-                    <button type="button" class="btn-demo-quick-login font-mono" id="btn-quick-lead-creds" title="Auto-fill Club Lead credentials (Satyajit R)">
-                      ⚡ Test as Lead
-                    </button>
-                    <button type="button" class="btn-demo-quick-login font-mono" id="btn-quick-member-creds" title="Auto-fill Regular Member credentials (Kavya Patel)">
-                      👤 Test as Member
-                    </button>
-                  </div>
                 </div>
               </form>
-
-              <!-- Pre-Configured Test Credentials Cheat Sheet -->
-              <div class="test-creds-drawer font-mono">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; color: var(--accent-primary); font-weight: 700; font-size: 0.72rem;">
-                  <span>📋 PRE-CONFIGURED TEST CREDENTIALS</span>
-                  <span style="color: var(--text-muted); font-size: 0.65rem;">ONE-CLICK READY</span>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; line-height: 1.45;">
-                  <div style="background: rgba(0,255,102,0.06); padding: 0.35rem 0.5rem; border-radius: 4px; border-left: 2px solid var(--accent-primary);">
-                    <span style="color: var(--accent-primary); font-weight: 700;">Club Lead (Satyajit R)</span><br>
-                    <span style="color: var(--text-secondary);">Email:</span> <code style="color: var(--text-primary);">satyajit.r2024@vitstudent.ac.in</code><br>
-                    <span style="color: var(--text-secondary);">Key:</span> <code style="color: var(--accent-primary);">lead123</code> (or <code style="color: var(--accent-primary);">lead</code>)<br>
-                    <span style="font-size: 0.66rem; color: var(--text-muted);">Lead privileges (provisioning &amp; channels)</span>
-                  </div>
-                  <div style="background: rgba(0,180,216,0.06); padding: 0.35rem 0.5rem; border-radius: 4px; border-left: 2px solid var(--accent-blue);">
-                    <span style="color: var(--accent-blue); font-weight: 700;">Regular Member (Kavya P)</span><br>
-                    <span style="color: var(--text-secondary);">Email:</span> <code style="color: var(--text-primary);">kavya.p2024@vitstudent.ac.in</code><br>
-                    <span style="color: var(--text-secondary);">Key:</span> <code style="color: var(--accent-blue);">member123</code> (or <code style="color: var(--accent-blue);">member</code>)<br>
-                    <span style="font-size: 0.66rem; color: var(--text-muted);">Workspace &amp; chat; provisioning restricted</span>
-                  </div>
-                </div>
-              </div>
 
               <div class="member-provisioning-notice font-mono">
                 🔒 PROVISIONED ACCESS: Club Leads can add new members and assign roles under Workspaces → Member Directory. Public member sign-up is restricted.
@@ -951,7 +920,7 @@
                     <span class="attachment-name">IEEE_RAS_Autonomous_Navigation_Whitepaper.pdf</span>
                     <span class="attachment-size">4.8 MB • Verified Document</span>
                   </div>
-                  <button class="btn btn-secondary chamfer-btn" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+                  <button class="btn btn-secondary chamfer-btn btn-project-telemetry" data-project-action="whitepaper-pdf" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
                     View
                   </button>
                 </div>
@@ -966,13 +935,13 @@
               <textarea class="chat-input-field" id="chat-user-input" placeholder="Message #ai-ml-projects (Press Enter to send)..." rows="1"></textarea>
               <div class="chat-input-toolbar">
                 <div class="toolbar-icons">
-                  <button class="toolbar-btn" title="Attach File">
+                  <button class="toolbar-btn" id="btn-chat-attach" title="Attach File">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                   </button>
-                  <button class="toolbar-btn" title="Format Text">
+                  <button class="toolbar-btn" id="btn-chat-format" title="Format Text">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
                   </button>
-                  <button class="toolbar-btn" title="Mention @">
+                  <button class="toolbar-btn" id="btn-chat-mention" title="Mention @">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"></path></svg>
                   </button>
                 </div>
@@ -1073,10 +1042,10 @@
                     </div>
                   </div>
                   <div class="showcase-card-actions">
-                    <button class="btn btn-primary chamfer-btn" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Launching Rover Telemetry ROS2 visualizer...')">
+                    <button class="btn btn-primary chamfer-btn btn-project-telemetry" data-project-action="rover-ros" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;">
                       Launch ROS2 Node
                     </button>
-                    <button class="btn btn-secondary chamfer-btn" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Opening CAD 3D Model Explorer...')">
+                    <button class="btn btn-secondary chamfer-btn btn-project-telemetry" data-project-action="rover-cad" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;">
                       CAD Assembly
                     </button>
                   </div>
@@ -1125,10 +1094,10 @@
                     </div>
                   </div>
                   <div class="showcase-card-actions">
-                    <button class="btn btn-primary chamfer-btn" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Opening Jacobian Kinematics Matrix solver...')">
+                    <button class="btn btn-primary chamfer-btn btn-project-telemetry" data-project-action="quad-math" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;">
                       Kinematics Math
                     </button>
-                    <button class="btn btn-secondary chamfer-btn" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Opening Motor Driver Schematics...')">
+                    <button class="btn btn-secondary chamfer-btn btn-project-telemetry" data-project-action="quad-pcb" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;">
                       PCB Drivers
                     </button>
                   </div>
@@ -1174,10 +1143,10 @@
                     </div>
                   </div>
                   <div class="showcase-card-actions">
-                    <button class="btn btn-primary chamfer-btn" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Viewing Hydrodynamics simulation report...')">
+                    <button class="btn btn-primary chamfer-btn btn-project-telemetry" data-project-action="auv-hydro" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;">
                       Hydrodynamics
                     </button>
-                    <button class="btn btn-secondary chamfer-btn" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Opening Underwater Control Firmware...')">
+                    <button class="btn btn-secondary chamfer-btn btn-project-telemetry" data-project-action="auv-firmware" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;">
                       Firmware Repo
                     </button>
                   </div>
@@ -1226,10 +1195,10 @@
                     </div>
                   </div>
                   <div class="showcase-card-actions">
-                    <button class="btn btn-primary chamfer-btn" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Viewing Swarm Mesh Routing algorithm...')">
+                    <button class="btn btn-primary chamfer-btn btn-project-telemetry" data-project-action="swarm-code" style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.8rem;">
                       Swarm Mesh Code
                     </button>
-                    <button class="btn btn-secondary chamfer-btn" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;" onclick="alert('Opening UWB Rangefinder logs...')">
+                    <button class="btn btn-secondary chamfer-btn btn-project-telemetry" data-project-action="swarm-logs" style="padding: 0.45rem 0.8rem; font-size: 0.8rem;">
                       Flight Logs
                     </button>
                   </div>
@@ -1727,6 +1696,54 @@
           </button>
           <button class="btn btn-secondary chamfer-btn" id="btn-rbac-dismiss">
             Acknowledge &amp; Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: PROJECT TELEMETRY, SIMULATION & ENGINEERING HUB
+       ======================================================================== -->
+  <div class="auth-modal-overlay" id="project-telemetry-modal">
+    <div class="project-modal-window chamfer-card">
+      <!-- Modal Header -->
+      <div class="project-modal-header">
+        <div class="project-modal-header-left">
+          <div class="brand-logo-hex" style="width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-blue)); display: flex; align-items: center; justify-content: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline></svg>
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;">
+              <h3 id="project-modal-title" style="margin: 0; font-size: 1.18rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-display);">Rover Telemetry ROS2 Node</h3>
+              <span id="project-modal-badge" class="badge-pill badge-green font-mono" style="font-size: 0.68rem;">AUTONOMOUS SYSTEMS</span>
+              <span id="project-modal-status" class="badge-pill font-mono" style="font-size: 0.65rem; background: rgba(0, 255, 102, 0.1); color: var(--accent-primary); border: 1px solid var(--accent-primary);">LIVE TELEMETRY</span>
+            </div>
+            <span id="project-modal-subtitle" style="font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono);">SYSTEM RUNTIME: JETSON ORIN NANO // 50 HZ LIFECYCLE NODE</span>
+          </div>
+        </div>
+        <button class="auth-modal-close-btn" id="btn-close-project-modal" title="Close Dialog" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Populated Dynamically) -->
+      <div class="project-modal-body" id="project-modal-body">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="project-modal-footer">
+        <div id="project-modal-meta-left" class="font-mono" style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
+          <span class="status-dot online" style="width: 7px; height: 7px;"></span>
+          <span>IEEE RAS VIT CHENNAI // VERIFIED REPOSITORY</span>
+        </div>
+        <div style="display: flex; gap: 0.6rem;">
+          <button class="btn btn-secondary chamfer-btn" id="btn-dismiss-project-modal" style="padding: 0.45rem 1rem; font-size: 0.82rem;">
+            Close Viewer
+          </button>
+          <button class="btn btn-primary chamfer-btn" id="btn-project-modal-primary" style="padding: 0.45rem 1rem; font-size: 0.82rem;">
+            Export Telemetry Log
           </button>
         </div>
       </div>
@@ -2249,11 +2266,11 @@
               <div class="glass-panel chamfer-card" style="padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem;">
                 <h4 style="font-size: 1.1rem; font-weight: 700;">Registration Assets</h4>
                 <div style="display: flex; flex-direction: column; gap: 0.6rem;">
-                  <button class="btn btn-secondary chamfer-btn" style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.9rem; font-size: 0.82rem;" onclick="alert('Downloading AeroSwarm Official Rulebook PDF (v1.2)...')">
+                  <button class="btn btn-secondary chamfer-btn btn-action-download" data-download-file="AeroSwarm_Official_Rulebook_v1.2.pdf" style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.9rem; font-size: 0.82rem;">
                     <span>📄 Download Rulebook PDF</span>
                     <span class="badge-pill badge-green font-mono" style="font-size: 0.65rem;">v1.2</span>
                   </button>
-                  <button class="btn btn-secondary chamfer-btn" style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.9rem; font-size: 0.82rem;" onclick="alert('Redirecting to Discord Swarm Discussion Room...')">
+                  <button class="btn btn-secondary chamfer-btn btn-action-toast" data-toast-msg="Redirecting to IEEE RAS Discord Swarm Channel (#aeroswarm-2026)..." style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.9rem; font-size: 0.82rem;">
                     <span>💬 Join Discord Swarm Track</span>
                     <span class="badge-pill badge-blue font-mono" style="font-size: 0.65rem;">420+ Online</span>
                   </button>
@@ -2363,7 +2380,7 @@
                   <div style="font-weight: 700; font-size: 0.92rem;">Official Pitch Deck Template</div>
                   <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">IEEE_RAS_Pitch_Template.pptx • 4.8 MB</div>
                 </div>
-                <button class="btn btn-secondary chamfer-btn" style="padding: 0.45rem 0.8rem; font-size: 0.78rem;" onclick="alert('Downloading IEEE RAS Official Pitch Deck Template (.pptx)...')">
+                <button class="btn btn-secondary chamfer-btn btn-action-download" data-download-file="IEEE_RAS_Pitch_Template.pptx" style="padding: 0.45rem 0.8rem; font-size: 0.78rem;">
                   Download
                 </button>
               </div>
@@ -2561,10 +2578,10 @@
                 <button class="btn btn-primary chamfer-btn btn-view-cert" data-cert-name="BattleBots Arena 2025 - 1st Runner Up" data-recipient="R Satyajit">
                   Download Certificate of Merit PDF
                 </button>
-                <button class="btn btn-secondary chamfer-btn" onclick="alert('Downloading Detailed Scorecard Breakdown (PDF)...')">
+                <button class="btn btn-secondary chamfer-btn btn-action-download" data-download-file="Scorecard_Breakdown_BattleBots_2025.pdf">
                   Download Detailed Scorecard
                 </button>
-                <button class="btn btn-secondary chamfer-btn" onclick="alert('Opening BattleBots Arena Final Match Video Highlights...')">
+                <button class="btn btn-secondary chamfer-btn btn-action-toast" data-toast-msg="Opening BattleBots Arena 2025 Match Video Stream (14m 22s)...">
                   View Match Video Highlights
                 </button>
               </div>
@@ -2652,7 +2669,7 @@
             <div>VALIDATED BY IEEE VIT CHENNAI</div>
           </div>
           <div>
-            <button class="btn btn-primary chamfer-btn" onclick="alert('Downloading high-resolution official IEEE Certificate PDF...')" style="padding: 0.5rem 1.2rem; font-size: 0.85rem;">
+            <button class="btn btn-primary chamfer-btn btn-download-cert-pdf" style="padding: 0.5rem 1.2rem; font-size: 0.85rem;">
               Download Signed PDF
             </button>
           </div>

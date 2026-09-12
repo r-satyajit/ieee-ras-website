@@ -4189,4 +4189,338 @@ h1, h2, h3, h4, .font-display {
   border-color: #ff3366;
 }
 
+/* ==========================================================================
+   PROJECT TELEMETRY & ENGINEERING HUB MODAL (#project-telemetry-modal)
+   ========================================================================== */
+.project-modal-window {
+  width: 100%;
+  max-width: 1060px;
+  height: 86vh;
+  max-height: 840px;
+  background: var(--surface-glass-heavy);
+  border: 1px solid var(--surface-card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 35px var(--accent-subtle);
+  animation: modalScaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+[data-theme="light"] .project-modal-window {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(0, 180, 216, 0.35);
+  box-shadow: 0 20px 60px rgba(0, 119, 182, 0.18), 0 0 25px rgba(0, 180, 216, 0.2);
+}
+
+.project-modal-header {
+  padding: 0.9rem 1.4rem;
+  background: var(--chat-header-bg);
+  backdrop-filter: var(--blur-glass);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.project-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.project-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  background: var(--surface-card);
+}
+
+[data-theme="light"] .project-modal-body {
+  background: #F8FBFD;
+}
+
+.project-modal-footer {
+  padding: 0.85rem 1.4rem;
+  background: var(--chat-header-bg);
+  backdrop-filter: var(--blur-glass);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+/* Metric Strip */
+.telemetry-metrics-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.8rem;
+}
+
+.telemetry-metric-tile {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+[data-theme="light"] .telemetry-metric-tile {
+  background: #FFFFFF;
+  border-color: rgba(0, 180, 216, 0.2);
+}
+
+.telemetry-metric-val {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.telemetry-metric-lbl {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+
+/* Terminal Viewer */
+.terminal-wrapper {
+  background: #090D13;
+  border: 1px solid rgba(0, 255, 102, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .terminal-wrapper {
+  background: #0D1624;
+  border-color: rgba(0, 180, 216, 0.4);
+}
+
+.terminal-header {
+  padding: 0.5rem 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.terminal-log-content {
+  padding: 1rem;
+  max-height: 320px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #DDE1E8;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.terminal-log-line {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.terminal-ts {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.terminal-node {
+  color: var(--accent-blue);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.terminal-msg {
+  color: #E2E8F0;
+  word-break: break-all;
+}
+
+.terminal-msg.highlight {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.terminal-msg.warn {
+  color: #FFB703;
+}
+
+/* Interactive CAD Viewer */
+.cad-interactive-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1.2rem;
+}
+
+@media (max-width: 840px) {
+  .cad-interactive-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cad-canvas-box {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  position: relative;
+}
+
+[data-theme="light"] .cad-canvas-box {
+  background: #FFFFFF;
+  border-color: rgba(0, 180, 216, 0.2);
+}
+
+.cad-controls-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+/* Kinematics Matrix Solver */
+.kinematics-solver-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+
+@media (max-width: 800px) {
+  .kinematics-solver-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+.slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.slider-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.slider-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+}
+
+.custom-range-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  outline: none;
+}
+
+[data-theme="light"] .custom-range-slider {
+  background: #DEE2E6;
+}
+
+.custom-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.kinematics-readout-panel {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+[data-theme="light"] .kinematics-readout-panel {
+  background: #FFFFFF;
+  border-color: rgba(0, 180, 216, 0.2);
+}
+
+/* Whitepaper PDF Reader */
+.whitepaper-reader-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+[data-theme="light"] .whitepaper-reader-card {
+  background: #FFFFFF;
+  border-color: rgba(0, 180, 216, 0.25);
+}
+
+/* Global Floating Action Toast */
+.global-action-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(18, 18, 18, 0.95);
+  border: 1px solid var(--accent-primary);
+  color: #FFFFFF;
+  padding: 0.8rem 1.3rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-subtle);
+  z-index: 10000;
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="light"] .global-action-toast {
+  background: #FFFFFF;
+  border-color: var(--accent-blue);
+  color: #03045E;
+  box-shadow: 0 10px 30px rgba(0, 180, 216, 0.25);
+}
+
+.global-action-toast.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+
 

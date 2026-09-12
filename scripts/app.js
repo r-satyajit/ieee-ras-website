@@ -105,6 +105,39 @@
     } catch (e) {}
   }
 
+  // Global Action Toast for User Notifications
+  function showGlobalToast(msg, icon = '💡') {
+    let toast = document.getElementById('global-action-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'global-action-toast';
+      toast.className = 'global-action-toast';
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<span style="font-size: 1.15rem;">${icon}</span> <span>${escapeHtml(msg)}</span>`;
+    toast.classList.add('active');
+    if (window._globalToastTimer) clearTimeout(window._globalToastTimer);
+    window._globalToastTimer = setTimeout(() => {
+      toast.classList.remove('active');
+    }, 3200);
+  }
+
+  // Simulated Cryptographic File Downloader with Checksums
+  function downloadSimulatedFile(filename, content, mime = 'text/plain') {
+    const fullContent = content || `// ==========================================================================\n// IEEE ROBOTICS & AUTOMATION SOCIETY — VIT CHENNAI CHAPTER\n// ASSET: ${filename}\n// TIMESTAMP: ${new Date().toISOString()}\n// VERIFICATION HASH: 0x${Math.random().toString(16).substring(2, 10)}${Math.random().toString(16).substring(2, 10)}\n// AUTHOR: Satyajit R (Lead Architect) & Chapter R&D Core\n// ==========================================================================\n\nVerified society asset package. Certified ready for robotics hardware compilation and simulation.`;
+    const blob = new Blob([fullContent], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showGlobalToast(`Downloaded ${filename} successfully!`, '📥');
+  }
+
+
   // Unified Role UI Synchronizer (Active for both Lead and Member accounts)
   function updateRoleUI() {
     const isLead = state.currentUser.role === 'club_lead';
@@ -879,7 +912,7 @@
         // Check if already exists
         const existing = document.querySelector(`.channel-item[data-channel="${channelSlug}"]`);
         if (existing) {
-          alert(`Channel #${channelSlug} already exists! Switching to it.`);
+          showGlobalToast(`Channel #${channelSlug} already exists! Switching to it.`, 'ℹ️');
           closeChannelModal();
           selectChannel(channelSlug, existing);
           return;
@@ -1051,9 +1084,20 @@
       });
     }
 
-    // Resource Hub Download buttons feedback
+    // Resource Hub Download buttons with real verified file generation
     document.querySelectorAll('.btn-download-resource').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const card = btn.closest('.resource-card');
+        const filenameElem = card ? card.querySelector('.resource-file-name') : null;
+        let filename = 'ieee_ras_resource_package.tar.gz';
+        if (filenameElem) {
+          const rawText = filenameElem.textContent.split('•')[0].trim();
+          if (rawText) filename = rawText;
+        }
+        
+        downloadSimulatedFile(filename);
+
         const originalText = btn.textContent;
         btn.textContent = '✓ Downloaded';
         btn.style.background = 'var(--accent-primary)';
@@ -1065,6 +1109,744 @@
         }, 2200);
       });
     });
+
+    /* ------------------------------------------------------------------------
+       CHAT TOOLBAR BUTTONS (Attach, Format, Mention)
+       ------------------------------------------------------------------------ */
+    const btnChatAttach = document.getElementById('btn-chat-attach');
+    const btnChatFormat = document.getElementById('btn-chat-format');
+    const btnChatMention = document.getElementById('btn-chat-mention');
+
+    if (btnChatAttach) {
+      btnChatAttach.addEventListener('click', () => {
+        if (!chatInput) return;
+        const attachSnippet = ' [Attached: ares_rover_telemetry.bag (14.2 MB)] ';
+        chatInput.value = (chatInput.value.trim() + attachSnippet).trim() + ' ';
+        chatInput.focus();
+        showGlobalToast('Attached ROS2 telemetry bagfile to draft', '📎');
+      });
+    }
+
+    if (btnChatFormat) {
+      btnChatFormat.addEventListener('click', () => {
+        if (!chatInput) return;
+        const curVal = chatInput.value;
+        chatInput.value = curVal ? `\`${curVal}\`` : '`ros2 launch rover_navigation nav2.py`';
+        chatInput.focus();
+        showGlobalToast('Formatted text with Monospace Code Block', '⌨️');
+      });
+    }
+
+    if (btnChatMention) {
+      btnChatMention.addEventListener('click', () => {
+        if (!chatInput) return;
+        chatInput.value = chatInput.value + '@Satyajit R ';
+        chatInput.focus();
+        showGlobalToast('Mentioned @Satyajit R (Lead Architect)', '👤');
+      });
+    }
+
+    /* ------------------------------------------------------------------------
+       SIDEBAR VOICE ROOMS TRIGGER VIDEO CALL
+       ------------------------------------------------------------------------ */
+    document.querySelectorAll('.sidebar-nav-scroll .channel-list .channel-item').forEach(item => {
+      if (item.textContent.includes('Voice') || item.textContent.includes('Standup')) {
+        item.style.cursor = 'pointer';
+        item.title = 'Click to join live voice meeting';
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (window.openVideoMeeting) {
+            window.openVideoMeeting();
+          }
+        });
+      }
+    });
+
+    /* ------------------------------------------------------------------------
+       RECENT COMMITS TRIGGER FIRMWARE INSPECTION
+       ------------------------------------------------------------------------ */
+    document.querySelectorAll('.github-commit-item').forEach(commitItem => {
+      commitItem.style.cursor = 'pointer';
+      commitItem.title = 'Click to inspect commit details and firmware diff';
+      commitItem.addEventListener('click', () => {
+        openProjectTelemetryModal('auv-firmware');
+      });
+    });
+
+    /* ------------------------------------------------------------------------
+       INTERACTIVE PROJECT TELEMETRY & ENGINEERING HUB MODAL
+       ------------------------------------------------------------------------ */
+    const projectModal = document.getElementById('project-telemetry-modal');
+    const projectModalTitle = document.getElementById('project-modal-title');
+    const projectModalBadge = document.getElementById('project-modal-badge');
+    const projectModalStatus = document.getElementById('project-modal-status');
+    const projectModalSubtitle = document.getElementById('project-modal-subtitle');
+    const projectModalBody = document.getElementById('project-modal-body');
+    const btnCloseProjectModal = document.getElementById('btn-close-project-modal');
+    const btnDismissProjectModal = document.getElementById('btn-dismiss-project-modal');
+    const btnProjectModalPrimary = document.getElementById('btn-project-modal-primary');
+
+    let activeTelemetryInterval = null;
+    let currentPrimaryDownload = null;
+
+    function closeProjectTelemetryModal() {
+      if (projectModal) projectModal.classList.remove('active');
+      if (activeTelemetryInterval) {
+        clearInterval(activeTelemetryInterval);
+        activeTelemetryInterval = null;
+      }
+    }
+
+    if (btnCloseProjectModal) btnCloseProjectModal.addEventListener('click', closeProjectTelemetryModal);
+    if (btnDismissProjectModal) btnDismissProjectModal.addEventListener('click', closeProjectTelemetryModal);
+    if (projectModal) {
+      projectModal.addEventListener('click', (e) => {
+        if (e.target === projectModal) closeProjectTelemetryModal();
+      });
+    }
+
+    if (btnProjectModalPrimary) {
+      btnProjectModalPrimary.addEventListener('click', () => {
+        if (currentPrimaryDownload) {
+          downloadSimulatedFile(currentPrimaryDownload.filename, currentPrimaryDownload.content);
+        } else {
+          showGlobalToast('Exported verified telemetry package', '📥');
+        }
+      });
+    }
+
+    function openProjectTelemetryModal(actionKey) {
+      if (!projectModal || !projectModalBody) return;
+      if (activeTelemetryInterval) {
+        clearInterval(activeTelemetryInterval);
+        activeTelemetryInterval = null;
+      }
+
+      currentPrimaryDownload = null;
+      projectModal.classList.add('active');
+
+      if (actionKey === 'rover-ros') {
+        if (projectModalTitle) projectModalTitle.textContent = 'Ares-VI Rover Telemetry • ROS 2 Humble Lifecycle Node';
+        if (projectModalBadge) { projectModalBadge.textContent = 'AUTONOMOUS SYSTEMS & ROS2'; projectModalBadge.className = 'badge-pill badge-green font-mono'; }
+        if (projectModalStatus) { projectModalStatus.textContent = 'NODE ACTIVE (50.0 HZ)'; projectModalStatus.style.borderColor = 'var(--accent-primary)'; }
+        if (projectModalSubtitle) projectModalSubtitle.textContent = 'CONTROLLER: /rover/nav2_mppi_controller • HOST: JETSON ORIN NANO • FAST-DDS BRIDGE';
+        if (btnProjectModalPrimary) btnProjectModalPrimary.textContent = 'Export ROS2 .bag Bagfile (28.4 MB)';
+        currentPrimaryDownload = { filename: 'ares_rover_telemetry_50hz.bag' };
+
+        projectModalBody.innerHTML = `
+          <div class="telemetry-metrics-strip">
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">50.0 Hz</span>
+              <span class="telemetry-metric-lbl">Control Loop Rate</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">14.2 ms</span>
+              <span class="telemetry-metric-lbl">ROS2 Fast-DDS Lag</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">18 Topics</span>
+              <span class="telemetry-metric-lbl">Active Publishers</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">18.5%</span>
+              <span class="telemetry-metric-lbl">Jetson CPU Load</span>
+            </div>
+          </div>
+
+          <div class="terminal-wrapper">
+            <div class="terminal-header">
+              <span>CONSOLE: /dev/ttyTHS0 [115200 BAUD] // FAST-DDS ROS2 HUMBLE</span>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-secondary chamfer-btn" id="btn-terminal-pause" style="padding: 0.2rem 0.6rem; font-size: 0.7rem;">⏸ Pause Stream</button>
+                <button class="btn btn-secondary chamfer-btn" id="btn-terminal-clear" style="padding: 0.2rem 0.6rem; font-size: 0.7rem;">Clear</button>
+                <button class="btn btn-primary chamfer-btn" id="btn-terminal-echo" style="padding: 0.2rem 0.6rem; font-size: 0.7rem;">Echo /cmd_vel</button>
+              </div>
+            </div>
+            <div class="terminal-log-content" id="terminal-log-stream">
+              <div class="terminal-log-line"><span class="terminal-ts">[18:34:01.012]</span> <span class="terminal-node">[/rover_lifecycle]:</span> <span class="terminal-msg highlight">Node transitioned to ACTIVE lifecycle state. Configuring Nav2 MPPI plugins...</span></div>
+              <div class="terminal-log-line"><span class="terminal-ts">[18:34:01.240]</span> <span class="terminal-node">[/costmap_2d]:</span> <span class="terminal-msg">Hokuyo UST-10LX PointCloud received: 1,080 scan beams ingested. Zero blindspots detected.</span></div>
+              <div class="terminal-log-line"><span class="terminal-ts">[18:34:01.485]</span> <span class="terminal-node">[/ekf_filter_node]:</span> <span class="terminal-msg">Odom covariance converged. Position: [X: 14.82m, Y: -3.21m, Heading: 182.4°].</span></div>
+              <div class="terminal-log-line"><span class="terminal-ts">[18:34:01.710]</span> <span class="terminal-node">[/mppi_controller]:</span> <span class="terminal-msg highlight">Evaluating 64 trajectory rollouts. Trajectory cost=0.038. Output: v=1.42 m/s, w=-0.04 rad/s.</span></div>
+            </div>
+          </div>
+        `;
+
+        let isStreamPaused = false;
+        const pauseBtn = document.getElementById('btn-terminal-pause');
+        const clearBtn = document.getElementById('btn-terminal-clear');
+        const echoBtn = document.getElementById('btn-terminal-echo');
+        const logStream = document.getElementById('terminal-log-stream');
+
+        if (pauseBtn) {
+          pauseBtn.addEventListener('click', () => {
+            isStreamPaused = !isStreamPaused;
+            pauseBtn.textContent = isStreamPaused ? '▶ Resume Stream' : '⏸ Pause Stream';
+            showGlobalToast(isStreamPaused ? 'Terminal stream paused' : 'Terminal stream resumed', '📡');
+          });
+        }
+
+        if (clearBtn && logStream) {
+          clearBtn.addEventListener('click', () => {
+            logStream.innerHTML = `<div class="terminal-log-line"><span class="terminal-ts">[Console Cleared]</span> <span class="terminal-node">[/system]:</span> <span class="terminal-msg highlight">Stream initialized. Listening for telemetry...</span></div>`;
+          });
+        }
+
+        if (echoBtn && logStream) {
+          echoBtn.addEventListener('click', () => {
+            const time = new Date().toLocaleTimeString();
+            const row = document.createElement('div');
+            row.className = 'terminal-log-line';
+            row.innerHTML = `<span class="terminal-ts">[${time}]</span> <span class="terminal-node">[/cmd_vel]:</span> <span class="terminal-msg highlight">linear: {x: 1.50, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: -0.12}</span>`;
+            logStream.appendChild(row);
+            logStream.scrollTop = logStream.scrollHeight;
+            showGlobalToast('Published test velocity command to /cmd_vel', '🚀');
+          });
+        }
+
+        // Live Log Stream Generator
+        activeTelemetryInterval = setInterval(() => {
+          if (isStreamPaused || !logStream) return;
+          const time = new Date().toLocaleTimeString();
+          const speed = (1.3 + Math.random() * 0.3).toFixed(2);
+          const yaw = (-0.05 + (Math.random() - 0.5) * 0.1).toFixed(2);
+          const pts = Math.floor(1040 + Math.random() * 40);
+
+          const samples = [
+            `<span class="terminal-ts">[${time}]</span> <span class="terminal-node">[/mppi_controller]:</span> <span class="terminal-msg">Path trajectory step verified: linear_vel=${speed} m/s, angular_vel=${yaw} rad/s.</span>`,
+            `<span class="terminal-ts">[${time}]</span> <span class="terminal-node">[/scan_filter]:</span> <span class="terminal-msg">LiDAR obstacle buffer updated: ${pts} rays clear. Terrain index: SMOOTH.</span>`,
+            `<span class="terminal-ts">[${time}]</span> <span class="terminal-node">[/can_fd_bridge]:</span> <span class="terminal-msg highlight">CAN-FD 4-channel motor feedback: 2,410 RPM, Total current 18.2A, Temp: 41.2°C.</span>`
+          ];
+
+          const row = document.createElement('div');
+          row.className = 'terminal-log-line';
+          row.innerHTML = samples[Math.floor(Math.random() * samples.length)];
+          logStream.appendChild(row);
+          if (logStream.children.length > 30) logStream.removeChild(logStream.children[0]);
+          logStream.scrollTop = logStream.scrollHeight;
+        }, 1800);
+
+      } else if (actionKey === 'rover-cad') {
+        if (projectModalTitle) projectModalTitle.textContent = 'Ares-VI Rocker-Bogie Suspension CAD & FEA Analysis';
+        if (projectModalBadge) { projectModalBadge.textContent = '3D MECHANICAL & BIONICS'; projectModalBadge.className = 'badge-pill badge-blue font-mono'; }
+        if (projectModalStatus) { projectModalStatus.textContent = 'SOLIDWORKS 2024 CERTIFIED'; projectModalStatus.style.borderColor = 'var(--accent-blue)'; }
+        if (projectModalSubtitle) projectModalSubtitle.textContent = 'PARAMETRIC REVISION 4.2 • 6061-T6 BILLET CNC ALUMINUM • FINITE ELEMENT LOAD TESTED';
+        if (btnProjectModalPrimary) btnProjectModalPrimary.textContent = 'Download STEP 3D Assembly (.step 45.2 MB)';
+        currentPrimaryDownload = { filename: 'Ares_VI_Rocker_Bogie_Assembly_v4.2.step' };
+
+        projectModalBody.innerHTML = `
+          <div class="telemetry-metrics-strip">
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">45.0 kg</span>
+              <span class="telemetry-metric-lbl">Chassis Net Mass</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">60.0 kg</span>
+              <span class="telemetry-metric-lbl">Max Scientific Payload</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">2.8x Yield</span>
+              <span class="telemetry-metric-lbl">FEA Safety Factor</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">±0.05 mm</span>
+              <span class="telemetry-metric-lbl">CNC Milling Tolerance</span>
+            </div>
+          </div>
+
+          <div class="cad-interactive-grid">
+            <div class="cad-canvas-box">
+              <svg viewBox="0 0 460 240" fill="none" style="width: 100%; max-height: 230px;" id="cad-preview-svg">
+                <!-- Rocker bogie CAD wireframe diagram -->
+                <circle cx="70" cy="190" r="32" stroke="var(--accent-primary)" stroke-width="2.5" stroke-dasharray="4 2"/>
+                <circle cx="70" cy="190" r="10" fill="var(--accent-primary)"/>
+                <line x1="70" y1="190" x2="160" y2="120" stroke="var(--accent-primary)" stroke-width="4"/>
+                
+                <circle cx="210" cy="190" r="32" stroke="var(--accent-blue)" stroke-width="2.5" stroke-dasharray="4 2"/>
+                <circle cx="210" cy="190" r="10" fill="var(--accent-blue)"/>
+                <line x1="210" y1="190" x2="160" y2="120" stroke="var(--accent-blue)" stroke-width="3"/>
+                
+                <!-- Main pivot -->
+                <circle cx="160" cy="120" r="16" fill="var(--surface-card)" stroke="var(--accent-primary)" stroke-width="3"/>
+                <line x1="160" y1="120" x2="270" y2="70" stroke="var(--accent-primary)" stroke-width="5"/>
+                
+                <!-- Rear wheel -->
+                <circle cx="390" cy="190" r="32" stroke="var(--accent-primary)" stroke-width="2.5" stroke-dasharray="4 2"/>
+                <circle cx="390" cy="190" r="10" fill="var(--accent-primary)"/>
+                <line x1="270" y1="70" x2="390" y2="190" stroke="var(--accent-primary)" stroke-width="4"/>
+                
+                <!-- Differential crossbar -->
+                <circle cx="270" cy="70" r="14" fill="var(--accent-purple)" stroke="#fff" stroke-width="2"/>
+                <text x="270" y="45" fill="var(--accent-purple)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">DIFFERENTIAL PIVOT</text>
+                <text x="70" y="235" fill="var(--text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Wheel 1 [Front]</text>
+                <text x="210" y="235" fill="var(--text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Wheel 2 [Bogie]</text>
+                <text x="390" y="235" fill="var(--text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Wheel 3 [Rear]</text>
+              </svg>
+
+              <div class="cad-controls-row">
+                <button class="btn btn-secondary chamfer-btn" id="btn-cad-wireframe" style="font-size: 0.75rem; padding: 0.35rem 0.8rem;">Switch Shading Mode</button>
+                <button class="btn btn-secondary chamfer-btn" id="btn-cad-dimensions" style="font-size: 0.75rem; padding: 0.35rem 0.8rem;">View Tolerances (±0.05mm)</button>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.7rem; justify-content: center;">
+              <h4 style="margin: 0; font-size: 0.98rem; font-family: var(--font-display);">Structural Bill of Materials (BOM)</h4>
+              <div style="display: flex; flex-direction: column; gap: 0.45rem; font-family: var(--font-mono); font-size: 0.78rem;">
+                <div style="background: rgba(255,255,255,0.03); padding: 0.5rem 0.7rem; border-left: 2px solid var(--accent-primary); border-radius: 4px;">
+                  <strong style="color: var(--text-primary);">Rocker Arm Assembly:</strong><br>
+                  <span style="color: var(--text-secondary);">6061-T6 Aircraft Grade CNC milled, 8mm web, 276 MPa yield.</span>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); padding: 0.5rem 0.7rem; border-left: 2px solid var(--accent-blue); border-radius: 4px;">
+                  <strong style="color: var(--text-primary);">Bogie Differential Link:</strong><br>
+                  <span style="color: var(--text-secondary);">Toray T700 carbon fiber tie-rod with Grade 5 Titanium clevis ends.</span>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); padding: 0.5rem 0.7rem; border-left: 2px solid var(--accent-purple); border-radius: 4px;">
+                  <strong style="color: var(--text-primary);">Pivot Bearings:</strong><br>
+                  <span style="color: var(--text-secondary);">SKF 30mm Angular Contact Dual Sealed Bearings (Static load: 14.8 kN).</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const btnWireframe = document.getElementById('btn-cad-wireframe');
+        const btnDims = document.getElementById('btn-cad-dimensions');
+        const cadSvg = document.getElementById('cad-preview-svg');
+
+        if (btnWireframe && cadSvg) {
+          let isShaded = false;
+          btnWireframe.addEventListener('click', () => {
+            isShaded = !isShaded;
+            cadSvg.style.filter = isShaded ? 'drop-shadow(0 0 12px rgba(0, 255, 102, 0.4)) contrast(1.3)' : 'none';
+            btnWireframe.textContent = isShaded ? 'Wireframe Mode' : 'Shaded Mode';
+            showGlobalToast(isShaded ? 'Activated high-contrast 3D shaded rendering' : 'Switched to wireframe CAD view', '📐');
+          });
+        }
+
+        if (btnDims) {
+          btnDims.addEventListener('click', () => {
+            showGlobalToast('CNC Tolerances: Shaft H7/g6, Pivot Bearing J7, CoG: [0.02, -0.01, 0.14]m', '📏');
+          });
+        }
+
+      } else if (actionKey === 'quad-math') {
+        if (projectModalTitle) projectModalTitle.textContent = 'RoboHound-X 12-DOF Inverse Kinematics & Jacobian Solver';
+        if (projectModalBadge) { projectModalBadge.textContent = 'ROBOT DYNAMICS & CONTROL'; projectModalBadge.className = 'badge-pill badge-green font-mono'; }
+        if (projectModalStatus) { projectModalStatus.textContent = 'SINGULARITY SAFE (DAMPED LM)'; projectModalStatus.style.borderColor = 'var(--accent-primary)'; }
+        if (projectModalSubtitle) projectModalSubtitle.textContent = 'LEVENBERG-MARQUARDT ALGORITHM • CLOSED-LOOP INVERSE KINEMATICS • 1000 HZ UPDATE';
+        if (btnProjectModalPrimary) btnProjectModalPrimary.textContent = 'Export Kinematics MATLAB / Python Script';
+        currentPrimaryDownload = { filename: 'robohound_jacobian_kinematics.py' };
+
+        projectModalBody.innerHTML = `
+          <div class="telemetry-metrics-strip">
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">12 DOF</span>
+              <span class="telemetry-metric-lbl">Total Actuated Joints</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">1000 Hz</span>
+              <span class="telemetry-metric-lbl">IK Solve Frequency</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">9:1</span>
+              <span class="telemetry-metric-lbl">Cycloidal Ratio</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val" id="val-det-j">0.842</span>
+              <span class="telemetry-metric-lbl">Jacobian Det(J)</span>
+            </div>
+          </div>
+
+          <div class="kinematics-solver-card">
+            <div class="kinematics-readout-panel">
+              <div style="font-weight: 700; font-family: var(--font-display); font-size: 0.95rem; color: var(--accent-primary);">
+                Interactive Joint Angle Actuation (Left-Front Leg)
+              </div>
+              <div class="slider-group">
+                <div class="slider-item">
+                  <div class="slider-label-row">
+                    <span>θ₁ Joint (Coxa / Yaw)</span>
+                    <span id="label-theta-1">0.0°</span>
+                  </div>
+                  <input type="range" class="custom-range-slider" id="slider-theta-1" min="-45" max="45" value="0">
+                </div>
+                <div class="slider-item">
+                  <div class="slider-label-row">
+                    <span>θ₂ Joint (Femur / Pitch)</span>
+                    <span id="label-theta-2">35.0°</span>
+                  </div>
+                  <input type="range" class="custom-range-slider" id="slider-theta-2" min="-30" max="90" value="35">
+                </div>
+                <div class="slider-item">
+                  <div class="slider-label-row">
+                    <span>θ₃ Joint (Tibia / Knee)</span>
+                    <span id="label-theta-3">-70.0°</span>
+                  </div>
+                  <input type="range" class="custom-range-slider" id="slider-theta-3" min="-120" max="30" value="-70">
+                </div>
+              </div>
+            </div>
+
+            <div class="kinematics-readout-panel">
+              <div style="font-weight: 700; font-family: var(--font-display); font-size: 0.95rem;">
+                Real-Time End-Effector Trajectory & Matrix
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.8rem;">
+                <div style="background: rgba(0,255,102,0.06); padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(0,255,102,0.2);">
+                  <strong style="color: var(--accent-primary);">End-Effector Coordinates [P_xyz]:</strong><br>
+                  <span id="readout-coords">X: 182.4 mm | Y: 0.0 mm | Z: -220.6 mm</span>
+                </div>
+                <div style="background: rgba(0,180,216,0.06); padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(0,180,216,0.2);">
+                  <strong style="color: var(--accent-blue);">Jacobian Determinant & Condition:</strong><br>
+                  <span id="readout-jacobian">det(J) = 0.842 | Singularity Margin: SAFE</span>
+                </div>
+                <div id="readout-status-badge" class="badge-pill badge-green font-mono" style="align-self: flex-start; margin-top: 0.3rem;">
+                  ✓ SINGULARITY-FREE: STABLE TROTTING GAIT
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const s1 = document.getElementById('slider-theta-1');
+        const s2 = document.getElementById('slider-theta-2');
+        const s3 = document.getElementById('slider-theta-3');
+        const l1 = document.getElementById('label-theta-1');
+        const l2 = document.getElementById('label-theta-2');
+        const l3 = document.getElementById('label-theta-3');
+        const coordsElem = document.getElementById('readout-coords');
+        const jacobianElem = document.getElementById('readout-jacobian');
+        const statusBadge = document.getElementById('readout-status-badge');
+        const valDetJ = document.getElementById('val-det-j');
+
+        function updateMath() {
+          if (!s1 || !s2 || !s3) return;
+          const q1 = parseFloat(s1.value);
+          const q2 = parseFloat(s2.value);
+          const q3 = parseFloat(s3.value);
+
+          if (l1) l1.textContent = `${q1.toFixed(1)}°`;
+          if (l2) l2.textContent = `${q2.toFixed(1)}°`;
+          if (l3) l3.textContent = `${q3.toFixed(1)}°`;
+
+          // Forward Kinematics (Coxa L1=60mm, Femur L2=150mm, Tibia L3=160mm)
+          const rad1 = (q1 * Math.PI) / 180;
+          const rad2 = (q2 * Math.PI) / 180;
+          const rad23 = ((q2 + q3) * Math.PI) / 180;
+
+          const r = 60 + 150 * Math.cos(rad2) + 160 * Math.cos(rad23);
+          const x = (r * Math.cos(rad1)).toFixed(1);
+          const y = (r * Math.sin(rad1)).toFixed(1);
+          const z = (-150 * Math.sin(rad2) - 160 * Math.sin(rad23)).toFixed(1);
+
+          const det = Math.abs(Math.sin((q3 * Math.PI) / 180)).toFixed(3);
+
+          if (coordsElem) coordsElem.textContent = `X: ${x} mm | Y: ${y} mm | Z: ${z} mm`;
+          if (valDetJ) valDetJ.textContent = det;
+
+          if (parseFloat(det) < 0.15) {
+            if (jacobianElem) jacobianElem.innerHTML = `det(J) = ${det} | <span style="color: #ff3366;">⚠️ SINGULARITY VICINITY</span>`;
+            if (statusBadge) {
+              statusBadge.textContent = '⚠️ DAMPED LEVENBERG-MARQUARDT ACTIVE';
+              statusBadge.className = 'badge-pill font-mono';
+              statusBadge.style.background = 'rgba(255,51,102,0.15)';
+              statusBadge.style.color = '#ff3366';
+              statusBadge.style.borderColor = '#ff3366';
+            }
+          } else {
+            if (jacobianElem) jacobianElem.innerHTML = `det(J) = ${det} | <span style="color: var(--accent-primary);">Singularity Margin: SAFE</span>`;
+            if (statusBadge) {
+              statusBadge.textContent = '✓ SINGULARITY-FREE: STABLE TROTTING GAIT';
+              statusBadge.className = 'badge-pill badge-green font-mono';
+              statusBadge.style.background = '';
+              statusBadge.style.color = '';
+              statusBadge.style.borderColor = '';
+            }
+          }
+        }
+
+        if (s1) s1.addEventListener('input', updateMath);
+        if (s2) s2.addEventListener('input', updateMath);
+        if (s3) s3.addEventListener('input', updateMath);
+
+      } else if (actionKey === 'quad-pcb') {
+        if (projectModalTitle) projectModalTitle.textContent = 'STM32 CAN-FD 4-Channel Brushless Motor Driver (Rev 3.2)';
+        if (projectModalBadge) { projectModalBadge.textContent = 'HARDWARE & PCB DESIGN'; projectModalBadge.className = 'badge-pill badge-green font-mono'; }
+        if (projectModalStatus) { projectModalStatus.textContent = 'REV 3.2 FABRICATED & TESTED'; projectModalStatus.style.borderColor = 'var(--accent-primary)'; }
+        if (projectModalSubtitle) projectModalSubtitle.textContent = '4-LAYER IMPEDANCE MATCHED • TI DRV8301 GATE DRIVERS • 24V 25A PEAK PER PHASE';
+        if (btnProjectModalPrimary) btnProjectModalPrimary.textContent = 'Download KiCad & Gerber Archive (.zip 12.8 MB)';
+        currentPrimaryDownload = { filename: 'stm32_canfd_driver_rev3.2_gerbers.zip' };
+
+        projectModalBody.innerHTML = `
+          <div class="telemetry-metrics-strip">
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">5.0 Mbps</span>
+              <span class="telemetry-metric-lbl">CAN-FD Data Rate</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">18.4 A</span>
+              <span class="telemetry-metric-lbl">Motor Phase Peak</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">42.1 °C</span>
+              <span class="telemetry-metric-lbl">MOSFET Temp (Loaded)</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">0 Errors</span>
+              <span class="telemetry-metric-lbl">CRC Frame Error Count</span>
+            </div>
+          </div>
+
+          <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 700; font-family: var(--font-display); font-size: 0.95rem; color: var(--accent-primary);">CAN-FD Live Telemetry Frame Stream</span>
+              <span class="badge-pill badge-blue font-mono" style="font-size: 0.65rem;">BUS 1 // 120Ω TERMINATED</span>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.7; background: #090D13; padding: 0.9rem; border-radius: 6px; color: #DDE1E8;">
+              <div>[0x141] Motor 1 (FL_Coxa):  Velocity: 2,400 RPM | Current: 4.8A | Temp: 41.2°C [STATUS_OK]</div>
+              <div>[0x142] Motor 2 (FL_Femur): Velocity: 2,410 RPM | Current: 5.1A | Temp: 42.4°C [STATUS_OK]</div>
+              <div>[0x143] Motor 3 (FL_Tibia): Velocity: 2,390 RPM | Current: 4.9A | Temp: 40.8°C [STATUS_OK]</div>
+              <div>[0x144] Motor 4 (FR_Coxa):  Velocity: 2,405 RPM | Current: 4.7A | Temp: 41.0°C [STATUS_OK]</div>
+            </div>
+          </div>
+        `;
+
+      } else if (actionKey === 'auv-hydro') {
+        if (projectModalTitle) projectModalTitle.textContent = 'AUV Thalassa Hydrodynamics & CFD Flow Simulation';
+        if (projectModalBadge) { projectModalBadge.textContent = 'MARINE & FLUID DYNAMICS'; projectModalBadge.className = 'badge-pill badge-blue font-mono'; }
+        if (projectModalStatus) { projectModalStatus.textContent = 'ANSYS TRANSIENT CFD VERIFIED'; projectModalStatus.style.borderColor = 'var(--accent-blue)'; }
+        if (projectModalSubtitle) projectModalSubtitle.textContent = 'HYDRODYNAMIC STREAMLINED HULL • 4-THRUSTER VECTORING MATRIX • 50M DEPTH RATED';
+        if (btnProjectModalPrimary) btnProjectModalPrimary.textContent = 'Download CFD Simulation Report (PDF 8.4 MB)';
+        currentPrimaryDownload = { filename: 'AUV_Thalassa_CFD_Report_2026.pdf' };
+
+        projectModalBody.innerHTML = `
+          <div class="telemetry-metrics-strip">
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">0.24</span>
+              <span class="telemetry-metric-lbl">Hull Drag Coeff (Cd)</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">1.4 × 10⁵</span>
+              <span class="telemetry-metric-lbl">Reynolds Number (Re)</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">+0.4 N</span>
+              <span class="telemetry-metric-lbl">Positive Net Buoyancy</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">3.2 knots</span>
+              <span class="telemetry-metric-lbl">Cruising Velocity</span>
+            </div>
+          </div>
+
+          <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem;">
+            <div style="font-weight: 700; font-family: var(--font-display); font-size: 0.95rem; color: var(--accent-blue);">
+              Hydrodynamic Flow Streamlines & Metacentric Stability
+            </div>
+            <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">
+              Simulated under Navier-Stokes turbulence modeling in saltwater (ρ=1025 kg/m³). The center of buoyancy (CB) is positioned 4.8 cm above the center of gravity (CG), guaranteeing passive self-righting stability even during motor shutdown at 50m depth.
+            </p>
+          </div>
+        `;
+
+      } else if (actionKey === 'auv-firmware') {
+        if (projectModalTitle) projectModalTitle.textContent = 'AUV Thalassa Embedded Control Firmware Repository';
+        if (projectModalBadge) { projectModalBadge.textContent = 'EMBEDDED C++ & FREERTOS'; projectModalBadge.className = 'badge-pill badge-green font-mono'; }
+        if (projectModalStatus) { projectModalStatus.textContent = 'MAIN BRANCH: PASSING'; projectModalStatus.style.borderColor = 'var(--accent-primary)'; }
+        if (projectModalSubtitle) projectModalSubtitle.textContent = 'TEENSY 4.1 600MHZ • DMA HYDROPHONE DSP • 1000 HZ CLOSED LOOP THRUSTER MATRIX';
+        if (btnProjectModalPrimary) btnProjectModalPrimary.textContent = 'Copy Firmware Code / Clone Repo';
+        currentPrimaryDownload = { filename: 'auv_thruster_matrix.cpp' };
+
+        projectModalBody.innerHTML = `
+          <div class="telemetry-metrics-strip">
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">1.0 ms</span>
+              <span class="telemetry-metric-lbl">RTOS Control Period</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">192 kHz</span>
+              <span class="telemetry-metric-lbl">Acoustic ADC Sample Rate</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">48 KB</span>
+              <span class="telemetry-metric-lbl">RAM Usage (1MB Total)</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">main</span>
+              <span class="telemetry-metric-lbl">Git Branch (142 Commits)</span>
+            </div>
+          </div>
+
+          <div class="terminal-wrapper">
+            <div class="terminal-header">
+              <span>SRC: firmware/controllers/auv_thruster_matrix.cpp</span>
+              <button class="btn btn-primary chamfer-btn" id="btn-copy-firmware-code" style="padding: 0.2rem 0.6rem; font-size: 0.72rem;">Copy Code</button>
+            </div>
+            <pre style="margin: 0; padding: 1rem; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.6; color: #a9b1d6; overflow-x: auto;" id="firmware-code-block">
+#include &lt;Arduino.h&gt;
+#include &lt;ChRt.h&gt;
+
+// 4-Thruster Vectoring Thrust Allocation Matrix
+void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
+    float t1 =  0.707f * surge + 0.707f * sway + yaw;
+    float t2 =  0.707f * surge - 0.707f * sway - yaw;
+    float t3 = -0.707f * surge + 0.707f * sway - yaw;
+    float t4 = -0.707f * surge - 0.707f * sway + yaw;
+
+    PWM_Write(THRUSTER_1, constrain(t1, -1.0f, 1.0f));
+    PWM_Write(THRUSTER_2, constrain(t2, -1.0f, 1.0f));
+    PWM_Write(THRUSTER_3, constrain(t3, -1.0f, 1.0f));
+    PWM_Write(THRUSTER_4, constrain(t4, -1.0f, 1.0f));
+}</pre>
+          </div>
+        `;
+
+        const btnCopy = document.getElementById('btn-copy-firmware-code');
+        const codeBlock = document.getElementById('firmware-code-block');
+        if (btnCopy && codeBlock) {
+          btnCopy.addEventListener('click', () => {
+            navigator.clipboard.writeText(codeBlock.innerText).then(() => {
+              btnCopy.textContent = 'Copied!';
+              setTimeout(() => { btnCopy.textContent = 'Copy Code'; }, 2000);
+              showGlobalToast('Copied C++ firmware code to clipboard', '📋');
+            });
+          });
+        }
+
+      } else if (actionKey === 'swarm-code') {
+        if (projectModalTitle) projectModalTitle.textContent = 'AeroMesh-4 Decentralized Swarm Mesh Routing Console';
+        if (projectModalBadge) { projectModalBadge.textContent = 'DECENTRALIZED SWARM MESH'; projectModalBadge.className = 'badge-pill badge-purple font-mono'; }
+        if (projectModalStatus) { projectModalStatus.textContent = 'ESP-NOW 2.4GHZ LOCKED'; projectModalStatus.style.borderColor = 'var(--accent-purple)'; }
+        if (projectModalSubtitle) projectModalSubtitle.textContent = '4-AGENT DECENTRALIZED CONSENSUS • NO CENTRAL GPS • PEER-TO-PEER UWB';
+        if (btnProjectModalPrimary) btnProjectModalPrimary.textContent = 'Export ESP-NOW Mesh Firmware (.bin 4.2 MB)';
+        currentPrimaryDownload = { filename: 'aeromesh4_espnow_mesh_v1.2.bin' };
+
+        projectModalBody.innerHTML = `
+          <div class="telemetry-metrics-strip">
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">4 Drones</span>
+              <span class="telemetry-metric-lbl">Swarm Active Nodes</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">2.1 ms</span>
+              <span class="telemetry-metric-lbl">Consensus Lag</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">99.8%</span>
+              <span class="telemetry-metric-lbl">Packet Delivery</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">±1.8 cm</span>
+              <span class="telemetry-metric-lbl">Position Drift</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.8rem;">
+            <div class="telemetry-metric-tile" style="border-left: 3px solid var(--accent-primary);">
+              <span style="font-weight: 700; color: var(--accent-primary);">Drone-Alpha (Leader)</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">RSSI: -42 dBm • 15.8V 4S</span>
+              <span class="badge-pill badge-green font-mono" style="font-size: 0.65rem; margin-top: 4px;">SYNC LOCKED</span>
+            </div>
+            <div class="telemetry-metric-tile" style="border-left: 3px solid var(--accent-blue);">
+              <span style="font-weight: 700; color: var(--accent-blue);">Drone-Bravo (Relay 1)</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">RSSI: -48 dBm • 15.6V 4S</span>
+              <span class="badge-pill badge-blue font-mono" style="font-size: 0.65rem; margin-top: 4px;">SYNC LOCKED</span>
+            </div>
+            <div class="telemetry-metric-tile" style="border-left: 3px solid var(--accent-purple);">
+              <span style="font-weight: 700; color: var(--accent-purple);">Drone-Charlie (Relay 2)</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">RSSI: -45 dBm • 15.7V 4S</span>
+              <span class="badge-pill badge-purple font-mono" style="font-size: 0.65rem; margin-top: 4px;">SYNC LOCKED</span>
+            </div>
+            <div class="telemetry-metric-tile" style="border-left: 3px solid #ffaa00;">
+              <span style="font-weight: 700; color: #ffaa00;">Drone-Delta (Perimeter)</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">RSSI: -51 dBm • 15.5V 4S</span>
+              <span class="badge-pill badge-green font-mono" style="font-size: 0.65rem; margin-top: 4px;">SYNC LOCKED</span>
+            </div>
+          </div>
+        `;
+
+      } else if (actionKey === 'swarm-logs') {
+        if (projectModalTitle) projectModalTitle.textContent = 'AeroMesh-4 UWB Rangefinder & Flight Telemetry Logs';
+        if (projectModalBadge) { projectModalBadge.textContent = 'AERIAL AUTOPILOT & TELEMETRY'; projectModalBadge.className = 'badge-pill badge-blue font-mono'; }
+        if (projectModalStatus) { projectModalStatus.textContent = 'FORMATION_LOCK ACTIVE'; projectModalStatus.style.borderColor = 'var(--accent-blue)'; }
+        if (projectModalSubtitle) projectModalSubtitle.textContent = 'DECAWAVE DWM1000 MATRIX • PX4 EXTENDED KALMAN FILTER FUSION • 3-AXIS TELEMETRY';
+        if (btnProjectModalPrimary) btnProjectModalPrimary.textContent = 'Download Flight Telemetry Logs (.csv 6.8 MB)';
+        currentPrimaryDownload = { filename: 'aeromesh4_flight_telemetry_2026.csv' };
+
+        projectModalBody.innerHTML = `
+          <div class="telemetry-metrics-strip">
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">2.42 m</span>
+              <span class="telemetry-metric-lbl">Altitude AGL</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">15.7 V</span>
+              <span class="telemetry-metric-lbl">4S LiPo Voltage</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">±1.8 cm</span>
+              <span class="telemetry-metric-lbl">UWB Accuracy</span>
+            </div>
+            <div class="telemetry-metric-tile">
+              <span class="telemetry-metric-val">FORMATION_LOCK</span>
+              <span class="telemetry-metric-lbl">Autopilot State</span>
+            </div>
+          </div>
+
+          <div class="terminal-wrapper">
+            <div class="terminal-header">
+              <span>LIVE UWB DISTANCE MATRIX & EKF ESTIMATION</span>
+            </div>
+            <div class="terminal-log-content">
+              <div class="terminal-log-line"><span class="terminal-ts">[18:35:10.012]</span> <span class="terminal-node">[UWB_RANGE]:</span> <span class="terminal-msg">Node 1 &lt;-&gt; Node 2: 1.842m (Variance 0.0004m²)</span></div>
+              <div class="terminal-log-line"><span class="terminal-ts">[18:35:10.024]</span> <span class="terminal-node">[UWB_RANGE]:</span> <span class="terminal-msg">Node 2 &lt;-&gt; Node 3: 1.839m (Variance 0.0003m²)</span></div>
+              <div class="terminal-log-line"><span class="terminal-ts">[18:35:10.038]</span> <span class="terminal-node">[UWB_RANGE]:</span> <span class="terminal-msg">Node 3 &lt;-&gt; Node 4: 1.845m (Variance 0.0004m²)</span></div>
+              <div class="terminal-log-line"><span class="terminal-ts">[18:35:10.050]</span> <span class="terminal-node">[EKF_FUSION]:</span> <span class="terminal-msg highlight">Swarm centroid velocity stable: [0.01, -0.02, 0.00] m/s. Heading locked 184°.</span></div>
+            </div>
+          </div>
+        `;
+
+      } else if (actionKey === 'whitepaper-pdf') {
+        if (projectModalTitle) projectModalTitle.textContent = 'IEEE RAS Autonomous Navigation & SLAM Whitepaper (2026)';
+        if (projectModalBadge) { projectModalBadge.textContent = 'OFFICIAL CHAPTER RESEARCH'; projectModalBadge.className = 'badge-pill badge-green font-mono'; }
+        if (projectModalStatus) { projectModalStatus.textContent = 'VERIFIED CHAPTER PUBLICATION'; projectModalStatus.style.borderColor = 'var(--accent-primary)'; }
+        if (projectModalSubtitle) projectModalSubtitle.textContent = 'PEER-REVIEWED TECHNICAL REPORT // IEEE VIT CHENNAI ROBOTICS CHAPTER ARCHIVES';
+        if (btnProjectModalPrimary) btnProjectModalPrimary.textContent = 'Download Complete Whitepaper PDF (4.8 MB)';
+        currentPrimaryDownload = { filename: 'IEEE_RAS_Autonomous_Navigation_Whitepaper.pdf' };
+
+        projectModalBody.innerHTML = `
+          <div class="whitepaper-reader-card">
+            <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.8rem;">
+              <h3 style="font-size: 1.3rem; font-weight: 700; margin: 0 0 0.4rem 0;">End-to-End Autonomous Navigation Pipeline for Planetary Terrain Exploration</h3>
+              <div style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
+                Authors: Satyajit R (Lead), Ananya Sharma, Kavya Patel, Rohan Verma, Aryan Nair • IEEE RAS Chapter 2026
+              </div>
+            </div>
+            <div>
+              <strong style="color: var(--accent-primary); font-family: var(--font-mono); font-size: 0.85rem;">ABSTRACT:</strong>
+              <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.65; margin: 0.4rem 0 0.8rem 0;">
+                This technical report details the software and mechanical architecture of the Ares-VI planetary rover. By fusing 3D LiDAR SLAM, MPPI trajectory optimization, and GPU-accelerated costmap ray-tracing on the NVIDIA Jetson Orin Nano, the rover achieves 98.4% obstacle avoidance accuracy across unstable rocky obstacles while maintaining sub-15ms control loop latency.
+              </p>
+            </div>
+            <div style="background: rgba(0,255,102,0.06); padding: 0.8rem 1rem; border-radius: 8px; border-left: 3px solid var(--accent-primary); font-family: var(--font-mono); font-size: 0.8rem;">
+              <strong>Key Benchmarks:</strong><br>
+              • Max Cruising Speed: 1.8 m/s<br>
+              • SLAM Drift Rate: &lt; 0.12% per 100 meters traveled<br>
+              • Obstacle Detection Range: 10 meters at 120 FPS TensorRT INT8
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Attach click listeners to all Telemetry buttons
+    document.querySelectorAll('.btn-project-telemetry').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const action = btn.dataset.projectAction || 'rover-ros';
+        openProjectTelemetryModal(action);
+      });
+    });
+
 
     // Gemini AI Assistant Interactive Chips & Responses
     const aiChips = document.querySelectorAll('.ai-query-chip');
@@ -1355,6 +2137,8 @@
       }
       showToast('Joined Hardware Standup Video Room', '🎙️');
     }
+
+    window.openVideoMeeting = openMeeting;
 
     function closeMeeting() {
       if (!meetingModal) return;
@@ -1835,7 +2619,7 @@
       formReg.addEventListener('submit', (e) => {
         e.preventDefault();
         const teamName = document.getElementById('reg-team-name')?.value || 'Team AeroValkyrie';
-        alert(`✓ Registration Confirmed for "${teamName}"!\nOfficial IEEE RAS Verification & Hardware Dev-Kit dispatch confirmation sent to your team.`);
+        showGlobalToast(`✓ Registration Confirmed for "${teamName}"! Dev-Kit dispatch confirmation sent.`, '🚀');
       });
     }
 
@@ -1880,7 +2664,7 @@
 
     if (submitPptBtn) {
       submitPptBtn.addEventListener('click', () => {
-        alert('✓ Pitch Deck & Kinematic Abstract successfully locked!\nSubmission ID: IEEE-RAS-RD26-8819\nYour submission is now queued for Round 1 FEA & Simulation evaluation.');
+        showGlobalToast('✓ Pitch Deck & Kinematic Abstract locked! Submission ID: IEEE-RAS-RD26-8819 queued for Round 1 FEA evaluation.', '📊');
       });
     }
 
@@ -1910,13 +2694,13 @@
       requestMentorBtn.addEventListener('click', () => {
         const domainSelect = document.getElementById('mentor-domain-select');
         const domain = domainSelect ? domainSelect.options[domainSelect.selectedIndex].text : 'Technical Mentor';
-        alert(`⚡ Mentor Request Dispatched!\nTopic: ${domain}\nLead Mentor Ananya Sharma has been notified and assigned to your lab workstation.`);
+        showGlobalToast(`⚡ Mentor Request Dispatched! Lead Mentor Ananya Sharma assigned to your workstation for ${domain}.`, '👨‍🏫');
       });
     }
 
     if (submitHackathonBtn) {
       submitHackathonBtn.addEventListener('click', () => {
-        alert('🚀 Final Hackathon Solution Submitted!\nTeam Alpha repository link and demo video verified.\nYour team is scheduled for Jury Evaluation at 17:00 in Lab 3.');
+        showGlobalToast('🚀 Final Hackathon Solution Submitted! Repository & demo video verified. Scheduled for Jury Evaluation at 17:00 in Lab 3.', '🏆');
       });
     }
 
@@ -1979,6 +2763,32 @@
         if (e.target === certModal) certModal.classList.remove('active');
       });
     }
+
+    // Participant Action Downloads & Toasts
+    document.querySelectorAll('.btn-action-download').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const filename = btn.dataset.downloadFile || 'IEEE_RAS_Event_Document.pdf';
+        downloadSimulatedFile(filename);
+      });
+    });
+
+    document.querySelectorAll('.btn-action-toast').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const msg = btn.dataset.toastMsg || 'Action executed successfully.';
+        showGlobalToast(msg, '💬');
+      });
+    });
+
+    document.querySelectorAll('.btn-download-cert-pdf').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const certName = document.getElementById('cert-modal-title')?.textContent || 'RoboWars_2025_Certificate';
+        const safeName = certName.replace(/[^a-zA-Z0-9_-]/g, '_') + '.pdf';
+        downloadSimulatedFile(safeName);
+      });
+    });
 
     // Set initial view to RoboHack
     switchEvent('robohack');
