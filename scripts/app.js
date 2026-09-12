@@ -128,6 +128,62 @@
     } catch (e) {}
   }
 
+  // Pre-provisioned Event Participant Registry
+  const defaultParticipants = [
+    {
+      id: 'part-1',
+      name: 'Alex Chen',
+      email: 'alex.chen2024@gmail.com',
+      regNo: '24BCE1001',
+      password: 'participant123',
+      roleTitle: 'Event Participant',
+      track: 'RoboHack 2026: Autonomous Rover Challenge'
+    },
+    {
+      id: 'part-2',
+      name: 'Priya Sundaram',
+      email: 'priya.sundaram@vitstudent.ac.in',
+      regNo: '24BCE1042',
+      password: 'participant123',
+      roleTitle: 'Event Participant',
+      track: 'DroneSwarm Grand Prix'
+    },
+    {
+      id: 'part-3',
+      name: 'Tanmay Joshi',
+      email: 'tanmay.j2024@vitstudent.ac.in',
+      regNo: '24BME1088',
+      password: 'participant123',
+      roleTitle: 'Event Participant',
+      track: 'Underwater Robotics Symposium'
+    }
+  ];
+
+  let participantAccounts = [];
+  try {
+    const savedParts = localStorage.getItem('ieee_ras_participants');
+    if (savedParts) {
+      const parsedParts = JSON.parse(savedParts);
+      const existingPartEmails = new Set(parsedParts.map(p => (p.email || '').toLowerCase()));
+      defaultParticipants.forEach(dp => {
+        if (!existingPartEmails.has(dp.email.toLowerCase())) {
+          parsedParts.push(dp);
+        }
+      });
+      participantAccounts = parsedParts;
+    } else {
+      participantAccounts = defaultParticipants;
+    }
+  } catch (e) {
+    participantAccounts = defaultParticipants;
+  }
+
+  function saveParticipantAccounts() {
+    try {
+      localStorage.setItem('ieee_ras_participants', JSON.stringify(participantAccounts));
+    } catch (e) {}
+  }
+
   // Global Action Toast for User Notifications
   function showGlobalToast(msg, icon = '💡') {
     let toast = document.getElementById('global-action-toast');
@@ -265,6 +321,17 @@
     // Update canvas visibility: more prominent on landing, subtle in portals
     if (canvas) {
       canvas.style.opacity = screenName === 'landing' ? '1' : '0.25';
+    }
+
+    // Update participant dashboard user badge
+    if (screenName === 'participant' && state.currentUser) {
+      const pName = document.getElementById('participant-user-name');
+      const pAvatar = document.getElementById('participant-user-avatar');
+      if (pName) pName.textContent = state.currentUser.name;
+      if (pAvatar) {
+        const initials = state.currentUser.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'PA';
+        pAvatar.textContent = initials;
+      }
     }
   }
 
@@ -415,31 +482,57 @@
     if (formLoginParticipant) {
       formLoginParticipant.addEventListener('submit', (e) => {
         e.preventDefault();
-        const email = (participantEmailInput ? participantEmailInput.value : '').trim();
+        const rawInput = (participantEmailInput ? participantEmailInput.value : '').trim();
         const pass = (participantPassInput ? participantPassInput.value : '').trim();
+        const queryLower = rawInput.toLowerCase();
 
-        if (!email || !pass) {
+        if (!rawInput || !pass) {
           if (participantLoginAlert) {
             participantLoginAlert.style.display = 'flex';
             participantLoginAlert.className = 'register-alert-box error';
-            participantLoginAlert.innerHTML = `⚠️ Please enter your registered email and password.`;
+            participantLoginAlert.innerHTML = `⚠️ Please enter your registered email/Reg No. and password.`;
+          }
+          return;
+        }
+
+        // Strictly verify against created participant accounts registry
+        const foundAccount = participantAccounts.find(acc => {
+          const accEmail = (acc.email || '').trim().toLowerCase();
+          const accReg = (acc.regNo || '').trim().toLowerCase();
+          return accEmail === queryLower || (accReg && accReg === queryLower);
+        });
+
+        if (!foundAccount) {
+          if (participantLoginAlert) {
+            participantLoginAlert.style.display = 'flex';
+            participantLoginAlert.className = 'register-alert-box error';
+            participantLoginAlert.innerHTML = `⚠️ Access Denied: No participant account found for "${escapeHtml(rawInput)}". Only created accounts can sign in. Please register first.`;
+          }
+          return;
+        }
+
+        if (foundAccount.password !== pass) {
+          if (participantLoginAlert) {
+            participantLoginAlert.style.display = 'flex';
+            participantLoginAlert.className = 'register-alert-box error';
+            participantLoginAlert.innerHTML = `⚠️ Access Denied: Incorrect password. Please verify your credentials.`;
           }
           return;
         }
 
         if (participantLoginAlert) participantLoginAlert.style.display = 'none';
 
-        const displayName = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         state.currentUser = {
-          name: displayName || 'Event Participant',
-          email: email,
+          name: foundAccount.name || 'Event Participant',
+          email: foundAccount.email,
           role: 'participant',
-          roleTitle: 'Event Participant',
-          track: 'RoboHack 2026'
+          roleTitle: foundAccount.roleTitle || 'Event Participant',
+          track: foundAccount.track || 'RoboHack 2026'
         };
 
         closeAuthModal();
         switchScreen('participant');
+        showGlobalToast(`Welcome back, ${foundAccount.name}!`, '🚀');
       });
     }
 
@@ -447,15 +540,30 @@
     const btnLoginParticipantGoogle = document.getElementById('btn-login-participant-google');
     if (btnLoginParticipantGoogle) {
       btnLoginParticipantGoogle.addEventListener('click', () => {
+        let googleUser = participantAccounts.find(acc => (acc.email || '').toLowerCase() === 'alex.chen2024@gmail.com');
+        if (!googleUser) {
+          googleUser = {
+            id: 'part-google-1',
+            name: 'Alex Chen',
+            email: 'alex.chen2024@gmail.com',
+            regNo: '24BCE1001',
+            password: 'participant123',
+            roleTitle: 'Event Participant (Google SSO)',
+            track: 'RoboHack 2026: Autonomous Rover Challenge'
+          };
+          participantAccounts.push(googleUser);
+          saveParticipantAccounts();
+        }
         state.currentUser = {
-          name: 'Alex Chen',
-          email: 'alex.chen2024@gmail.com',
+          name: googleUser.name,
+          email: googleUser.email,
           role: 'participant',
-          roleTitle: 'Event Participant (Google SSO)',
-          track: 'RoboHack 2026'
+          roleTitle: googleUser.roleTitle || 'Event Participant (Google SSO)',
+          track: googleUser.track || 'RoboHack 2026'
         };
         closeAuthModal();
         switchScreen('participant');
+        showGlobalToast(`Google SSO Authenticated as ${googleUser.name}`, '🔑');
       });
     }
 
@@ -477,6 +585,15 @@
         const confirmPass = regConfirmPassInput ? regConfirmPassInput.value : '';
         const track = regTrackSelect ? regTrackSelect.options[regTrackSelect.selectedIndex].text : 'RoboHack';
 
+        if (!fullName || !email || !pass) {
+          if (regAlertBox) {
+            regAlertBox.style.display = 'flex';
+            regAlertBox.className = 'register-alert-box error';
+            regAlertBox.innerHTML = `⚠️ Please fill in all required fields.`;
+          }
+          return;
+        }
+
         // Validation
         if (pass !== confirmPass) {
           if (regAlertBox) {
@@ -496,6 +613,38 @@
           return;
         }
 
+        // Check if account with email or regNo already exists
+        const emailLower = email.toLowerCase();
+        const existingAcc = participantAccounts.find(acc => {
+          const accEmail = (acc.email || '').trim().toLowerCase();
+          const accReg = (acc.regNo || '').trim().toLowerCase();
+          return accEmail === emailLower || (accReg && accReg === emailLower);
+        });
+
+        if (existingAcc) {
+          if (regAlertBox) {
+            regAlertBox.style.display = 'flex';
+            regAlertBox.className = 'register-alert-box error';
+            regAlertBox.innerHTML = `⚠️ An account with email/Reg No "${escapeHtml(email)}" already exists. Please sign in instead.`;
+          }
+          return;
+        }
+
+        // Create and persist new participant account
+        const newParticipant = {
+          id: 'part-' + Date.now(),
+          name: fullName,
+          email: email,
+          regNo: email.includes('@') ? '' : email,
+          password: pass,
+          roleTitle: 'Registered Participant',
+          track: track,
+          createdAt: new Date().toISOString()
+        };
+
+        participantAccounts.push(newParticipant);
+        saveParticipantAccounts();
+
         state.currentUser = {
           name: fullName,
           email: email,
@@ -509,6 +658,8 @@
           regAlertBox.className = 'register-alert-box success';
           regAlertBox.innerHTML = `✓ Participant account created successfully! Launching Competition Dashboard...`;
         }
+
+        showGlobalToast(`Account created for ${fullName}!`, '🎉');
 
         setTimeout(() => {
           closeAuthModal();
