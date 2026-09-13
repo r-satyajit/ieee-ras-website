@@ -194,6 +194,51 @@ All sensitive parameters, access passcodes, API keys, and repository URLs are ma
 
 ---
 
+## 🗄️ Cloud PostgreSQL Database (Neon Integration)
+
+Because Vercel runs in a serverless environment, local SQLite files or memory reset whenever serverless containers spin down. To ensure that seeded accounts, newly registered members, participants, and commits persist permanently, this application connects to a free cloud **PostgreSQL database (Neon)**.
+
+### Why Neon?
+- **100% Free Tier**: 0.5 GiB storage, generous compute hours with auto-suspend and instant wake-up.
+- **Zero Credit Card Required**: Sign up in 10 seconds via GitHub.
+- **Serverless-Optimized**: Native connection pooling and SSL encryption designed specifically for Vercel.
+
+### Quick Setup Instructions
+
+1. **Create Free Database on Neon**:
+   - Go to [neon.tech](https://neon.tech) and sign up with your GitHub account.
+   - Click **"Create Project"**, name it `ieee-ras-db`, and select a region close to your deployment.
+   - On your Neon project dashboard, copy the **Connection Details** URL (choose the "Pooled" or standard connection string):
+     ```
+     postgresql://user:password@ep-sample-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require
+     ```
+
+2. **Add Environment Variable in Vercel**:
+   - Navigate to your project on the [Vercel Dashboard](https://vercel.com).
+   - Go to **Settings** > **Environment Variables**.
+   - Add a new variable:
+     - **Key**: `DATABASE_URL`
+     - **Value**: `postgresql://user:password@ep-sample-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require` (your Neon URL)
+     - **Environments**: Select Production, Preview, and Development.
+   - Click **Save**.
+
+3. **Redeploy / Verify**:
+   - Trigger a redeployment in Vercel (or push to GitHub).
+   - On the first request, the backend automatically creates all required tables (`core_members`, `participants`, `commits`) and seeds the default members and participants.
+   - Visit `https://your-vercel-domain.vercel.app/api/health` in your browser to confirm the database status:
+     ```json
+     {
+       "connected": true,
+       "engine": "PostgreSQL (Neon/Cloud)",
+       "message": "Cloud PostgreSQL database is online and healthy.",
+       "members_count": 5,
+       "participants_count": 3,
+       "commits_count": 3
+     }
+     ```
+
+---
+
 ## 📄 License
 
 Distributed under the **MIT License**. See `LICENSE` for more information.

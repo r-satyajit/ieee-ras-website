@@ -1,11 +1,12 @@
 """
 IEEE Robotics & Automation Society - Vercel Python Entrypoint
-Handles routing and static file delivery for Vercel Python runtime deployments.
+Handles routing, static file delivery, and serverless Cloud PostgreSQL REST API.
 """
 import os
 import json
 import mimetypes
 from http.server import BaseHTTPRequestHandler
+import db
 
 # Auto-generate scripts/config.js from environment variables if not present
 def init_environment_config():
@@ -37,10 +38,57 @@ def init_environment_config():
 
 init_environment_config()
 
+# Auto-initialize database schema and seed defaults if DATABASE_URL is present
+try:
+    if db.get_db_url():
+        success, msg = db.init_db()
+        print(f"Database bootstrap: {msg}")
+except Exception as e:
+    print(f"Database bootstrap note: {e}")
+
 class handler(BaseHTTPRequestHandler):
+    def _send_json(self, status_code, data):
+        """Helper to send JSON response with CORS headers."""
+        payload = json.dumps(data).encode("utf-8")
+        self.send_response(status_code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(payload)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def do_OPTIONS(self):
+        """Handle CORS pre-flight requests."""
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.end_headers()
+
     def do_GET(self):
-        # Resolve request path
         clean_path = self.path.split("?")[0].lstrip("/")
+        
+        # --- API Routes ---
+        if clean_path.startswith("api/"):
+            endpoint = clean_path[4:]
+            if endpoint == "health":
+                return self._send_json(200, db.check_db_status())
+            elif endpoint == "members":
+                return self._send_json(200, db.get_members())
+            elif endpoint == "participants":
+                return self._send_json(200, db.get_participants())
+            elif endpoint == "commits":
+                return self._send_json(200, db.get_commits())
+            elif endpoint == "init-db":
+                ok, msg = db.init_db()
+                return self._send_json(200 if ok else 500, {"success": ok, "message": msg})
+            else:
+                return self._send_json(404, {"error": f"Unknown API endpoint: /{clean_path}"})
+
+        # --- Static File Serving ---
         if not clean_path:
             clean_path = "index.html"
 
@@ -78,6 +126,49 @@ class handler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/plain")
             self.end_headers()
             self.wfile.write(f"Server Error: {err}".encode("utf-8"))
+
+    def do_POST(self):
+        clean_path = self.path.split("?")[0].lstrip("/")
+        
+        # Read request body
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            raw_data = self.rfile.read(content_length) if content_length > 0 else b"{}"
+            data = json.loads(raw_data.decode("utf-8")) if raw_data else {}
+        except Exception as e:
+            return self._send_json(400, {"error": f"Invalid JSON payload: {e}"})
+
+        # --- API Routes ---
+        if clean_path.startswith("api/"):
+            endpoint = clean_path[4:]
+            if endpoint == "members":
+                if isinstance(data, list):
+                    saved_list = [db.save_member(m) for m in data]
+                    return self._send_json(200, {"success": True, "members": saved_list})
+                else:
+                    saved = db.save_member(data)
+                    return self._send_json(200, {"success": True, "member": saved})
+
+            elif endpoint == "participants":
+                if isinstance(data, list):
+                    saved_list = [db.save_participant(p) for p in data]
+                    return self._send_json(200, {"success": True, "participants": saved_list})
+                else:
+                    saved = db.save_participant(data)
+                    return self._send_json(200, {"success": True, "participant": saved})
+
+            elif endpoint == "commits":
+                saved = db.save_commit(data)
+                return self._send_json(200, {"success": True, "commit": saved})
+
+            elif endpoint == "init-db":
+                ok, msg = db.init_db()
+                return self._send_json(200 if ok else 500, {"success": ok, "message": msg})
+
+            else:
+                return self._send_json(404, {"error": f"Unknown API endpoint: /{clean_path}"})
+
+        return self._send_json(404, {"error": "Endpoint not found"})
 
 # WSGI compatibility alias for WSGI servers
 app = handler

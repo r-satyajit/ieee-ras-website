@@ -172,6 +172,13 @@
     try {
       localStorage.setItem('ieee_ras_core_members', JSON.stringify(coreMembers));
     } catch (e) {}
+    try {
+      fetch('/api/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(coreMembers)
+      }).catch(() => {});
+    } catch (e) {}
   }
 
   // Pre-seeded Recent GitHub Commits
@@ -220,6 +227,15 @@
   function saveRecentCommits() {
     try {
       localStorage.setItem('ieee_ras_recent_commits', JSON.stringify(recentCommits));
+    } catch (e) {}
+    try {
+      if (recentCommits && recentCommits.length > 0) {
+        fetch('/api/commits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(recentCommits[0])
+        }).catch(() => {});
+      }
     } catch (e) {}
   }
 
@@ -358,6 +374,13 @@
   function saveParticipantAccounts() {
     try {
       localStorage.setItem('ieee_ras_participants', JSON.stringify(participantAccounts));
+    } catch (e) {}
+    try {
+      fetch('/api/participants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(participantAccounts)
+      }).catch(() => {});
     } catch (e) {}
   }
 
@@ -4731,6 +4754,69 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     }
   }
 
+  // Asynchronously synchronize records with serverless Cloud PostgreSQL
+  function syncCloudDatabase() {
+    fetch('/api/members')
+      .then(res => res.ok ? res.json() : null)
+      .then(cloudMems => {
+        if (Array.isArray(cloudMems) && cloudMems.length > 0) {
+          const localMap = new Map(coreMembers.map(m => [(m.email || '').toLowerCase(), m]));
+          let hasChanges = false;
+          cloudMems.forEach(cm => {
+            const emailKey = (cm.email || '').toLowerCase();
+            if (localMap.has(emailKey)) {
+              const local = localMap.get(emailKey);
+              Object.assign(local, cm);
+            } else {
+              coreMembers.push(cm);
+              hasChanges = true;
+            }
+          });
+          try {
+            localStorage.setItem('ieee_ras_core_members', JSON.stringify(coreMembers));
+          } catch (e) {}
+          if (typeof renderMemberRoster === 'function') renderMemberRoster();
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/participants')
+      .then(res => res.ok ? res.json() : null)
+      .then(cloudParts => {
+        if (Array.isArray(cloudParts) && cloudParts.length > 0) {
+          const localMap = new Map(participantAccounts.map(p => [(p.email || '').toLowerCase(), p]));
+          let hasChanges = false;
+          cloudParts.forEach(cp => {
+            const emailKey = (cp.email || '').toLowerCase();
+            if (localMap.has(emailKey)) {
+              const local = localMap.get(emailKey);
+              Object.assign(local, cp);
+            } else {
+              participantAccounts.push(cp);
+              hasChanges = true;
+            }
+          });
+          try {
+            localStorage.setItem('ieee_ras_participants', JSON.stringify(participantAccounts));
+          } catch (e) {}
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/commits')
+      .then(res => res.ok ? res.json() : null)
+      .then(cloudCommits => {
+        if (Array.isArray(cloudCommits) && cloudCommits.length > 0) {
+          recentCommits = cloudCommits;
+          try {
+            localStorage.setItem('ieee_ras_recent_commits', JSON.stringify(recentCommits));
+          } catch (e) {}
+          if (typeof renderRecentCommits === 'function') renderRecentCommits();
+        }
+      })
+      .catch(() => {});
+  }
+
   /* ==========================================================================
      INITIALIZATION
      ========================================================================== */
@@ -4742,6 +4828,7 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     initMemberPortal();
     initParticipantPortal();
     initProfileSettingsSuite();
+    syncCloudDatabase();
 
     // Check hash for direct route testing
     const hash = window.location.hash.replace('#', '');
