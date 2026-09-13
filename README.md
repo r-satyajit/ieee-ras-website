@@ -84,20 +84,29 @@ It provides seamless access across three primary user tiers:
 
 No build step, compilers, or bundlers required. Run immediately with any static file server:
 
-### Option 1: Python (Built-in)
+### Option 1: Node.js (via `package.json`)
+```bash
+cd ieee-ras-website
+npm install
+npm start
+# Or for dev server: npm run dev
+```
+Open [http://localhost:8080](http://localhost:8080) in your browser.
+
+### Option 2: Python (Built-in Standard Library, see `requirements.txt`)
 ```bash
 cd ieee-ras-website
 python -m http.server 8080
 ```
 Open [http://localhost:8080](http://localhost:8080) in your browser.
 
-### Option 2: Node.js / npx
+### Option 3: npx (Zero Install)
 ```bash
 cd ieee-ras-website
-npx serve .
+npx serve . -l 8080
 ```
 
-### Option 3: VS Code Live Server
+### Option 4: VS Code Live Server
 Right-click `index.html` in VS Code and select **"Open with Live Server"**.
 
 ---

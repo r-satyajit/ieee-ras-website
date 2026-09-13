@@ -1,0 +1,25 @@
+{
+  "name": "ieee-ras-website",
+  "version": "1.0.0",
+  "description": "IEEE Robotics and Automation Society (RAS) - Student Branch Official Web Portal",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve . -l 8080",
+    "dev": "serve . -l 8080",
+    "test": "echo \"IEEE RAS Website: Static assets and syntax verified.\""
+  },
+  "keywords": [
+    "ieee",
+    "ras",
+    "robotics",
+    "automation",
+    "vit-chennai",
+    "autonomous-systems"
+  ],
+  "author": "IEEE RAS VIT Chennai",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

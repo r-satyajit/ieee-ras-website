@@ -1,0 +1,9 @@
+# IEEE Robotics & Automation Society (RAS) - Web Platform
+#
+# Core Application Architecture:
+# - Frontend: Vanilla HTML5, CSS3, Modern ES6+ JavaScript
+# - Zero External Runtime Dependencies: No third-party framework overhead
+#
+# Local Serving & Automated Testing:
+# - Uses Python built-in standard library exclusively (http.server, urllib, json, re, os, sys)
+# - No external pip packages required
