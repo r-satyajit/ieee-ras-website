@@ -45,6 +45,9 @@
       role: 'club_lead', // 'club_lead' | 'regular_member'
       roleTitle: 'Lead Architect',
       track: 'Autonomous Systems & ROS2 Navigation',
+      year: '3rd Year',
+      branch: 'B.Tech CSE (Robotics & AI)',
+      bio: 'Lead architect for autonomous robotics. Specializing in ROS2 lifecycle nodes, multi-sensor LiDAR SLAM, and real-time telemetry.',
       github: 'satyajit-r',
       linkedin: 'https://linkedin.com/in/satyajit-r',
       avatarUrl: null
@@ -61,6 +64,9 @@
       role: 'Lead Architect',
       roleType: 'club_lead',
       track: 'Autonomous Robotics & ROS2',
+      year: '3rd Year',
+      branch: 'B.Tech CSE (Robotics & AI)',
+      bio: 'Lead architect for autonomous robotics. Specializing in ROS2 lifecycle nodes, multi-sensor LiDAR SLAM, and real-time telemetry.',
       github: 'satyajit-r',
       linkedin: 'https://linkedin.com/in/satyajit-r',
       status: 'Online'
@@ -73,6 +79,9 @@
       role: 'Subsystem Lead (AI & Vision)',
       roleType: 'club_lead',
       track: 'AI & Computer Vision',
+      year: '3rd Year',
+      branch: 'B.Tech AI & Data Engineering',
+      bio: 'Leading perception R&D for obstacle classification using YOLOv10, depth camera stereo vision, and optical flow tracking.',
       github: 'ananya-sharma',
       linkedin: 'https://linkedin.com/in/ananya-sharma',
       status: 'Online'
@@ -85,6 +94,9 @@
       role: 'Core R&D Engineer',
       roleType: 'regular_member',
       track: 'Mechanical CAD & Bionics',
+      year: '2nd Year',
+      branch: 'B.Tech Mechanical Engineering',
+      bio: 'Focusing on generative CAD modeling in SolidWorks, structural FEA stress analysis, and 4-DOF planetary rover suspension.',
       github: 'kavya-patel',
       linkedin: 'https://linkedin.com/in/kavya-patel',
       status: 'Online'
@@ -97,6 +109,9 @@
       role: 'Junior Researcher',
       roleType: 'regular_member',
       track: 'Autonomous Robotics & ROS2',
+      year: '1st Year',
+      branch: 'B.Tech Electronics & Communication',
+      bio: 'Junior researcher exploring decentralized drone swarm mesh topologies, ESP32 wireless telemetry, and sensor filtering.',
       github: 'aryan-nair',
       linkedin: 'https://linkedin.com/in/aryan-nair',
       status: 'Active'
@@ -109,6 +124,9 @@
       role: 'Core R&D Engineer (Embedded)',
       roleType: 'regular_member',
       track: 'Embedded Systems & Microcontrollers',
+      year: '3rd Year',
+      branch: 'B.Tech Electrical & Electronics',
+      bio: 'Embedded systems developer working on STM32 bare-metal C++, CAN-FD bus communication, brushless motor PID tuning, and BMS.',
       github: 'rohan-verma',
       linkedin: 'https://linkedin.com/in/rohan-verma',
       status: 'Offline'
@@ -120,7 +138,7 @@
     const saved = localStorage.getItem('ieee_ras_core_members');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Ensure all standard test accounts are always present and updated with socials
+      // Ensure all standard test accounts are always present and updated with socials, year, branch, and bio
       const existingEmails = new Set(parsed.map(m => m.email.toLowerCase()));
       defaultMembers.forEach(defM => {
         if (!existingEmails.has(defM.email.toLowerCase())) {
@@ -130,6 +148,9 @@
           if (found) {
             if (!found.github) found.github = defM.github;
             if (!found.linkedin) found.linkedin = defM.linkedin;
+            if (!found.year) found.year = defM.year;
+            if (!found.branch) found.branch = defM.branch;
+            if (!found.bio) found.bio = defM.bio;
           }
         }
       });
@@ -638,6 +659,9 @@
           role: isLead ? 'club_lead' : 'regular_member',
           roleTitle: foundMember.role,
           track: foundMember.track || 'Robotics',
+          year: foundMember.year || '2nd Year',
+          branch: foundMember.branch || 'B.Tech Robotics & AI',
+          bio: foundMember.bio || 'Core research member in IEEE Robotics and Automation Society.',
           github: foundMember.github || foundMember.name.toLowerCase().replace(/\s+/g, '-'),
           linkedin: foundMember.linkedin || '',
           avatarUrl: foundMember.avatarUrl || null
@@ -2232,6 +2256,8 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       if (!rosterBody) return;
 
       const isViewerLead = state.currentUser.role === 'club_lead';
+      const theadEl = document.getElementById('member-roster-thead') || (rosterBody.closest('table') ? rosterBody.closest('table').querySelector('thead') : null);
+      const subtitleEl = document.getElementById('roster-subtitle');
 
       const roleOptions = [
         'Lead Architect',
@@ -2244,29 +2270,42 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         'Executive Officer'
       ];
 
-      rosterBody.innerHTML = coreMembers.map((m) => {
-        const initials = m.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'MB';
-        const isSelfOrLead = m.id === 'mem-1' || m.email.toLowerCase() === state.currentUser.email.toLowerCase();
-        const optionsHtml = roleOptions.map(r => `
-          <option value="${r}" ${m.role === r ? 'selected' : ''}>${r}</option>
-        `).join('');
+      if (isViewerLead) {
+        // EXACT LEAD VERSION - COMPLETELY UNTOUCHED AS REQUESTED
+        if (theadEl) {
+          theadEl.innerHTML = `
+            <tr>
+              <th>Member</th>
+              <th>Assigned Role (Lead Editable)</th>
+              <th>Subsystem Track</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          `;
+        }
+        if (subtitleEl) {
+          subtitleEl.textContent = 'Club Leads can reassign roles or modify subsystem allocations in real time.';
+        }
 
-        const statusClass = (m.status || 'Active') === 'Online' || (m.status || 'Active') === 'Active' ? 'badge-green' : 'badge-blue';
-        const cleanGithub = (m.github || '').replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '').trim();
-        const cleanLinkedin = (m.linkedin || '').trim();
-        const fullLinkedin = cleanLinkedin.startsWith('http') ? cleanLinkedin : `https://linkedin.com/in/${cleanLinkedin.replace(/^@/, '')}`;
+        rosterBody.innerHTML = coreMembers.map((m) => {
+          const initials = m.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'MB';
+          const isSelfOrLead = m.id === 'mem-1' || m.email.toLowerCase() === state.currentUser.email.toLowerCase();
+          const optionsHtml = roleOptions.map(r => `
+            <option value="${r}" ${m.role === r ? 'selected' : ''}>${r}</option>
+          `).join('');
 
-        const avatarHtml = m.avatarUrl 
-          ? `<img src="${m.avatarUrl}" alt="${escapeHtml(m.name)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
-          : `<span>${initials}</span>`;
+          const statusClass = (m.status || 'Active') === 'Online' || (m.status || 'Active') === 'Active' ? 'badge-green' : 'badge-blue';
+          const cleanGithub = (m.github || '').replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '').trim();
+          const cleanLinkedin = (m.linkedin || '').trim();
+          const fullLinkedin = cleanLinkedin.startsWith('http') ? cleanLinkedin : `https://linkedin.com/in/${cleanLinkedin.replace(/^@/, '')}`;
 
-        const roleCellContent = isViewerLead
-          ? `<select class="roster-role-select" data-member-id="${m.id}" title="Change assigned role (Lead action)">${optionsHtml}</select>`
-          : `<span class="badge-pill badge-purple font-mono" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;">${escapeHtml(m.role)}</span>`;
+          const avatarHtml = m.avatarUrl 
+            ? `<img src="${m.avatarUrl}" alt="${escapeHtml(m.name)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
+            : `<span>${initials}</span>`;
 
-        let actionCellContent = '';
-        if (isViewerLead) {
-          actionCellContent = `
+          const roleCellContent = `<select class="roster-role-select" data-member-id="${m.id}" title="Change assigned role (Lead action)">${optionsHtml}</select>`;
+
+          const actionCellContent = `
             <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
               <button type="button" class="btn btn-secondary chamfer-btn btn-view-member-profile" data-view-member-id="${m.id}" style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-color: var(--accent-primary); color: var(--accent-primary);" title="View full profile of ${escapeHtml(m.name)}">
                 👁️ View Info
@@ -2280,48 +2319,149 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
               `}
             </div>
           `;
-        } else {
-          actionCellContent = `
-            <button type="button" class="btn btn-secondary chamfer-btn btn-view-member-profile" data-view-member-id="${m.id}" style="padding: 0.25rem 0.85rem; font-size: 0.75rem; border-color: var(--accent-primary); color: var(--accent-primary); display: inline-flex; align-items: center; gap: 4px;" title="View ${escapeHtml(m.name)} info">
-              👁️ View Info
-            </button>
+
+          return `
+            <tr data-member-id="${m.id}">
+              <td>
+                <div class="roster-member-cell">
+                  <div class="roster-avatar font-mono" style="cursor: pointer; width: 38px; height: 38px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--accent-primary); background: #0077b6; color: #fff; flex-shrink: 0;" data-view-member-id="${m.id}" title="Click to view info of ${escapeHtml(m.name)}">
+                    ${avatarHtml}
+                  </div>
+                  <div class="roster-info">
+                    <div class="roster-name" style="cursor: pointer;" data-view-member-id="${m.id}" title="Click to view info of ${escapeHtml(m.name)}">
+                      ${escapeHtml(m.name)} ${isSelfOrLead ? '<span class="badge-pill badge-purple" style="font-size: 0.62rem; padding: 0.1rem 0.35rem; margin-left: 4px;">YOU / LEAD</span>' : ''}
+                    </div>
+                    <div class="roster-email font-mono" style="cursor: pointer;" data-view-member-id="${m.id}" title="Click to view info of ${escapeHtml(m.name)}">${escapeHtml(m.email)} • ID: ${m.id}</div>
+                    <div class="roster-socials-row" style="display: flex; gap: 0.35rem; margin-top: 0.25rem; flex-wrap: wrap;">
+                      ${cleanGithub ? `<a href="https://github.com/${escapeHtml(cleanGithub)}" target="_blank" class="badge-pill font-mono" style="font-size: 0.62rem; color: #00B4D8; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;" title="GitHub: @${escapeHtml(cleanGithub)}"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>@${escapeHtml(cleanGithub)}</a>` : ''}
+                      ${cleanLinkedin ? `<a href="${escapeHtml(fullLinkedin)}" target="_blank" class="badge-pill font-mono" style="font-size: 0.62rem; color: #0077B5; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;" title="LinkedIn: ${escapeHtml(cleanLinkedin)}"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>LinkedIn</a>` : ''}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                ${roleCellContent}
+              </td>
+              <td>
+                <span class="roster-track font-mono">${escapeHtml(m.track || 'Autonomous Systems')}</span>
+              </td>
+              <td>
+                <span class="badge-pill ${statusClass}" style="font-size: 0.7rem;">${escapeHtml(m.status || 'Active')}</span>
+              </td>
+              <td>
+                ${actionCellContent}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        // READ-ONLY MEMBER DIRECTORY FOR REGULAR MEMBERS
+        if (theadEl) {
+          theadEl.innerHTML = `
+            <tr>
+              <th>Team Member</th>
+              <th>Role Assigned</th>
+              <th>Year of Study &amp; Branch</th>
+              <th>Biography &amp; Focus</th>
+              <th>Profiles &amp; Code</th>
+              <th>Details</th>
+            </tr>
           `;
         }
+        if (subtitleEl) {
+          subtitleEl.textContent = 'Chapter Member Directory — Read-only registry of society members, academic credentials, and project tracks.';
+        }
 
-        return `
-          <tr data-member-id="${m.id}">
-            <td>
-              <div class="roster-member-cell">
-                <div class="roster-avatar font-mono" style="cursor: pointer; width: 38px; height: 38px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--accent-primary); background: #0077b6; color: #fff; flex-shrink: 0;" data-view-member-id="${m.id}" title="Click to view info of ${escapeHtml(m.name)}">
-                  ${avatarHtml}
-                </div>
-                <div class="roster-info">
-                  <div class="roster-name" style="cursor: pointer;" data-view-member-id="${m.id}" title="Click to view info of ${escapeHtml(m.name)}">
-                    ${escapeHtml(m.name)} ${isSelfOrLead ? '<span class="badge-pill badge-purple" style="font-size: 0.62rem; padding: 0.1rem 0.35rem; margin-left: 4px;">YOU / LEAD</span>' : ''}
+        rosterBody.innerHTML = coreMembers.map((m) => {
+          const initials = m.name.split(' ').map(n => n[0]).filter(Boolean).join('').substring(0, 2).toUpperCase() || 'MB';
+          const isSelf = m.email.toLowerCase() === state.currentUser.email.toLowerCase();
+          const statusClass = (m.status || 'Active') === 'Online' || (m.status || 'Active') === 'Active' ? 'badge-green' : 'badge-blue';
+          const cleanGithub = (m.github || '').replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '').trim();
+          const cleanLinkedin = (m.linkedin || '').trim();
+          const fullLinkedin = cleanLinkedin.startsWith('http') ? cleanLinkedin : `https://linkedin.com/in/${cleanLinkedin.replace(/^@/, '')}`;
+
+          const avatarHtml = m.avatarUrl 
+            ? `<img src="${m.avatarUrl}" alt="${escapeHtml(m.name)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
+            : `<span>${initials}</span>`;
+
+          const yearVal = m.year || '2nd Year';
+          const branchVal = m.branch || 'B.Tech Engineering';
+          const bioVal = m.bio || 'Core research member in IEEE Robotics and Automation Society.';
+
+          return `
+            <tr data-member-id="${m.id}" title="Click row to inspect ${escapeHtml(m.name)}'s complete society profile">
+              <td>
+                <div class="roster-member-cell">
+                  <div class="roster-avatar font-mono" style="cursor: pointer; width: 42px; height: 42px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--accent-primary); background: #0077b6; color: #fff; flex-shrink: 0;" data-view-member-id="${m.id}">
+                    ${avatarHtml}
                   </div>
-                  <div class="roster-email font-mono" style="cursor: pointer;" data-view-member-id="${m.id}" title="Click to view info of ${escapeHtml(m.name)}">${escapeHtml(m.email)} • ID: ${m.id}</div>
-                  <div class="roster-socials-row" style="display: flex; gap: 0.35rem; margin-top: 0.25rem; flex-wrap: wrap;">
-                    ${cleanGithub ? `<a href="https://github.com/${escapeHtml(cleanGithub)}" target="_blank" class="badge-pill font-mono" style="font-size: 0.62rem; color: #00B4D8; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;" title="GitHub: @${escapeHtml(cleanGithub)}"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>@${escapeHtml(cleanGithub)}</a>` : ''}
-                    ${cleanLinkedin ? `<a href="${escapeHtml(fullLinkedin)}" target="_blank" class="badge-pill font-mono" style="font-size: 0.62rem; color: #0077B5; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;" title="LinkedIn: ${escapeHtml(cleanLinkedin)}"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>LinkedIn</a>` : ''}
+                  <div class="roster-info">
+                    <div class="roster-name" style="cursor: pointer; font-weight: 700;" data-view-member-id="${m.id}">
+                      ${escapeHtml(m.name)} ${isSelf ? '<span class="badge-pill badge-green" style="font-size: 0.62rem; padding: 0.1rem 0.35rem; margin-left: 4px;">YOU</span>' : ''}
+                    </div>
+                    <div class="roster-email font-mono" style="cursor: pointer; font-size: 0.74rem; color: var(--text-muted);" data-view-member-id="${m.id}">
+                      ${escapeHtml(m.email)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </td>
-            <td>
-              ${roleCellContent}
-            </td>
-            <td>
-              <span class="roster-track font-mono">${escapeHtml(m.track || 'Autonomous Systems')}</span>
-            </td>
-            <td>
-              <span class="badge-pill ${statusClass}" style="font-size: 0.7rem;">${escapeHtml(m.status || 'Active')}</span>
-            </td>
-            <td>
-              ${actionCellContent}
-            </td>
-          </tr>
-        `;
-      }).join('');
+              </td>
+              <td>
+                <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                  <span class="badge-pill badge-purple font-mono" style="font-size: 0.74rem; padding: 0.25rem 0.65rem; font-weight: 600;">
+                    ${escapeHtml(m.role)}
+                  </span>
+                  <span class="badge-pill ${statusClass}" style="font-size: 0.64rem;">
+                    ● ${escapeHtml(m.status || 'Active')}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-weight: 600; font-size: 0.82rem; color: var(--text-primary); display: flex; align-items: center; gap: 5px;">
+                    <span>🎓</span> <span>${escapeHtml(yearVal)}</span>
+                  </div>
+                  <div style="font-size: 0.74rem; color: var(--text-secondary);">
+                    ${escapeHtml(branchVal)}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div style="max-width: 270px;">
+                  <div style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="${escapeHtml(bioVal)}">
+                    ${escapeHtml(bioVal)}
+                  </div>
+                  <div style="margin-top: 4px;">
+                    <span class="badge-pill font-mono" style="font-size: 0.65rem; color: var(--accent-blue); background: rgba(0, 119, 182, 0.1); border: 1px solid rgba(0, 119, 182, 0.25); display: inline-block;">
+                      ${escapeHtml(m.track || 'Robotics')}
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div style="display: flex; flex-direction: column; gap: 0.35rem; align-items: flex-start;">
+                  ${cleanLinkedin ? `
+                    <a href="${escapeHtml(fullLinkedin)}" target="_blank" class="badge-pill font-mono" style="font-size: 0.68rem; color: #0077B5; background: rgba(0, 119, 181, 0.1); border: 1px solid rgba(0, 119, 181, 0.3); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; padding: 0.2rem 0.55rem;" title="LinkedIn: ${escapeHtml(cleanLinkedin)}">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                      LinkedIn ↗
+                    </a>
+                  ` : `<span style="font-size: 0.68rem; color: var(--text-muted);">No LinkedIn</span>`}
+                  ${cleanGithub ? `
+                    <a href="https://github.com/${escapeHtml(cleanGithub)}" target="_blank" class="badge-pill font-mono" style="font-size: 0.68rem; color: #00B4D8; background: rgba(0, 180, 216, 0.1); border: 1px solid rgba(0, 180, 216, 0.3); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; padding: 0.2rem 0.55rem;" title="GitHub: @${escapeHtml(cleanGithub)}">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                      @${escapeHtml(cleanGithub)} ↗
+                    </a>
+                  ` : `<span style="font-size: 0.68rem; color: var(--text-muted);">No GitHub</span>`}
+                </div>
+              </td>
+              <td>
+                <button type="button" class="btn btn-secondary chamfer-btn btn-view-member-profile" data-view-member-id="${m.id}" style="padding: 0.3rem 0.85rem; font-size: 0.75rem; border-color: var(--accent-primary); color: var(--accent-primary); display: inline-flex; align-items: center; gap: 4px;" title="View ${escapeHtml(m.name)} info">
+                  👁️ View Profile
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
 
       // Wire view profile click listeners on table elements
       rosterBody.querySelectorAll('[data-view-member-id]').forEach(el => {
@@ -2415,6 +2555,9 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
           role,
           roleType,
           track,
+          year: '2nd Year',
+          branch: 'B.Tech Robotics & Automation',
+          bio: `Core research member specializing in ${track} within IEEE Robotics and Automation Society.`,
           github: name.toLowerCase().replace(/\s+/g, '-'),
           linkedin: 'https://linkedin.com/in/' + name.toLowerCase().replace(/\s+/g, '-'),
           status: 'Active'
@@ -2509,6 +2652,14 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       // Role & Track
       if (roleEl) roleEl.textContent = member.role;
       if (trackEl) trackEl.textContent = member.track || 'Robotics & Automation Track';
+
+      // Academic Info & Bio
+      const yearEl = document.getElementById('member-pub-year-val');
+      const branchEl = document.getElementById('member-pub-branch');
+      const bioEl = document.getElementById('member-pub-bio');
+      if (yearEl) yearEl.textContent = member.year || '2nd Year';
+      if (branchEl) branchEl.textContent = member.branch || 'B.Tech Engineering';
+      if (bioEl) bioEl.textContent = member.bio || 'Core research member in IEEE Robotics and Automation Society.';
 
       // Avatar
       if (avatarEl) {
@@ -4050,6 +4201,9 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       const inputEmail = document.getElementById('profile-email-display');
       const inputRole = document.getElementById('profile-role-display');
       const inputTrack = document.getElementById('profile-track-input');
+      const inputYear = document.getElementById('profile-year-input');
+      const inputBranch = document.getElementById('profile-branch-input');
+      const inputBio = document.getElementById('profile-bio-input');
       const badgeRole = document.getElementById('profile-role-badge');
       const inputGithub = document.getElementById('profile-github-input');
       const inputLinkedin = document.getElementById('profile-linkedin-input');
@@ -4061,6 +4215,9 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       if (inputName) inputName.value = u.name || '';
       if (inputEmail) inputEmail.value = u.email || '';
       if (inputTrack) inputTrack.value = u.track || '';
+      if (inputYear) inputYear.value = u.year || '';
+      if (inputBranch) inputBranch.value = u.branch || '';
+      if (inputBio) inputBio.value = u.bio || '';
       if (inputGithub) inputGithub.value = u.github || '';
       if (inputLinkedin) inputLinkedin.value = u.linkedin || '';
       if (profileCommitMsgInput) profileCommitMsgInput.value = '';
@@ -4236,6 +4393,9 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     const formSaveDetails = document.getElementById('form-save-profile-details');
     const inputName = document.getElementById('profile-fullname-input');
     const inputTrack = document.getElementById('profile-track-input');
+    const inputYear = document.getElementById('profile-year-input');
+    const inputBranch = document.getElementById('profile-branch-input');
+    const inputBio = document.getElementById('profile-bio-input');
     const inputGithub = document.getElementById('profile-github-input');
     const inputLinkedin = document.getElementById('profile-linkedin-input');
     const detailsAlert = document.getElementById('profile-details-alert');
@@ -4247,6 +4407,9 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         const newTrack = (inputTrack ? inputTrack.value : '').trim();
         const newGithub = (inputGithub ? inputGithub.value : '').trim();
         const newLinkedin = (inputLinkedin ? inputLinkedin.value : '').trim();
+        const newYear = (inputYear ? inputYear.value : '').trim();
+        const newBranch = (inputBranch ? inputBranch.value : '').trim();
+        const newBio = (inputBio ? inputBio.value : '').trim();
 
         if (!newName) {
           if (detailsAlert) {
@@ -4262,6 +4425,9 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         state.currentUser.track = newTrack;
         state.currentUser.github = newGithub;
         state.currentUser.linkedin = newLinkedin;
+        if (newYear) state.currentUser.year = newYear;
+        if (newBranch) state.currentUser.branch = newBranch;
+        if (newBio) state.currentUser.bio = newBio;
 
         if (state.currentUser.role === 'participant') {
           const part = participantAccounts.find(p => 
@@ -4273,6 +4439,9 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
             part.track = newTrack;
             part.github = newGithub;
             part.linkedin = newLinkedin;
+            if (newYear) part.year = newYear;
+            if (newBranch) part.branch = newBranch;
+            if (newBio) part.bio = newBio;
           }
           saveParticipantAccounts();
         } else {
@@ -4282,8 +4451,12 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
             mem.track = newTrack;
             mem.github = newGithub;
             mem.linkedin = newLinkedin;
+            if (newYear) mem.year = newYear;
+            if (newBranch) mem.branch = newBranch;
+            if (newBio) mem.bio = newBio;
           }
           saveCoreMembers();
+          renderMemberRoster();
           if (window.renderMembersTable) window.renderMembersTable();
         }
 

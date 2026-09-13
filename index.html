@@ -1465,7 +1465,7 @@
               <div class="roster-header-row">
                 <div>
                   <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin: 0;">Active Society Roster (<span id="roster-count">3</span>)</h3>
-                  <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0.2rem 0 0;">Club Leads can reassign roles or modify subsystem allocations in real time.</p>
+                  <p id="roster-subtitle" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0.2rem 0 0;">Club Leads can reassign roles or modify subsystem allocations in real time.</p>
                 </div>
                 <div class="font-mono" style="font-size: 0.76rem; color: var(--accent-primary);">
                   SYNCED WITH SECURE STORE
@@ -1474,7 +1474,7 @@
 
               <div class="roster-table-responsive">
                 <table class="roster-table" id="member-roster-table">
-                  <thead>
+                  <thead id="member-roster-thead">
                     <tr>
                       <th>Member</th>
                       <th>Assigned Role (Lead Editable)</th>
@@ -2212,9 +2212,36 @@
               </small>
             </div>
 
-            <!-- Track / Bio / Specialization -->
+            <!-- Academic Credentials: Year of Study & Branch -->
+            <div class="form-row-2col">
+              <div class="form-field-group">
+                <label for="profile-year-input" class="register-field-label">Year of Study</label>
+                <div class="input-with-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                  <input type="text" id="profile-year-input" class="register-input" placeholder="e.g. 3rd Year" />
+                </div>
+              </div>
+              <div class="form-field-group">
+                <label for="profile-branch-input" class="register-field-label">Academic Branch</label>
+                <div class="input-with-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                  <input type="text" id="profile-branch-input" class="register-input" placeholder="e.g. B.Tech CSE (Robotics & AI)" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Member Bio & Research Focus -->
             <div class="form-field-group">
-              <label for="profile-track-input" class="register-field-label">Specialization Track &amp; Bio</label>
+              <label for="profile-bio-input" class="register-field-label">Member Biography</label>
+              <div class="input-with-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <input type="text" id="profile-bio-input" class="register-input" placeholder="Brief bio describing technical achievements and projects" />
+              </div>
+            </div>
+
+            <!-- Track / Subsystem Specialization -->
+            <div class="form-field-group">
+              <label for="profile-track-input" class="register-field-label">Specialization Track &amp; Subsystem Focus</label>
               <div class="input-with-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                 <input type="text" id="profile-track-input" class="register-input" placeholder="e.g. Autonomous Systems, ROS2, SLAM Navigation" />
@@ -2461,6 +2488,32 @@
         <!-- Information Cards Grid -->
         <div style="display: flex; flex-direction: column; gap: 0.9rem;">
           
+          <!-- Academic Info: Year of Study & Branch -->
+          <div class="form-row-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+            <div style="padding: 0.85rem 1rem; background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: 8px;">
+              <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem;">Year of Study</div>
+              <div id="member-pub-year" style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 5px;">
+                <span>🎓</span> <span id="member-pub-year-val">3rd Year</span>
+              </div>
+            </div>
+            <div style="padding: 0.85rem 1rem; background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: 8px;">
+              <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem;">Academic Branch / Department</div>
+              <div id="member-pub-branch" style="font-size: 0.88rem; font-weight: 600; color: var(--accent-blue); word-break: break-word;">
+                B.Tech CSE (Robotics &amp; AI)
+              </div>
+            </div>
+          </div>
+
+          <!-- Biography & Engineering Focus -->
+          <div style="padding: 0.9rem 1.1rem; background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: 8px;">
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 4px;">
+              <span>📝</span> Member Biography &amp; Focus
+            </div>
+            <p id="member-pub-bio" style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+              Lead architect for autonomous robotics. Specializing in ROS2 lifecycle nodes, multi-sensor LiDAR SLAM, and real-time telemetry.
+            </p>
+          </div>
+
           <!-- Contact: Mail ID -->
           <div style="padding: 0.9rem 1.1rem; background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
