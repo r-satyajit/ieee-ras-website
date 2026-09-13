@@ -1052,11 +1052,6 @@
       } else if (viewId === 'resources' && viewResources) {
         viewResources.classList.add('active-view');
       } else if (viewId === 'members' && viewMembers) {
-        if (state.currentUser.role !== 'club_lead') {
-          if (viewChat) viewChat.classList.add('active-view');
-          showGlobalToast('Access Restricted: Member Directory is reserved for Club Leads.', '🔒');
-          return;
-        }
         viewMembers.classList.add('active-view');
         renderMemberRoster();
       } else if (viewChat) {
@@ -1072,12 +1067,6 @@
       item.addEventListener('click', (e) => {
         e.preventDefault();
         const targetView = item.dataset.workspaceView;
-
-        // Strict RBAC Verification: ONLY CLUB LEADS CAN ACCESS MEMBER ROSTER & ROLE PROVISIONING
-        if (targetView === 'members' && state.currentUser.role !== 'club_lead') {
-          openRbacWarning('members');
-          return;
-        }
 
         // Clear channel selection highlight
         channelItems.forEach(ch => ch.classList.remove('active'));
@@ -1101,20 +1090,16 @@
       });
     });
 
-    // Optional Quick Action Button in Chat Header to manage members
+    // Quick Action Button in Chat Header to view/manage members
     const btnQuickManageMembers = document.getElementById('btn-quick-manage-members');
     if (btnQuickManageMembers) {
       btnQuickManageMembers.addEventListener('click', (e) => {
         e.preventDefault();
-        if (state.currentUser.role !== 'club_lead') {
-          openRbacWarning('members');
-        } else {
-          channelItems.forEach(ch => ch.classList.remove('active'));
-          workspaceItems.forEach(wi => wi.classList.remove('active'));
-          const membersNav = document.getElementById('nav-workspace-members');
-          if (membersNav) membersNav.classList.add('active');
-          switchWorkspaceView('members');
-        }
+        channelItems.forEach(ch => ch.classList.remove('active'));
+        workspaceItems.forEach(wi => wi.classList.remove('active'));
+        const membersNav = document.getElementById('nav-workspace-members');
+        if (membersNav) membersNav.classList.add('active');
+        switchWorkspaceView('members');
       });
     }
 
