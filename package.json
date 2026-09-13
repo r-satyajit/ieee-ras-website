@@ -4,6 +4,7 @@
   "description": "IEEE Robotics and Automation Society (RAS) - Student Branch Official Web Portal",
   "main": "index.html",
   "scripts": {
+    "build": "node scripts/build-config.js",
     "start": "serve . -l 8080",
     "dev": "serve . -l 8080",
     "test": "echo \"IEEE RAS Website: Static assets and syntax verified.\""
