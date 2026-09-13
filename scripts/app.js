@@ -7,6 +7,12 @@
 (function () {
   'use strict';
 
+  // Environment Configuration Loader
+  const ENV = window.__ENV__ || {};
+  function getEnv(key, fallback = '') {
+    return (typeof ENV[key] !== 'undefined' && ENV[key] !== null && ENV[key] !== '') ? ENV[key] : fallback;
+  }
+
   // State Management
   const state = {
     theme: localStorage.getItem('ieee_ras_theme') || 'dark',
@@ -22,8 +28,8 @@
         name: 'Hardware Standup • Core Robotics Sprint',
         channel: 'hardware-troubleshooting',
         quality: '1080p60',
-        hostEmail: 'satyajit.r2024@vitstudent.ac.in',
-        hostName: 'Satyajit R',
+        hostEmail: getEnv('LEAD_EMAIL', 'lead@vitstudent.ac.in'),
+        hostName: getEnv('LEAD_NAME', 'Chapter Lead'),
         hostRole: 'Lead Architect',
         isLive: true,
         isLocked: false,
@@ -31,7 +37,7 @@
         allowShare: true,
         autoRecord: true,
         attendees: [
-          { id: 'self', name: 'Satyajit R', email: 'satyajit.r2024@vitstudent.ac.in', role: 'Lead Architect', isHost: true, isLead: true, isSelf: true, isMuted: false },
+          { id: 'self', name: getEnv('LEAD_NAME', 'Chapter Lead'), email: getEnv('LEAD_EMAIL', 'lead@vitstudent.ac.in'), role: 'Lead Architect', isHost: true, isLead: true, isSelf: true, isMuted: false },
           { id: 'att-1', name: 'Ananya Sharma', email: 'ananya.s2024@vitstudent.ac.in', role: 'Hardware Lead', isHost: false, isLead: true, isSelf: false, isMuted: false },
           { id: 'att-2', name: 'Rohan Verma', email: 'rohan.v2024@vitstudent.ac.in', role: 'Firmware Dev', isHost: false, isLead: false, isSelf: false, isMuted: true },
           { id: 'att-3', name: 'Kavya Patel', email: 'kavya.p2024@vitstudent.ac.in', role: 'Computer Vision', isHost: false, isLead: false, isSelf: false, isMuted: true }
@@ -40,16 +46,16 @@
     ],
     currentMeeting: null,
     currentUser: {
-      name: 'Satyajit R',
-      email: 'satyajit.r2024@vitstudent.ac.in',
+      name: getEnv('LEAD_NAME', 'Chapter Lead'),
+      email: getEnv('LEAD_EMAIL', 'lead@vitstudent.ac.in'),
       role: 'club_lead', // 'club_lead' | 'regular_member'
       roleTitle: 'Lead Architect',
       track: 'Autonomous Systems & ROS2 Navigation',
       year: '3rd Year',
       branch: 'B.Tech CSE (Robotics & AI)',
       bio: 'Lead architect for autonomous robotics. Specializing in ROS2 lifecycle nodes, multi-sensor LiDAR SLAM, and real-time telemetry.',
-      github: 'satyajit-r',
-      linkedin: 'https://linkedin.com/in/satyajit-r',
+      github: getEnv('LEAD_GITHUB_USER', 'lead'),
+      linkedin: getEnv('LEAD_LINKEDIN_URL', 'https://linkedin.com'),
       avatarUrl: null
     }
   };
@@ -58,24 +64,24 @@
   const defaultMembers = [
     {
       id: 'mem-1',
-      name: 'Satyajit R',
-      email: 'satyajit.r2024@vitstudent.ac.in',
-      password: 'lead123',
+      name: getEnv('LEAD_NAME', 'Chapter Lead'),
+      email: getEnv('LEAD_EMAIL', 'lead@vitstudent.ac.in'),
+      password: getEnv('DEFAULT_LEAD_PASSWORD', ''),
       role: 'Lead Architect',
       roleType: 'club_lead',
       track: 'Autonomous Robotics & ROS2',
       year: '3rd Year',
       branch: 'B.Tech CSE (Robotics & AI)',
       bio: 'Lead architect for autonomous robotics. Specializing in ROS2 lifecycle nodes, multi-sensor LiDAR SLAM, and real-time telemetry.',
-      github: 'satyajit-r',
-      linkedin: 'https://linkedin.com/in/satyajit-r',
+      github: getEnv('LEAD_GITHUB_USER', 'lead'),
+      linkedin: getEnv('LEAD_LINKEDIN_URL', 'https://linkedin.com'),
       status: 'Online'
     },
     {
       id: 'mem-2',
       name: 'Ananya Sharma',
       email: 'ananya.s2024@vitstudent.ac.in',
-      password: 'lead123',
+      password: getEnv('DEFAULT_LEAD_PASSWORD', ''),
       role: 'Subsystem Lead (AI & Vision)',
       roleType: 'club_lead',
       track: 'AI & Computer Vision',
@@ -90,7 +96,7 @@
       id: 'mem-3',
       name: 'Kavya Patel',
       email: 'kavya.p2024@vitstudent.ac.in',
-      password: 'member123',
+      password: getEnv('DEFAULT_MEMBER_PASSWORD', ''),
       role: 'Core R&D Engineer',
       roleType: 'regular_member',
       track: 'Mechanical CAD & Bionics',
@@ -105,7 +111,7 @@
       id: 'mem-4',
       name: 'Aryan Nair',
       email: 'aryan.n2024@vitstudent.ac.in',
-      password: 'member123',
+      password: getEnv('DEFAULT_MEMBER_PASSWORD', ''),
       role: 'Junior Researcher',
       roleType: 'regular_member',
       track: 'Autonomous Robotics & ROS2',
@@ -120,7 +126,7 @@
       id: 'mem-5',
       name: 'Rohan Verma',
       email: 'rohan.v2024@vitstudent.ac.in',
-      password: 'member123',
+      password: getEnv('DEFAULT_MEMBER_PASSWORD', ''),
       role: 'Core R&D Engineer (Embedded)',
       roleType: 'regular_member',
       track: 'Embedded Systems & Microcontrollers',
@@ -306,7 +312,7 @@
       name: 'Alex Chen',
       email: 'alex.chen2024@gmail.com',
       regNo: '24BCE1001',
-      password: 'participant123',
+      password: getEnv('DEFAULT_PARTICIPANT_PASSWORD', ''),
       roleTitle: 'Event Participant',
       track: 'RoboHack 2026: Autonomous Rover Challenge'
     },
@@ -315,7 +321,7 @@
       name: 'Priya Sundaram',
       email: 'priya.sundaram@vitstudent.ac.in',
       regNo: '24BCE1042',
-      password: 'participant123',
+      password: getEnv('DEFAULT_PARTICIPANT_PASSWORD', ''),
       roleTitle: 'Event Participant',
       track: 'DroneSwarm Grand Prix'
     },
@@ -324,7 +330,7 @@
       name: 'Tanmay Joshi',
       email: 'tanmay.j2024@vitstudent.ac.in',
       regNo: '24BME1088',
-      password: 'participant123',
+      password: getEnv('DEFAULT_PARTICIPANT_PASSWORD', ''),
       roleTitle: 'Event Participant',
       track: 'Underwater Robotics Symposium'
     }
@@ -609,8 +615,10 @@
 
           // Password validation
           if (m.password === pass) return true;
-          if (m.roleType === 'club_lead' && (pass === 'lead' || pass === 'lead123' || pass === 'admin')) return true;
-          if (m.roleType === 'regular_member' && (pass === 'member' || pass === 'member123' || pass === 'pass123')) return true;
+          const configuredLeadPass = getEnv('DEFAULT_LEAD_PASSWORD', '');
+          const configuredMemberPass = getEnv('DEFAULT_MEMBER_PASSWORD', '');
+          if (m.roleType === 'club_lead' && configuredLeadPass && pass === configuredLeadPass) return true;
+          if (m.roleType === 'regular_member' && configuredMemberPass && pass === configuredMemberPass) return true;
           return false;
         });
 
@@ -726,7 +734,7 @@
             name: 'Alex Chen',
             email: 'alex.chen2024@gmail.com',
             regNo: '24BCE1001',
-            password: 'participant123',
+            password: getEnv('DEFAULT_PARTICIPANT_PASSWORD', ''),
             roleTitle: 'Event Participant (Google SSO)',
             track: 'RoboHack 2026: Autonomous Rover Challenge'
           };
@@ -4522,7 +4530,8 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
             (p.email || '').toLowerCase() === state.currentUser.email.toLowerCase() ||
             (p.regNo && p.regNo.toLowerCase() === state.currentUser.email.toLowerCase())
           );
-          if (part && (part.password === oldPass || (!part.password && oldPass === 'participant123'))) {
+          const configuredPartPass = getEnv('DEFAULT_PARTICIPANT_PASSWORD', '');
+          if (part && (part.password === oldPass || (!part.password && configuredPartPass && oldPass === configuredPartPass))) {
             isVerified = true;
             part.password = newPass;
             saveParticipantAccounts();
@@ -4530,9 +4539,11 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         } else {
           const mem = coreMembers.find(m => m.email.toLowerCase() === state.currentUser.email.toLowerCase());
           if (mem) {
+            const configuredLeadPass = getEnv('DEFAULT_LEAD_PASSWORD', '');
+            const configuredMemberPass = getEnv('DEFAULT_MEMBER_PASSWORD', '');
             const directMatch = mem.password === oldPass;
-            const leadFallback = mem.roleType === 'club_lead' && (oldPass === 'lead' || oldPass === 'lead123' || oldPass === 'admin');
-            const memberFallback = mem.roleType === 'regular_member' && (oldPass === 'member' || oldPass === 'member123');
+            const leadFallback = mem.roleType === 'club_lead' && configuredLeadPass && oldPass === configuredLeadPass;
+            const memberFallback = mem.roleType === 'regular_member' && configuredMemberPass && oldPass === configuredMemberPass;
             if (directMatch || leadFallback || memberFallback) {
               isVerified = true;
               mem.password = newPass;
@@ -4698,10 +4709,33 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     return div.innerHTML;
   }
 
+  // Bind dynamic environment configuration to DOM elements
+  function bindEnvironmentConfig() {
+    // Leadership GitHub link on landing page
+    const leadGithubLink = document.getElementById('lead-social-github');
+    if (leadGithubLink) {
+      leadGithubLink.href = getEnv('LEAD_GITHUB_URL', 'https://github.com');
+    }
+
+    // Repository link in footer
+    const footerRepoLink = document.getElementById('footer-repo-link');
+    if (footerRepoLink) {
+      footerRepoLink.href = getEnv('GITHUB_REPO_URL', 'https://github.com');
+    }
+
+    // Hackathon team leader input
+    const hackathonLeadDisplay = document.getElementById('hackathon-lead-display');
+    if (hackathonLeadDisplay) {
+      const leaderName = state.currentUser ? `${state.currentUser.name} (${state.currentUser.email})` : `${getEnv('LEAD_NAME', 'Chapter Lead')} (${getEnv('LEAD_EMAIL', 'lead@vitstudent.ac.in')})`;
+      hackathonLeadDisplay.value = leaderName;
+    }
+  }
+
   /* ==========================================================================
      INITIALIZATION
      ========================================================================== */
   document.addEventListener('DOMContentLoaded', () => {
+    bindEnvironmentConfig();
     applyTheme(state.theme);
     initRoboticsCanvas();
     initAuthGateway();
@@ -4727,6 +4761,8 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
     closeAuthModal,
     toggleTheme,
     state,
+    getEnv,
+    bindEnvironmentConfig,
     getCoreMembers: () => coreMembers,
     getParticipants: () => participantAccounts,
     saveCoreMembers,

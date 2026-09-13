@@ -141,9 +141,47 @@ This project is fully static and ready for instant deployment on any modern clou
 | User Role | Credentials / Onboarding | Access Permissions |
 | :--- | :--- | :--- |
 | **Public Visitor** | None required | Public landing page, project telemetry demos, certificate verification, and event registration. |
-| **Club Lead** | Provisioned VIT email (`lead123`) | Full access to internal channels, conference host controls, universal meeting admin rights, core member provisioning, and role reassignment. |
-| **Regular Member** | Provisioned VIT email (`member123`) | Channel access, video meetings (host admin in created calls), read-only Member Directory with academic credentials, code pushes, and profile settings. |
+| **Club Lead** | Provisioned email & passcode (Configured in `.env` / `scripts/config.js`) | Full access to internal channels, conference host controls, universal meeting admin rights, core member provisioning, and role reassignment. |
+| **Regular Member** | Provisioned email & passcode (Configured in `.env` / `scripts/config.js`) | Channel access, video meetings (host admin in created calls), read-only Member Directory with academic credentials, code pushes, and profile settings. |
 | **Event Participant** | Registered via portal or Google OAuth | Hackathon workspace, project submission, milestone tracker, and certificate generation. |
+
+---
+
+## 🔐 Environment Variables & Secrets Configuration
+
+All sensitive parameters, access passcodes, API keys, and repository URLs are managed through environment variables to ensure secrets are **never** committed to Git:
+
+### Setup Instructions
+
+1. **Client Runtime Configuration (`scripts/config.js`)**:
+   - Copy the template file:
+     ```bash
+     cp scripts/config.example.js scripts/config.js
+     ```
+   - Customize your credentials and links inside `scripts/config.js`:
+     ```javascript
+     window.__ENV__ = {
+       DEFAULT_LEAD_PASSWORD: "your_secure_lead_password",
+       DEFAULT_MEMBER_PASSWORD: "your_secure_member_password",
+       DEFAULT_PARTICIPANT_PASSWORD: "your_secure_participant_password",
+       LEAD_NAME: "Chapter Lead",
+       LEAD_EMAIL: "lead@vitstudent.ac.in",
+       LEAD_GITHUB_USER: "ieee-ras-lead",
+       LEAD_GITHUB_URL: "https://github.com/ieee-ras-vit",
+       LEAD_LINKEDIN_URL: "https://linkedin.com/company/ieee-ras-vit",
+       GITHUB_REPO_URL: "https://github.com/ieee-ras-vit/ieee-ras-website",
+       GEMINI_API_KEY: "",
+       WEBRTC_SIGNALING_URL: "https://meet.ieee-ras.org"
+     };
+     ```
+   - `scripts/config.js` is included in `.gitignore` and will never be tracked or uploaded to GitHub.
+
+2. **Server / Cloud Environment Configuration (`.env`)**:
+   - For containerized deployments, serverless runners, or CI/CD pipelines, copy `.env.example` to `.env`:
+     ```bash
+     cp .env.example .env
+     ```
+   - All `.env` and `.env.*.local` files are strictly protected by `.gitignore`.
 
 ---
 
@@ -156,3 +194,4 @@ Distributed under the **MIT License**. See `LICENSE` for more information.
 **IEEE Robotics and Automation Society (RAS)**  
 Vellore Institute of Technology (VIT), Chennai  
 *Advancing Innovation in Robotics, Autonomous Systems, and Artificial Intelligence.*
+
