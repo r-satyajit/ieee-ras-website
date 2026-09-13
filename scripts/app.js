@@ -587,33 +587,6 @@
       });
     });
 
-    // Core Member: Auto-Fill Lead Demo Credentials Button
-    const btnQuickLeadCreds = document.getElementById('btn-quick-lead-creds');
-    if (btnQuickLeadCreds) {
-      btnQuickLeadCreds.addEventListener('click', (e) => {
-        e.preventDefault();
-        const emailInput = document.getElementById('member-login-email');
-        const passInput = document.getElementById('member-login-password');
-        if (emailInput) emailInput.value = 'satyajit.r2024@vitstudent.ac.in';
-        if (passInput) passInput.value = 'lead123';
-        const alertBox = document.getElementById('member-login-alert');
-        if (alertBox) alertBox.style.display = 'none';
-      });
-    }
-
-    // Core Member: Auto-Fill Regular Member Demo Credentials Button
-    const btnQuickMemberCreds = document.getElementById('btn-quick-member-creds');
-    if (btnQuickMemberCreds) {
-      btnQuickMemberCreds.addEventListener('click', (e) => {
-        e.preventDefault();
-        const emailInput = document.getElementById('member-login-email');
-        const passInput = document.getElementById('member-login-password');
-        if (emailInput) emailInput.value = 'kavya.p2024@vitstudent.ac.in';
-        if (passInput) passInput.value = 'member123';
-        const alertBox = document.getElementById('member-login-alert');
-        if (alertBox) alertBox.style.display = 'none';
-      });
-    }
 
     // Core Member Credential Form Submission (Provisioned Access Only)
     const formLoginMember = document.getElementById('form-login-member');
