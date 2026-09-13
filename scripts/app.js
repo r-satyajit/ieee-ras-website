@@ -180,8 +180,8 @@
       id: 'c-1',
       hash: '8f24a1b',
       msg: 'User updated autonomous-rover-v2',
-      author: 'Satyajit R',
-      github: 'satyajit-r',
+      author: 'XYZ',
+      github: 'xyz',
       time: '2m ago',
       timestamp: Date.now() - 2 * 60 * 1000
     },
@@ -380,7 +380,7 @@
 
   // Simulated Cryptographic File Downloader with Checksums
   function downloadSimulatedFile(filename, content, mime = 'text/plain') {
-    const fullContent = content || `// ==========================================================================\n// IEEE ROBOTICS & AUTOMATION SOCIETY — VIT CHENNAI CHAPTER\n// ASSET: ${filename}\n// TIMESTAMP: ${new Date().toISOString()}\n// VERIFICATION HASH: 0x${Math.random().toString(16).substring(2, 10)}${Math.random().toString(16).substring(2, 10)}\n// AUTHOR: Satyajit R (Lead Architect) & Chapter R&D Core\n// ==========================================================================\n\nVerified society asset package. Certified ready for robotics hardware compilation and simulation.`;
+    const fullContent = content || `// ==========================================================================\n// IEEE ROBOTICS & AUTOMATION SOCIETY — VIT CHENNAI CHAPTER\n// ASSET: ${filename}\n// TIMESTAMP: ${new Date().toISOString()}\n// VERIFICATION HASH: 0x${Math.random().toString(16).substring(2, 10)}${Math.random().toString(16).substring(2, 10)}\n// AUTHOR: XYZ (Lead Architect) & Chapter R&D Core\n// ==========================================================================\n\nVerified society asset package. Certified ready for robotics hardware compilation and simulation.`;
     const blob = new Blob([fullContent], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1295,7 +1295,7 @@
       if (!text) return;
 
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const initials = (state.currentUser.name || 'Satyajit R')
+      const initials = (state.currentUser.name || 'XYZ')
         .split(' ')
         .map(n => n[0])
         .filter(Boolean)
@@ -1467,9 +1467,9 @@
     if (btnChatMention) {
       btnChatMention.addEventListener('click', () => {
         if (!chatInput) return;
-        chatInput.value = chatInput.value + '@Satyajit R ';
+        chatInput.value = chatInput.value + '@XYZ ';
         chatInput.focus();
-        showGlobalToast('Mentioned @Satyajit R (Lead Architect)', '👤');
+        showGlobalToast('Mentioned @XYZ (Lead Architect)', '👤');
       });
     }
 
@@ -2153,7 +2153,7 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
             <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.8rem;">
               <h3 style="font-size: 1.3rem; font-weight: 700; margin: 0 0 0.4rem 0;">End-to-End Autonomous Navigation Pipeline for Planetary Terrain Exploration</h3>
               <div style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
-                Authors: Satyajit R (Lead), Ananya Sharma, Kavya Patel, Rohan Verma, Aryan Nair • IEEE RAS Chapter 2026
+                Authors: XYZ (Lead), Ananya Sharma, Kavya Patel, Rohan Verma, Aryan Nair • IEEE RAS Chapter 2026
               </div>
             </div>
             <div>
@@ -3469,7 +3469,7 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       isHandRaised = !isHandRaised;
       if (handBtn) handBtn.classList.toggle('active', isHandRaised);
       if (userHandBadge) userHandBadge.classList.toggle('active', isHandRaised);
-      showToast(isHandRaised ? 'Satyajit R raised their hand' : 'Hand lowered', '✋');
+      showToast(isHandRaised ? 'XYZ raised their hand' : 'Hand lowered', '✋');
     }
 
     if (handBtn) handBtn.addEventListener('click', toggleHandRaise);
@@ -3583,7 +3583,7 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
         const msgElem = document.createElement('div');
         msgElem.className = 'in-call-msg';
         msgElem.innerHTML = `
-          <span class="in-call-msg-author">Satyajit R (You) • ${timeStr}</span>
+          <span class="in-call-msg-author">XYZ (You) • ${timeStr}</span>
           <span>${escapeHtml(msgText)}</span>
         `;
 
@@ -3982,7 +3982,7 @@ void allocate_thruster_forces(float surge, float sway, float heave, float yaw) {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         const certName = btn.dataset.certName || 'BattleBots 2025 Finalist';
-        const certRecipient = btn.dataset.recipient || 'R Satyajit';
+        const certRecipient = btn.dataset.recipient || 'XYZ';
         const certTitleElem = document.getElementById('cert-modal-title');
         const certRecipientElem = document.getElementById('cert-modal-recipient');
 
