@@ -38,3 +38,9 @@ yarn-error.log*
 *.tmp
 dist/
 build/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
