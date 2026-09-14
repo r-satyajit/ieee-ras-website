@@ -14,6 +14,7 @@ _MEMORY_STORE = {
     "members": [],
     "participants": [],
     "commits": [],
+    "messages": [],
     "initialized": False
 }
 
@@ -227,6 +228,53 @@ def get_default_commits():
         }
     ]
 
+def get_default_messages():
+    """Generate default seed messages for club workspace channels."""
+    lead_name = os.environ.get("LEAD_NAME", "XYZ")
+    lead_email = os.environ.get("LEAD_EMAIL", "xyz@vitstudent.ac.in")
+    return [
+        {
+            "id": "msg-seed-1",
+            "channel": "ai-ml-projects",
+            "author": "Ananya Sharma",
+            "email": "ananya.s2024@vitstudent.ac.in",
+            "role": "club_lead",
+            "role_title": "AI Lead",
+            "text": "Rover point cloud alignment has been integrated with the new ROS2 Humble nav2 costmap layer. The loop closure drift is down to < 1.2cm. Take a look at the revised SLAM lifecycle node.",
+            "time_str": "10:42 AM"
+        },
+        {
+            "id": "msg-seed-2",
+            "channel": "ai-ml-projects",
+            "author": "Rohan Verma",
+            "email": "rohan.v2024@vitstudent.ac.in",
+            "role": "regular_member",
+            "role_title": "Embedded Lead",
+            "text": "I've also attached the technical documentation for the custom STM32 CAN-FD motor driver PCB with PID jitter filtering.",
+            "time_str": "10:48 AM"
+        },
+        {
+            "id": "msg-seed-3",
+            "channel": "general",
+            "author": lead_name,
+            "email": lead_email,
+            "role": "club_lead",
+            "role_title": "Lead Architect",
+            "text": "Welcome to IEEE RAS Autonomous Robotics workspace! Check the Member Directory and Project Showcase for active updates.",
+            "time_str": "11:00 AM"
+        },
+        {
+            "id": "msg-seed-4",
+            "channel": "hardware-troubleshooting",
+            "author": "Kavya Patel",
+            "email": "kavya.p2024@vitstudent.ac.in",
+            "role": "regular_member",
+            "role_title": "Core R&D Engineer",
+            "text": "The 4-DOF planetary rover suspension chassis has passed FEA stress simulation in SolidWorks. Preparing for 3D print prototyping.",
+            "time_str": "11:15 AM"
+        }
+    ]
+
 def init_db():
     """
     Initialize PostgreSQL tables if not present and seed initial data if tables are empty.
@@ -239,6 +287,7 @@ def init_db():
             _MEMORY_STORE["members"] = get_default_members()
             _MEMORY_STORE["participants"] = get_default_participants()
             _MEMORY_STORE["commits"] = get_default_commits()
+            _MEMORY_STORE["messages"] = get_default_messages()
             _MEMORY_STORE["initialized"] = True
         return False, f"PostgreSQL unavailable ({err}). Running on local fallback."
 
@@ -332,6 +381,24 @@ def init_db():
                 ))
             conn.commit()
 
+        # 4. Create messages table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS messages (
+                id VARCHAR(64) PRIMARY KEY,
+                channel VARCHAR(128) NOT NULL,
+                author VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                role VARCHAR(64) DEFAULT 'regular_member',
+                role_title VARCHAR(255) DEFAULT 'Member',
+                text TEXT NOT NULL,
+                time_str VARCHAR(64),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_messages_channel ON messages(channel)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at)")
+        conn.commit()
+
         # Seed commits if table is empty
         cur.execute("SELECT COUNT(*) FROM commits")
         commit_count = cur.fetchone()[0]
@@ -346,6 +413,23 @@ def init_db():
                 """, (
                     c["id"], c["hash"], c["msg"], c["author"], c["github"],
                     c["time_ago"], c["timestamp_val"]
+                ))
+            conn.commit()
+
+        # Seed messages if table is empty
+        cur.execute("SELECT COUNT(*) FROM messages")
+        msg_count = cur.fetchone()[0]
+        if msg_count == 0:
+            default_msgs = get_default_messages()
+            for msg in default_msgs:
+                cur.execute("""
+                    INSERT INTO messages (
+                        id, channel, author, email, role, role_title, text, time_str
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (id) DO NOTHING
+                """, (
+                    msg["id"], msg["channel"], msg["author"], msg["email"],
+                    msg["role"], msg["role_title"], msg["text"], msg["time_str"]
                 ))
             conn.commit()
 
@@ -607,6 +691,106 @@ def save_commit(c):
         print(f"Error saving commit to DB: {exc}")
         return c
 
+def get_messages(channel=None, limit=100):
+    """Retrieve messages filtered by channel (or all if channel is None/empty)."""
+    conn, err = get_connection()
+    if err:
+        if not _MEMORY_STORE["initialized"]:
+            init_db()
+        all_msgs = _MEMORY_STORE["messages"]
+        if channel and channel != "all":
+            return [m for m in all_msgs if m.get("channel") == channel]
+        return all_msgs
+
+    try:
+        cur = conn.cursor()
+        if channel and channel != "all":
+            cur.execute("""
+                SELECT id, channel, author, email, role, role_title, text, time_str, created_at
+                FROM messages
+                WHERE channel = %s
+                ORDER BY created_at ASC
+                LIMIT %s
+            """, (channel, limit))
+        else:
+            cur.execute("""
+                SELECT id, channel, author, email, role, role_title, text, time_str, created_at
+                FROM messages
+                ORDER BY created_at ASC
+                LIMIT %s
+            """, (limit,))
+        
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        messages = []
+        for r in rows:
+            messages.append({
+                "id": r[0],
+                "channel": r[1],
+                "author": r[2],
+                "email": r[3],
+                "role": r[4],
+                "roleTitle": r[5] or "Member",
+                "text": r[6],
+                "time": r[7] or "",
+                "createdAt": str(r[8]) if r[8] else ""
+            })
+        return messages
+    except Exception as e:
+        print(f"Error fetching messages from DB: {e}")
+        all_msgs = _MEMORY_STORE["messages"]
+        if channel and channel != "all":
+            return [m for m in all_msgs if m.get("channel") == channel]
+        return all_msgs
+
+def save_message(m):
+    """Insert a message into messages table."""
+    conn, err = get_connection()
+    m_id = m.get("id") or f"msg-{int(time.time()*1000)}-{os.urandom(2).hex()}"
+    channel = m.get("channel") or "ai-ml-projects"
+    author = m.get("author") or "Member"
+    email = m.get("email") or ""
+    role = m.get("role") or "regular_member"
+    role_title = m.get("roleTitle") or m.get("role_title") or "Member"
+    text = m.get("text") or ""
+    time_str = m.get("time") or m.get("time_str") or time.strftime("%I:%M %p")
+
+    record = {
+        "id": m_id,
+        "channel": channel,
+        "author": author,
+        "email": email,
+        "role": role,
+        "roleTitle": role_title,
+        "text": text,
+        "time": time_str
+    }
+
+    if err:
+        _MEMORY_STORE["messages"].append(record)
+        return record
+
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO messages (
+                id, channel, author, email, role, role_title, text, time_str
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (id) DO NOTHING
+        """, (
+            m_id, channel, author, email, role, role_title, text, time_str
+        ))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return record
+    except Exception as exc:
+        print(f"Error saving message to DB: {exc}")
+        _MEMORY_STORE["messages"].append(record)
+        return record
+
 def check_db_status():
     """Check database connection and return status information."""
     conn, err = get_connection()
@@ -625,6 +809,8 @@ def check_db_status():
         p_count = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM commits")
         c_count = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM messages")
+        msg_count = cur.fetchone()[0]
         cur.close()
         conn.close()
         return {
@@ -633,7 +819,8 @@ def check_db_status():
             "message": "Cloud PostgreSQL database is online and healthy.",
             "members_count": m_count,
             "participants_count": p_count,
-            "commits_count": c_count
+            "commits_count": c_count,
+            "messages_count": msg_count
         }
     except Exception as e:
         return {

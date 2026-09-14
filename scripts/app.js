@@ -541,6 +541,10 @@
     state.activeScreen = screenName;
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
+    if (screenName === 'member' && typeof window.fetchChannelMessages === 'function') {
+      window.fetchChannelMessages(state.activeChannel || 'ai-ml-projects', false);
+    }
+
     // Update canvas visibility: more prominent on landing, subtle in portals
     if (canvas) {
       canvas.style.opacity = screenName === 'landing' ? '1' : '0.25';
@@ -1121,6 +1125,9 @@
       if (channelTitleElem) {
         channelTitleElem.textContent = `#${channelName}`;
       }
+      if (typeof fetchChannelMessages === 'function') {
+        fetchChannelMessages(channelName, true);
+      }
     }
 
     if (channelListContainer) {
@@ -1311,6 +1318,92 @@
       });
     }
 
+    // Render an individual message into chat container with deduplication
+    function renderChatMessage(msg, container) {
+      if (!container || !msg) return;
+      if (msg.id && container.querySelector(`.chat-msg-row[data-msg-id="${msg.id}"]`)) {
+        return; // Already present in DOM
+      }
+
+      const isSelf = (msg.email && state.currentUser.email && msg.email.toLowerCase() === state.currentUser.email.toLowerCase()) || 
+                     (msg.author === state.currentUser.name);
+
+      const initials = (msg.author || 'MB')
+        .split(' ')
+        .map(n => n[0])
+        .filter(Boolean)
+        .join('')
+        .substring(0, 2)
+        .toUpperCase() || 'MB';
+
+      const isLead = msg.role === 'club_lead';
+      const roleTitle = msg.roleTitle || (isLead ? 'Lead' : 'Member');
+      const roleBadge = isLead
+        ? `<span class="badge-pill badge-green" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">${escapeHtml(roleTitle)}</span>`
+        : `<span class="badge-pill" style="padding: 0.1rem 0.4rem; font-size: 0.65rem; background: rgba(255,255,255,0.1); color: var(--text-secondary);">${escapeHtml(roleTitle)}</span>`;
+
+      const msgRow = document.createElement('div');
+      msgRow.className = 'chat-msg-row';
+      if (msg.id) msgRow.setAttribute('data-msg-id', msg.id);
+
+      const avatarClass = isSelf ? 'msg-avatar msg-avatar-user' : 'msg-avatar';
+      const avatarStyle = !isSelf ? 'background: #0077b6; color: #fff;' : '';
+
+      msgRow.innerHTML = `
+        <div class="${avatarClass}" style="${avatarStyle}">${initials}</div>
+        <div class="msg-body">
+          <div class="msg-meta">
+            <span class="msg-author">${escapeHtml(msg.author || 'Member')}</span>
+            ${roleBadge}
+            <span class="msg-time">${escapeHtml(msg.time || '')}</span>
+          </div>
+          <div class="msg-bubble">${escapeHtml(msg.text || '')}</div>
+        </div>
+      `;
+
+      container.appendChild(msgRow);
+    }
+
+    // Cache initial HTML markup for ai-ml-projects
+    const defaultAiMlHtml = chatMessagesContainer ? chatMessagesContainer.innerHTML : '';
+
+    // Fetch and sync messages for the active channel from Cloud PostgreSQL
+    function fetchChannelMessages(channelName, isChannelSwitch = false) {
+      if (!chatMessagesContainer) return;
+      const targetChannel = channelName || state.activeChannel || 'ai-ml-projects';
+
+      fetch('/api/messages?channel=' + encodeURIComponent(targetChannel))
+        .then(res => res.ok ? res.json() : null)
+        .then(messages => {
+          if (!Array.isArray(messages)) return;
+          if (state.activeChannel && state.activeChannel !== targetChannel) return;
+
+          if (isChannelSwitch) {
+            if (targetChannel === 'ai-ml-projects') {
+              chatMessagesContainer.innerHTML = defaultAiMlHtml;
+            } else {
+              chatMessagesContainer.innerHTML = '';
+            }
+          }
+
+          let addedAny = false;
+          messages.forEach(msg => {
+            if (msg.id && chatMessagesContainer.querySelector(`.chat-msg-row[data-msg-id="${msg.id}"]`)) {
+              return;
+            }
+            renderChatMessage(msg, chatMessagesContainer);
+            addedAny = true;
+          });
+
+          if (addedAny || isChannelSwitch) {
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+          }
+        })
+        .catch(() => {});
+    }
+
+    window.fetchChannelMessages = fetchChannelMessages;
+
     // Send Message
     function sendMessage() {
       if (!chatInput) return;
@@ -1318,37 +1411,50 @@
       if (!text) return;
 
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const initials = (state.currentUser.name || 'XYZ')
-        .split(' ')
-        .map(n => n[0])
-        .filter(Boolean)
-        .join('')
-        .substring(0, 2)
-        .toUpperCase() || 'SR';
+      const currentChannel = state.activeChannel || 'ai-ml-projects';
+      const msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
 
-      const isLead = state.currentUser.role === 'club_lead';
-      const roleBadge = isLead
-        ? `<span class="badge-pill badge-green" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">Lead</span>`
-        : `<span class="badge-pill" style="padding: 0.1rem 0.4rem; font-size: 0.65rem; background: rgba(255,255,255,0.1); color: var(--text-secondary);">Member</span>`;
+      const msgPayload = {
+        id: msgId,
+        channel: currentChannel,
+        author: state.currentUser.name || 'XYZ',
+        email: state.currentUser.email || '',
+        role: state.currentUser.role || 'regular_member',
+        roleTitle: state.currentUser.roleTitle || (state.currentUser.role === 'club_lead' ? 'Lead Architect' : 'Member'),
+        text: text,
+        time: timeStr
+      };
 
-      const msgRow = document.createElement('div');
-      msgRow.className = 'chat-msg-row';
-      msgRow.innerHTML = `
-        <div class="msg-avatar msg-avatar-user">${initials}</div>
-        <div class="msg-body">
-          <div class="msg-meta">
-            <span class="msg-author">${escapeHtml(state.currentUser.name)}</span>
-            ${roleBadge}
-            <span class="msg-time">${timeStr}</span>
-          </div>
-          <div class="msg-bubble">${escapeHtml(text)}</div>
-        </div>
-      `;
-
-      chatMessagesContainer.appendChild(msgRow);
+      // Optimistically render message immediately
+      renderChatMessage(msgPayload, chatMessagesContainer);
       chatInput.value = '';
-      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+      if (chatMessagesContainer) {
+        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+      }
+
+      // Persist permanently to Cloud PostgreSQL via REST API
+      fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msgPayload)
+      }).catch(err => {
+        console.warn('Notice: Message saved locally; cloud queueing:', err);
+      });
     }
+
+    // Start serverless short-polling for new messages across all accounts (every 3 seconds)
+    if (window._chatPollingInterval) clearInterval(window._chatPollingInterval);
+    window._chatPollingInterval = setInterval(() => {
+      const memberScreen = document.getElementById('screen-member');
+      const chatView = document.getElementById('member-view-chat');
+      if (memberScreen && memberScreen.classList.contains('active-screen') &&
+          chatView && chatView.classList.contains('active-view')) {
+        fetchChannelMessages(state.activeChannel || 'ai-ml-projects', false);
+      }
+    }, 3000);
+
+    // Initial message fetch for default channel
+    fetchChannelMessages('ai-ml-projects', false);
 
     if (sendBtn) sendBtn.addEventListener('click', sendMessage);
     if (chatInput) {

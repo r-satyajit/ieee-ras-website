@@ -5,6 +5,7 @@ Handles routing, static file delivery, and serverless Cloud PostgreSQL REST API.
 import os
 import json
 import mimetypes
+import urllib.parse
 from http.server import BaseHTTPRequestHandler
 import db
 
@@ -73,7 +74,11 @@ class handler(BaseHTTPRequestHandler):
         
         # --- API Routes ---
         if clean_path.startswith("api/"):
-            endpoint = clean_path[4:]
+            raw_path = self.path.split("?")[0].lstrip("/")
+            query_str = self.path.split("?")[1] if "?" in self.path else ""
+            query_params = urllib.parse.parse_qs(query_str)
+            endpoint = raw_path[4:]
+
             if endpoint == "health":
                 return self._send_json(200, db.check_db_status())
             elif endpoint == "members":
@@ -82,6 +87,9 @@ class handler(BaseHTTPRequestHandler):
                 return self._send_json(200, db.get_participants())
             elif endpoint == "commits":
                 return self._send_json(200, db.get_commits())
+            elif endpoint == "messages":
+                channel = query_params.get("channel", [None])[0]
+                return self._send_json(200, db.get_messages(channel=channel))
             elif endpoint == "init-db":
                 ok, msg = db.init_db()
                 return self._send_json(200 if ok else 500, {"success": ok, "message": msg})
@@ -160,6 +168,10 @@ class handler(BaseHTTPRequestHandler):
             elif endpoint == "commits":
                 saved = db.save_commit(data)
                 return self._send_json(200, {"success": True, "commit": saved})
+
+            elif endpoint == "messages":
+                saved = db.save_message(data)
+                return self._send_json(200, {"success": True, "message": saved})
 
             elif endpoint == "init-db":
                 ok, msg = db.init_db()
